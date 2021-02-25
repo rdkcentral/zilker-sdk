@@ -1,0 +1,162 @@
+##
+## template file for generating the Event Adapter source.
+## one of the more complex pieces of generated code.
+## refer to https://etwiki.sys.comcast.net/display/CPE/Zilker+IPC+Generator
+##
+
+/**
+ * EventAdapter for consuming events from ${service} service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <pthread.h>
+
+#include <icConcurrent/icThreadSafeWrapper.h>
+#include <icTypes/icLinkedList.h>
+#include <icLog/logging.h>
+#include <icBuildtime.h>
+${c_include_sec}
+
+/* private/local function declarations */
+static void initRegistration();                                                      // one-time setup with EventConsumer
+static void generalEventHandler(int eventCode, int eventValue, cJSON *jsonPayload);  // callback sent to EventConsumer.h
+static bool findListener(void *searchVal, void *item);                            // linkedListComparator function
+static void *listCreateFunc(void);
+static void listDestroyFunc(void *item);
+static void listAppendFunc(void *item, void *context);
+static void doNotDestroyListenerFunc(void *item);
+static bool listCheckReleaseFunc(void *item);
+${c_function_decs}
+
+/* private/local variables */
+${c_variable_defs}
+
+// flag to indicate we registered for events (ever)
+//
+static bool registered = false;
+static int16_t registeredCount = 0;
+static pthread_mutex_t INIT_MTX = PTHREAD_MUTEX_INITIALIZER;        // mutex for the register flag
+
+/*
+ * internal function supplied to EventConsumer during initRegistration().
+ * When called, this callback will decode 'jsonPayload', then forward the
+ * event notification to all 'listener' functions that have registered with us 
+ * via the local 'register_*' functions.
+ */
+static void generalEventHandler(int32_t eventCode, int32_t eventValue, cJSON *jsonPayload)
+{
+    switch (eventCode)
+    {
+${event_code_handler}
+        default:
+            icLogError("${service}_event", "error propigating unknown ${service} event:  eventCode=%d eventValue=%d", eventCode, eventValue);
+            break;
+    }
+}
+
+/*
+ * register with EventConsumer if required.  internal, so assumes caller has INIT_MTX
+ */
+static void initRegistration()
+{
+    if (registered == false)
+    {
+        // register 'generalEventHandler' with EventConsumer 
+        //
+        if (startEventListener(${server_port_name}_PORT_NUM, generalEventHandler) == true)
+        {
+            registered = true;
+        }
+        else
+        {
+            icLogError("${service}_event", "error registering for ${service} events");
+        }
+    }
+}
+
+/*
+ * function passed to LinkedList to serve as a 'linkedListComparator'
+ * used by 'unregister' functions to locate a 'listener' and remove it
+ */
+static bool findListener(void *searchVal, void *item)
+{
+    // simple pointer comparison
+    if (searchVal == item)
+    {
+        // found match
+        return true;
+    }
+    return false;
+}
+
+/*
+ * icThreadSafeWrapper function for auto assigning a listener list
+ */
+static void *listCreateFunc(void)
+{
+    return linkedListCreate();
+}
+
+/*
+ * icThreadSafeWrapper function for destroying a listener list
+ */
+static void listDestroyFunc(void *item)
+{
+    linkedListDestroy((icLinkedList *)item, standardDoNotFreeFunc);
+}
+
+/*
+ * icThreadSafeWrapper function for appending a listener to a listener list
+ */
+static void listAppendFunc(void *item, void *context)
+{
+    linkedListAppend((icLinkedList *)item, context);
+}
+
+/*
+ * icThreadSafeWrapper function for destroy the context pointer for a write
+ */
+static void doNotDestroyListenerFunc(void *item)
+{
+}
+
+/*
+ * icThreadSafeWrapper function for checking whether a listener list is empty so that it gets auto released
+ */
+static bool listCheckReleaseFunc(void *item)
+{
+    icLinkedList *list = (icLinkedList *)item;
+    return linkedListCount(list) == 0;
+}
+
+##
+## Service specific thread pools functions
+##
+/**
+ * Register a thread pool to handle events from ${service} instead of using
+ * the default thread pool.  Caller is passing ownership of the thread pool,
+ * which will get cleaned up with unregister_${service}_eventHandlerThreadPool
+ * is called.  If a thread pool is already registered this returns false
+ */
+bool register_${service}_eventHandlerThreadPool(icThreadPool *threadPool)
+{
+    return registerServiceSpecificEventHandlerThreadPool(${server_port_name}_PORT_NUM, threadPool);
+}
+
+/**
+ * Unregister the service specific thread pool to handle events from
+ * ${service}.  If no thread pool was registered this returns false.
+ */
+bool unregister_${service}_eventHandlerThreadPool()
+{
+    return unregisterServiceSpecificEventHandlerThreadPool(${server_port_name}_PORT_NUM);
+}
+
+##
+## various functions here
+##
+${event_c_function_body}

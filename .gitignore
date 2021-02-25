@@ -1,0 +1,43 @@
+#
+# build output directories
+#
+build/
+out/
+target/
+clionbuild/
+clionEnv/
+clion-config/
+cross_output/
+cmake-build-*/
+.gradle/
+tools/crypto/upgrade/legacy/secring.gpg
+
+#
+# IDE files
+#
+.idea
+.classpath
+.project
+.cproject
+.*.swp
+tags
+cscope.*
+*.iml
+GitCommitMessage.template
+
+# 
+# files created by 'make'
+#
+*-package.tgz
+.DS_Store
+local.properties
+
+#
+# maven
+# 
+pom.xml
+
+#
+# Zith
+#
+spring-shell.log

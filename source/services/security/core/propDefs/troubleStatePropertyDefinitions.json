@@ -1,0 +1,10 @@
+[
+  {
+    "propertyName": "cpe.trouble.preLowBatteryDays",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.trouble.preLowBatteryDays.dev.flag",
+    "propertyType": "boolean"
+  }
+]

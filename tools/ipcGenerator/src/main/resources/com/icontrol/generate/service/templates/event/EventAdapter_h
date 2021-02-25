@@ -1,0 +1,46 @@
+##
+## template file for generating the Event Adapter header
+##
+
+/**
+ * EventAdapter for consuming events from ${service} service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+
+#ifndef ${c_header_ifdef}
+#define ${c_header_ifdef}
+
+#include <time.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <cjson/cJSON.h>
+#include <icIpc/baseEvent.h>
+#include <icIpc/eventConsumer.h>
+#include <icConcurrent/threadPool.h>
+${c_include_sec}
+
+##
+## Service specific thread pools prototypes
+##
+/**
+ * Register a thread pool to handle events from ${service} instead of using
+ * the default thread pool.  Caller is passing ownership of the thread pool,
+ * which will get cleaned up with unregister_${service}_eventHandlerThreadPool
+ * is called.  If a thread pool is already registered this returns false
+ */
+bool register_${service}_eventHandlerThreadPool(icThreadPool *threadPool);
+
+/**
+ * Unregister the service specific thread pool to handle events from
+ * ${service}.  If no thread pool was registered this returns false.
+ */
+bool unregister_${service}_eventHandlerThreadPool();
+
+## 
+## all function prototypes (add/remove listener)
+##
+${c_function_decs}
+
+#endif /* ${c_header_ifdef} */ 
+

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "title": "SensorTrouble",
+  "description": "Schema of a 'sensor trouble'",
+  "type": "object",
+  "allOf": [{"$ref": "deviceTrouble.json"}],
+  "properties": {
+    "zoneNumber": {
+      "description": "The zone number corresponding to the trouble",
+      "type": "integer",
+      "minimum": 1
+    },
+    "zoneType": {
+      "description": "The zone type corresponding to the trouble",
+      "type": "integer",
+      "minimum": 0
+    },
+    "alarmArmType": {
+      "description": "The current alarm arm type corresponding to the trouble",
+      "type": "integer",
+      "minimum": 0
+    },
+    "alarmStatusType": {
+      "description": "The current alarm status type corresponding to the trouble",
+      "type": "integer",
+      "minimum": 0
+    },
+    "currentSystemMode": {
+      "description": "The current scene mode corresponding to the trouble",
+      "type": "string"
+    }
+  }
+}

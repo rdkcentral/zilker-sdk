@@ -1,0 +1,132 @@
+##
+## Native IPC request handler template that attempts to mimic Java as best as possible
+##
+
+/**
+ * IPC Message Handling for ${service} Service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+
+#ifndef ${c_header_ifdef}
+#define ${c_header_ifdef}
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <string.h>
+#include <icIpc/ipcMessage.h>
+#include <icIpc/ipcReceiver.h>
+#include <icIpc/ipcStockMessages.h>
+${c_include_sec}
+
+/*
+ * step 1 of the startup sequence:
+ * optional callback notification that occurs when
+ * it is safe to interact with dependent services.
+ * this is triggered by watchdogService directly.
+ */
+typedef void (*performServiceInitCallback)(void);
+
+/*
+ * step 2 of the startup sequence:
+ * optional callback notification that occurs when
+ * all services are initialized and ready for use.
+ * this is triggered by the WATCHDOG_INIT_COMPLETE
+ * event.
+ */
+typedef void (*allServicesAvailableCallback)(void);
+
+/*
+ * optional callback notification that gets called
+ * when the service is requested to shutdown via IPC
+ * (not when we internally call shutdown_${service}_ipc_handler)
+ *
+ * @see handle_${service}_SHUTDOWN_SERVICE_request
+ */
+typedef void (*performShutdownCallback)(void);
+
+/*
+ * begin the service startup sequence.  this function will:
+ *   1. start the IPC receiver,
+ *   2. create random shutdown token
+ *   3. inform watchdog this service is started
+ *   4. notify the 'performServiceInitCallback' when told to via watchdog
+ *   5. notify the 'allServicesAvailableCallback' when watchdog sends the event
+ *
+ *  NOTE: when 'blockOnIpc' is set, this function will not return until the
+ *        IPC receiver exits it's processing loop; and once this returns,
+ *        the process should perform cleanup and exit.
+ *
+ * @param initCallback - optional, but if defined called during "step 1"
+ * @param allCompleteCallback - optional, but if defined called during "step 2"
+ * @param shutdownCallback - optional function to call when asked to shutdown via IPC
+ * @param minIpcThreadCount - the min number of threads for the 'threadPool'
+ * @param maxIpcThreadCount - the max number of threads for the 'threadPool'
+ * @param maxIpcQueueCount - the max number of requests to keep in the threadPool's queue
+ * @param blockOnIpc - if true (what most do), blocks until the IPC receiver exits
+ */
+void startupService_${service}(performServiceInitCallback initCallback,
+                               allServicesAvailableCallback allCompleteCallback,
+                               performShutdownCallback shutdownCallback,
+                               uint16_t minIpcThreadCount,
+                               uint16_t maxIpcThreadCount,
+                               uint32_t maxIpcQueueCount,
+                               bool blockOnIpc);
+
+/*
+ * Tell the IPC receiver to shut down and wait for it to exit.
+ */
+void shutdown_${service}_ipc_handler();
+
+/*
+ * perform a delayed shutdown of the IPC receiver.  allows 'shutdown'
+ * to be handeled from an IPC request.
+ */
+void shutdown_${service}_ipc_handler_with_delay(uint16_t delaySeconds);
+
+/*
+ * return the IPC receiver object
+ */
+IpcReceiver get_${service}_ipc_receiver();
+
+/*
+ * return if the ipc handler is shutdown
+ */
+bool is_${service}_ipc_handler_shutdown(void);
+
+/*
+ * NOTE: The remaining functions MUST BE IMPLEMENTED
+ * NOTE: by the service - as these are stubs called by
+ * NOTE: the IPC handler.
+ */
+
+/**
+ * obtain the current runtime statistics of the service
+ *   input - if true, reset stats after collecting them
+ *   output - map of string/string to use for getting statistics
+ **/
+IPCCode handle_${service}_GET_RUNTIME_STATS_request(bool input, runtimeStatsPojo *output);
+
+/**
+ * obtain the current status of the service as a set of string/string values
+ *   output - map of string/string to use for getting status
+ **/
+IPCCode handle_${service}_GET_SERVICE_STATUS_request(serviceStatusPojo *output);
+
+/**
+ * inform a service that the configuration data was restored, into 'restoreDir'.
+ * allows the service an opportunity to import files from the restore dir into the
+ * normal storage area.  only happens during RMA situations.
+ *   details - both the 'temp dir' the config was extracted to, and the 'target dir' of where to store
+ */
+IPCCode handle_${service}_CONFIG_RESTORED_request(configRestoredInput *input, configRestoredOutput *output);
+
+##
+## all handler function prototypes
+##
+${c_function_decs}
+
+#endif /* ${c_header_ifdef} */

@@ -1,0 +1,18 @@
+##
+## template for a single Event "encode" function prototype
+## NOTE: has the same signature as encode_func_proto_h
+##
+
+/*
+ * 'encode to JSON' function for ${pojo_c_varname}
+ */
+cJSON *encode_${pojo_c_varname}_toJSON(${pojo_classname} *pojo)
+{
+    // prime JSON with information from BaseEvent
+    cJSON *root = baseEvent_toJSON(&(pojo->baseEvent));
+
+${pojo_encode_body}
+
+    return root;
+}
+

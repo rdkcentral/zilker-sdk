@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "title": "CameraTrouble",
+  "description": "Schema of a 'camera trouble'",
+  "type": "object",
+  "allOf": [{"$ref": "deviceTrouble.json"}],
+  "properties": {
+    "reason": {
+      "description": "The reason for the trouble",
+      "enum": [ "commFail", "authFail" ]
+    }
+  },
+  "required": ["reason"]
+}

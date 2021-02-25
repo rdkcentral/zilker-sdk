@@ -1,0 +1,76 @@
+
+package ${java_pkg};
+
+//-----------
+//imports
+//-----------
+
+import java.util.*;
+import com.icontrol.ipc.impl.*;
+import org.json.*;
+${java_import_sec}
+
+//-----------------------------------------------------------------------------
+// Class definition:    ${java_class}
+/**
+ *  POJO to contain values for a API or Event object specific to the ${service} Service.
+ *  Implements ObjectIPC so that it can be encoded/decoded and transported
+ *  to C and/or Java recipients
+ *  <p>
+ *  THIS IS AN AUTO-GENERATED FILE, DO NOT EDIT!!!!!!!!
+ **/
+//-----------------------------------------------------------------------------
+public class ${java_class} implements ObjectIPC${IMPLEMENTS_MARKER}
+{
+${java_free_form}
+
+${java_var_sec}
+    
+    //--------------------------------------------
+    /**
+     * Empty Constructor for dynamic allocation
+     */
+    //--------------------------------------------
+    public ${java_class}()
+    {
+${CONSTRUCTOR_MARKER}
+    }
+    
+${java_clone}
+${java_get_set_sec}
+
+    //--------------------------------------------
+    /**
+     * @see java.lang.Object#toString()
+     */
+    //--------------------------------------------
+    @Override
+    public String toString()
+    {
+        return ${to_string};
+    }
+
+    //--------------------------------------------
+    /**
+     * Encode using JSON
+     */
+    //--------------------------------------------
+    public JSONObject toJSON() throws JSONException
+    {
+${pojo_encode_body}
+    }
+
+    //--------------------------------------------
+    /**
+     * Decode using JSON
+     */
+    //--------------------------------------------
+    public void fromJSON(JSONObject buffer) throws JSONException
+    {
+${pojo_decode_body}
+    }
+}
+
+//+++++++++++
+//EOF
+//+++++++++++

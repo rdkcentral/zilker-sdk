@@ -1,0 +1,10 @@
+##
+## template file for Event header-file typedef definitions
+##
+
+/*
+ * event definitions
+ */
+
+${c_type_defs}
+

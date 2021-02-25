@@ -1,0 +1,23 @@
+[
+  {
+    "propertyName": "cpe.zigbee.healthCheck.intervalMillis",
+    "propertyType": "uint32",
+    "minValue":     "1000"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.ccaThreshold",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.ccaFailureThreshold",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.restoreThreshold",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.delayBetweenThresholdRetriesMillis",
+    "propertyType": "uint32"
+  }
+]

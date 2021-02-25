@@ -1,0 +1,19 @@
+##
+## template to decode an event for a specific event code/value
+##
+##		case ${event_code}:
+		{
+			// decode ${event_classname} from 'jsonPayload'
+			//
+			${event_classname} *event = create_${event_classname}();
+			${event_decode_function}(event, jsonPayload);
+
+			// notify listeners
+			//
+			notifyListeners_${event_classname}(event);
+
+			// cleanup
+			//
+			destroy_${event_classname}(event);
+			break;
+		}

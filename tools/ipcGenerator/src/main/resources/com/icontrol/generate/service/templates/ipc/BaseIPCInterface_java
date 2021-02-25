@@ -1,0 +1,29 @@
+
+package ${java_pkg};
+
+//-----------
+//imports
+//-----------
+
+//-----------------------------------------------------------------------------
+// Interface definition:    ${java_class}
+/**
+ *  Define the list of possible IPC messages that can be sent to ${service}
+ *  <p>
+ *  THIS IS AN AUTO-GENERATED FILE, DO NOT EDIT!!!!!!!!
+ **/
+//-----------------------------------------------------------------------------
+public interface ${java_class}
+{
+    /* local loopback port Service is listening on */
+    public static final int ${server_port_name}_PORT_NUM = ${server_port_num};
+    
+${java_free_form}
+
+${java_var_sec}
+
+}
+
+//+++++++++++
+//EOF
+//+++++++++++

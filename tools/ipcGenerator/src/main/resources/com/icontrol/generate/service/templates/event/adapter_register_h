@@ -1,0 +1,11 @@
+##
+## template file for EventAdapter header-file 
+## used to generate the listener function declarations 
+##
+
+/*
+ * receive ${event_classname} events.  as they arrive, 
+ * the 'listener' function will be called
+ */
+extern void register_${event_classname}_eventListener(handleEvent_${event_classname} listener);
+

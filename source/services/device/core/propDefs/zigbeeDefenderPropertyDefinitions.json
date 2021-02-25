@@ -1,0 +1,14 @@
+[
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeThreshold",
+    "propertyType": "uint8"
+  },
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeWindowMillis",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeRestoreMillis",
+    "propertyType": "uint32"
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "propertyName": "cpe.camera.offlineDetectionThreshold",
+    "propertyType": "uint32",
+    "minValue":     "2"
+  },
+  {
+    "propertyName": "cpe.camera.onlineDetectionThreshold",
+    "propertyType": "uint32",
+    "minValue":     "1"
+  },
+  {
+    "propertyName": "cpe.camera.pingIntervalSeconds",
+    "propertyType": "uint32",
+    "minValue":     "30"
+  },
+  {
+    "propertyName": "camera.local.motion.default",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "cameraFirmwareBaseUrl",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "localIpAddress",
+    "propertyType": "string"
+  }
+]

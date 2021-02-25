@@ -1,0 +1,11 @@
+[
+  {
+    "propertyName": "comm.activation.server.notified",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "comm.activation.state",
+    "propertyType": "uint32",
+    "minValue":     "0"
+  }
+]

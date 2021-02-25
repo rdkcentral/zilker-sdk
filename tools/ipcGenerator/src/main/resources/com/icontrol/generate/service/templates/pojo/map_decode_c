@@ -1,0 +1,43 @@
+##
+## expansion of "${pojo_encode_body}" to reside in fromJSON()
+##
+${pad}// get the 3 structures added during encoding:
+${pad}//  1 - values
+${pad}//  2 - types
+${pad}//  3 - keys
+${pad}cJSON *${name}Vals_json = cJSON_GetObjectItem(${parent_container}, "${name}Vals");
+${pad}cJSON *${name}Types_json = cJSON_GetObjectItem(${parent_container}, "${name}Types");
+${pad}cJSON *${name}Keys_json = cJSON_GetObjectItem(${parent_container}, "${name}Keys");
+${pad}if (${name}Vals_json != NULL && ${name}Types_json != NULL && ${name}Keys_json != NULL)
+${pad}{
+${pad}    // loop through keys to extract values and types
+${pad}    //
+${pad}    int i;
+${pad}    int size = cJSON_GetArraySize(${name}Keys_json);
+${pad}    for (i = 0 ; i < size ; i++)
+${pad}    {
+${pad}        // get the next key
+${pad}        //
+${pad}        cJSON *key = cJSON_GetArrayItem(${name}Keys_json, i);
+${pad}        if (key == NULL || key->valuestring == NULL)
+${pad}        {
+${pad}            continue;
+${pad}        }
+
+${pad}        // pull it's type & value
+${pad}        //
+${pad}        cJSON *type = cJSON_GetObjectItem(${name}Types_json, key->valuestring);
+${pad}        if (type == NULL || type->valuestring == NULL)
+${pad}        {
+${pad}            continue;
+${pad}        }
+${pad}        item = cJSON_GetObjectItem(${name}Vals_json, key->valuestring);
+${pad}        if (item == NULL)
+${pad}        {
+${pad}            continue;
+${pad}        }
+
+${pad}        ${check_each_type}
+${pad}    }
+${pad}    rc = 0;
+${pad}}

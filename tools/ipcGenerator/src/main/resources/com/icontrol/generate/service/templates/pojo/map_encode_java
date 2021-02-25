@@ -1,0 +1,36 @@
+##
+## expansion of "${pojo_encode_body}" to reside in toJSON()
+##
+${pad}if (${name}ValuesMap != null && ${name}TypesMap != null)
+${pad}{
+${pad}    // need 3 structures to allow proper decoding later on
+${pad}    //  1 - values
+${pad}    //  2 - types
+${pad}    //  3 - keys
+${pad}    JSONObject ${name}Vals_json = new JSONObject();
+${pad}    JSONObject ${name}Types_json = new JSONObject();
+${pad}    JSONArray ${name}Keys_json = new JSONArray();
+            
+${pad}    // add each value & type
+${pad}    for (Map.Entry<String,Object> entry : ${name}ValuesMap.entrySet())
+${pad}    {
+${pad}        String key = entry.getKey();
+${pad}        Object val = entry.getValue();
+${pad}        String kind = ${name}TypesMap.get(key);
+${pad}        if ((val != null) && (kind != null))
+${pad}        {
+${pad}            ${check_each_type}
+
+${pad}            // save the key & type for decode
+${pad}            //
+${pad}            ${name}Types_json.put(key, kind);
+${pad}            ${name}Keys_json.put(key);
+${pad}        }
+${pad}    }
+
+${pad}    // add all 3 containers to the parent
+${pad}    //
+${pad}    ${parent_container}.put("${name}Vals", ${name}Vals_json);
+${pad}    ${parent_container}.put("${name}Types", ${name}Types_json);
+${pad}    ${parent_container}.put("${name}Keys", ${name}Keys_json);
+${pad}}

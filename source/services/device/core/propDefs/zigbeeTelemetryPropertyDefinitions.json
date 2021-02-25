@@ -1,0 +1,14 @@
+[
+  {
+    "propertyName": "telemetry.hoursRemaining",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "telemetry.upload",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "telemetry.maxAllowedFileStorage",
+    "propertyType": "uint32"
+  }
+]

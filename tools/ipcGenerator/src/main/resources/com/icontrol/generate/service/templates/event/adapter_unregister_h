@@ -1,0 +1,10 @@
+##
+## template file for EventAdapter header-file 
+## used to generate the listener function declarations 
+##
+
+/*
+ * cancel receive ${event_classname} events.
+ */
+extern void unregister_${event_classname}_eventListener(handleEvent_${event_classname} listener);
+

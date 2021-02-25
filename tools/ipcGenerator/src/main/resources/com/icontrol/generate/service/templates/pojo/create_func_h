@@ -1,0 +1,8 @@
+##
+## template for a single POJO "create" function, specific to ArrayVar and MapVar
+##
+
+/*
+ * 'create' function for ${pojo_c_varname}
+ */
+extern ${pojo_classname} *create_${pojo_c_varname}();

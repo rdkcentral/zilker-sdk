@@ -1,0 +1,65 @@
+${HEADER}
+
+package ${java_pkg};
+
+//-----------
+//imports
+//-----------
+
+//-----------------------------------------------------------------------------
+// Enumeration definition:    ${java_class}
+/**
+ *  Enumeration used by the ${family} Service; specifically when sending/getting
+ *  IPC messages and Events.  Supports both C and Java clients.
+ *  <p>
+ *  THIS IS AN AUTO-GENERATED FILE, DO NOT EDIT!!!!!!!!
+ **/
+//-----------------------------------------------------------------------------
+public enum ${java_class}
+{
+${enum_values}
+
+    // for ordinal & C support
+    private int numValue;
+
+    //--------------------------------------------
+    /**
+     * Empty Constructor for dynamic allocation
+     */
+    //--------------------------------------------
+    ${java_class}(int num)
+    {
+        numValue = num;
+    }
+    
+    //--------------------------------------------
+    /**
+     * Return numeric value
+     */
+    //--------------------------------------------
+    public int getNumValue()
+    {
+        return numValue;
+    }
+    
+    //--------------------------------------------
+    /**
+     * Translate from C int code to the Enumeration
+     */
+    //--------------------------------------------
+    public static ${java_class} enumForInt(int code)
+    {
+        for (${java_class} possible : ${java_class}.values())
+        {
+            if (possible.numValue == code)
+            {
+                return possible;
+            }
+        }
+        return null;
+    }
+}
+
+//+++++++++++
+//EOF
+//+++++++++++

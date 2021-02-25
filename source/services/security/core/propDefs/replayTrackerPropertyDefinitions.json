@@ -1,0 +1,38 @@
+[
+  {
+    "propertyName": "cpe.troubles.safety.annunciationUseSeconds",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.troubles.iot.annunciationIntervalMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.burg.annunciationIntervalMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.safety.annunciationIntervalMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.systemTroubles.annunciationIntervalMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.iot.annunciationAckExpireMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.burg.annunciationAckExpireMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.safety.annunciationAckExpireMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.system.annunciationAckExpireMinutes",
+    "propertyType": "uint32"
+  }
+]

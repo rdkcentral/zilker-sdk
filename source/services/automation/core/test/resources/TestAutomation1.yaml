@@ -1,0 +1,34 @@
+name: TestAutomation1
+doc: |-
+  A simple unit test machine that listens for a message, emits a message, waits for a result, then transitions back to
+  the begenning state.
+parsepatterns: true
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"type":"test"}
+        target: emitTest
+  emitTest:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({to: "test", requestType : "dummyRequest"});
+        return _.bindings;
+    branching:
+      branches:
+        - target: waitForDummyResponse
+  waitForDummyResponse:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          {"type":"dummyResponse"}
+        target: listen
+

@@ -1,0 +1,2 @@
+set th spec ThermostatSchedule.js
+run { "_evCode":499,"_sunrise":1569327600,"_sunset":1569371220,"_systemStatus":"home","_evTime":1569360600}

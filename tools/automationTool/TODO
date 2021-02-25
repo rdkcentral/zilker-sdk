@@ -1,0 +1,9 @@
+Add more documentation/comments
+Convert fprintf to icLog
+Improve javascript source formatting/unformatting (see js-beautify on NPM (python alternative))
+Handle latent element reordering for automation and node JSON
+Address minor mem leakage
+Add better file stream error reporting
+Consolidate "import" and "disassemble"
+Make "out" more dynamic
+See if there exists sheens tools that can be integrated here

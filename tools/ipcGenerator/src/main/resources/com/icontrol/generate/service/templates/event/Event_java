@@ -1,0 +1,80 @@
+
+package ${java_pkg};
+
+//-----------
+//imports
+//-----------
+
+import java.util.*;
+import com.icontrol.event.BaseEvent;
+import com.icontrol.event.JavaEvent;
+import com.icontrol.ipc.*;
+import com.icontrol.ipc.impl.*;
+import org.json.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+${java_import_sec}
+
+// Utilized for event codes: ${apply_eventCode}
+//
+
+//-----------------------------------------------------------------------------
+// Class definition:    ${java_class}
+/**
+ *  Event broadcasted by the ${service} Service.
+ *  Implements ObjectIPC (directly or indirectly) so that
+ *  it can be encoded/decoded and transported to C
+ *  and/or Java recipients
+ *  <p>
+ *  THIS IS AN AUTO-GENERATED FILE, DO NOT EDIT!!!!!!!!
+ **/
+//-----------------------------------------------------------------------------
+public class ${java_class} extends ${eventSuperClass}
+    implements ObjectIPC${IMPLEMENTS_MARKER}
+{
+${java_var_sec}
+
+    //--------------------------------------------
+    /**
+     * Event Constructor taking in the eventId
+     */
+    //--------------------------------------------
+    public ${java_class}(long eventId)
+    {
+        super(eventId);
+${CONSTRUCTOR_MARKER}
+    }
+
+${java_get_set_sec}
+
+    //--------------------------------------------
+    /**
+     * @see java.lang.Object#toString()
+     */
+    //--------------------------------------------
+    @Override
+    public String toString()
+    {
+        return ${to_string};
+    }
+    
+    //--------------------------------------------
+    /**
+     * Encode using JSON
+     */
+    //--------------------------------------------
+    public JSONObject toJSON() throws JSONException
+    {
+${pojo_encode_body}
+    }
+
+    //--------------------------------------------
+    /**
+     * Decode using JSON
+     */
+    //--------------------------------------------
+    public void fromJSON(JSONObject buffer) throws JSONException
+    {
+${pojo_decode_body}
+    }
+}

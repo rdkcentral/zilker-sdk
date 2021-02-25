@@ -1,0 +1,18 @@
+[
+  {
+    "propertyName": "zigbee.fw.upgrade.nodelay.flag",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "firmware.upgrade.delaySecs",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "deviceFirmwareBaseUrl",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "firmware.upgrade.retryDelaySecs",
+    "propertyType": "uint32"
+  }
+]

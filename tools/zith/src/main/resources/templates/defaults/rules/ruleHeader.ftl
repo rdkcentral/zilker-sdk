@@ -1,0 +1,1 @@
+<ns2:rule xmlns:ns2="http://ucontrol.com/rules/v1.0" xmlns:ns3="http://icontrol.com/statreports/v1.0" ruleID="${ruleId}">

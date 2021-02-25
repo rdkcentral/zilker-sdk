@@ -1,0 +1,1392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!--
+  -
+  - Define the IPC/Events for "Security Service"
+  - (combination of old scene, alarmMgr, zoneMgr & troubleMgr)
+  -
+  - NOTE: at this time it only produces Native code
+  -       and does not support Java as a client
+  -
+  -->
+<p:service
+        xmlns:p="http://icontrol.com/service/v1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://icontrol.com/service/v1.0 ../src/main/xsd/service.xsd "
+        eventPort="19095" ipcPort="1530" name="securityService" >
+
+    <!-- ipc, events, and service are all under the same base-dir -->
+    <p:pragma>
+        <p:native>
+            <p:apiHeaderDir>source/services/security/api/c/public/securityService</p:apiHeaderDir>
+            <p:apiSrcDir>source/services/security/api/c/src</p:apiSrcDir>
+            <p:ipcHandlerSrcDir>source/services/security/core/src</p:ipcHandlerSrcDir>
+            <p:configFlag>CONFIG_SERVICE_SECURITY</p:configFlag>
+            <p:freeform>#define SECURITY_SERVICE_NAME      "securityService"  // matches this service name as defined in watchdog.conf.  primarily used for name comparison on watchdogEvent notifications.</p:freeform>
+            <p:freeform>#define SYSTEM_MODE_HOME_LABEL     "home"             // accepted as input to systemModeRequest</p:freeform>
+            <p:freeform>#define SYSTEM_MODE_AWAY_LABEL     "away"             // accepted as input to systemModeRequest</p:freeform>
+            <p:freeform>#define SYSTEM_MODE_NIGHT_LABEL    "night"            // accepted as input to systemModeRequest</p:freeform>
+            <p:freeform>#define SYSTEM_MODE_VACATION_LABEL "vacation"         // accepted as input to systemModeRequest</p:freeform>
+        </p:native>
+    </p:pragma>
+
+
+    <!--
+      - define POJOs and enumerations.  most of these are a direct copy
+      - from the Converge SecurityService definition
+      -->
+
+    <p:typedef enumTypeName="armSourceType" description="source of the 'arm/disarm' request">
+        <p:value value="ARM_SOURCE_CPE_KEYPAD"/>
+        <p:value value="ARM_SOURCE_SERVER"/>
+        <p:value value="ARM_SOURCE_KEYFOB"/>
+        <p:value value="ARM_SOURCE_WIRELESS_KEYPAD"/>
+        <p:value value="ARM_SOURCE_TAKEOVER_KEYPAD"/>
+        <p:value value="ARM_SOURCE_MOBILE"/>
+        <p:value value="ARM_SOURCE_LOCAL_RULE"/>
+        <p:value value="ARM_SOURCE_CLOUD_RULE"/>
+        <p:value value="ARM_SOURCE_CLOUD_VOICE"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="armModeType" description="The 'arm mode' for alarm-state-machine">
+        <p:value value="ARM_METHOD_NONE"/>  <!-- not really used, just here to get the AWAY==1 -->
+        <p:value value="ARM_METHOD_AWAY"/>
+        <p:value value="ARM_METHOD_STAY"/>
+        <p:value value="ARM_METHOD_NIGHT"/>
+    </p:typedef>
+
+     <p:typedef enumTypeName="alarmStatusType" description="state of the alarm-state-machine">
+        <p:value value="ALARM_STATUS_UNCHANGED"/>
+        <p:value value="ALARM_STATUS_READY"/>
+        <p:value value="ALARM_STATUS_NOTREADY"/>
+        <p:value value="ALARM_STATUS_ARMED"/>
+        <p:value value="ALARM_STATUS_ALARM"/>
+        <p:value value="ALARM_STATUS_ARMING"/>
+        <p:value value="ALARM_STATUS_ENTRY_DELAY"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="alarmPanicType" description="panic codes">
+        <p:value value="PANIC_ALARM_TYPE_NONE"/>
+        <p:value value="PANIC_ALARM_TYPE_MEDICAL"/>
+        <p:value value="PANIC_ALARM_TYPE_FIRE"/>
+        <p:value value="PANIC_ALARM_TYPE_POLICE"/>
+        <p:value value="PANIC_ALARM_TYPE_POLICE_SILENT"/>
+        <p:value value="PANIC_ALARM_TYPE_SILENT_BURGLARY"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="alarmTestModeType" description="possible return codes from SET_TEST_MODE">
+        <p:value value="ALARM_TEST_MODE_SUCCESS" description="when successfully sent TEST MODE to central station, and got an ack"/>
+        <p:value value="ALARM_TEST_MODE_ARMED"   description="fail because already armed"/>
+        <p:value value="ALARM_TEST_MODE_TIMEOUT" description="timeout waiting for the ack"/>
+    </p:typedef>
+
+
+    <p:typedef enumTypeName="armResultType" description="possible results from the 'arm' request">
+        <p:value value="SYSTEM_ARM_SUCCESS"       description="The system was successfully armed"/>
+        <p:value value="SYSTEM_ARM_INVALID_ARGS"  description="One or more of the arguments was invalid"/>
+        <p:value value="SYSTEM_ARM_FAIL_TROUBLE"  description="The system could not be armed due to a trouble condition"/>
+        <p:value value="SYSTEM_ARM_FAIL_ZONE"     description="One or more zones are opened and not bypassed"/>
+        <p:value value="SYSTEM_ARM_FAIL_USERCODE" description="The user code supplied is not a valid user code"/>
+        <p:value value="SYSTEM_ARM_SYS_FAILURE"   description="System could not be armed due to an internal failure"/>
+        <p:value value="SYSTEM_ARM_ALREADY_ARMED" description="System could not be armed; it is already armed"/>
+        <p:value value="SYSTEM_ARM_FAIL_UPGRADE"  description="System could not be armed; a firmware upgrade is in progress"/>
+        <p:value value="SYSTEM_ARM_FAIL_TOO_MANY_SECURITY_DEVICES" description="System could not be armed; there are too many security devices configured in the system"/>
+        <p:value value="SYSTEM_ARM_FAIL_ACCOUNT_SUSPENDED"  description="System could not be armed because account is suspended"/>
+        <p:value value="SYSTEM_ARM_FAIL_ACCOUNT_DEACTIVATED"  description="System could not be armed because account is deactivated"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="disarmResultType" description="possible results to the 'disarm' request">
+        <p:value value="SYSTEM_DISARM_SUCCESS"          description="The system was successfully disarmed"/>
+        <p:value value="SYSTEM_DISARM_INVALID_ARGS"     description="One or more of the arguments was invalid"/>
+        <p:value value="SYSTEM_DISARM_FAIL_USERCODE"    description="The user code supplied was not a valid user code"/>
+        <p:value value="SYSTEM_DISARM_SYS_FAILURE"      description="System could not be disarmed due to an internal failure"/>
+        <p:value value="SYSTEM_DISARM_ALREADY_DISARMED" description="System could not be disarmed; it is already disarmed"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="alarmReasonType" description="possible reasons for an alarm">
+        <p:value value="ALARM_REASON_NONE"            description="no alarm"/>
+        <p:value value="ALARM_REASON_MEDICAL"         description="medical zone or medical panic"/>
+        <p:value value="ALARM_REASON_FIRE"            description="fire zone or fire panic"/>
+        <p:value value="ALARM_REASON_CO"              description="carbon monoxide zone in alarm"/>
+        <p:value value="ALARM_REASON_BURGLARY"        description="zone or police panic"/>
+        <p:value value="ALARM_REASON_BURGLARY_SILENT" description="silent zone or police panic silent"/>
+        <p:value value="ALARM_REASON_DURESS_SILENT"   description="silent duress from entering special keycode"/>
+        <p:value value="ALARM_REASON_AUDIBLE"         description="audible 24 zone event"/>
+        <p:value value="ALARM_REASON_ENVIRONMENTAL"   description="water or environmental audible 24 zone event"/>
+        <p:value value="ALARM_REASON_EXIT_ERROR"      description="entry/exit door left open during arming"/>
+        <p:value value="ALARM_REASON_SYSTEM_TAMPER"   description="Touchscreen tampered while armed"/>
+        <p:value value="ALARM_REASON_ZONE_TAMPER"     description="zone was tampered while arming/armed"/>
+        <p:value value="ALARM_REASON_ZONE_COMM_FAIL"  description="zone in comm failure for too long"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="userAuthLevelType" description="define user levels">
+        <p:value value="KEYPAD_USER_LEVEL_INVALID"   numeric="0" description="used as a response.  not valid for input"/>
+        <p:value value="KEYPAD_USER_LEVEL_MASTER"    numeric="1" />
+        <p:value value="KEYPAD_USER_LEVEL_STANDARD"  numeric="2" />
+        <p:value value="KEYPAD_USER_LEVEL_GUEST"     numeric="3" />
+        <p:value value="KEYPAD_USER_LEVEL_ARMONLY"   numeric="4" />
+        <p:value value="KEYPAD_USER_LEVEL_DURESS"    numeric="5" />
+        <p:value value="KEYPAD_USER_LEVEL_INSTALLER" numeric="10" />
+    </p:typedef>
+
+    <p:typedef enumTypeName="securityZoneSourceType" description="source of the 'zone' request">
+        <p:value value="SECURITY_ZONE_SOURCE_CPE_KEYPAD"/>
+        <p:value value="SECURITY_ZONE_SOURCE_SERVER"/>
+        <p:value value="SECURITY_ZONE_SOURCE_OTHER"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="zoneMutedType">
+        <p:value value="ZONE_NO_EVENT_MUTED"/>
+        <p:value value="ZONE_FAULT_EVENT_MUTED"/>
+        <p:value value="ZONE_RESTORE_EVENT_MUTED"/>
+        <p:value value="ZONE_ALL_EVENT_MUTED"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="securityZoneFunctionType" description="possible 'zone function'.  works in conjunction with 'zone type'">
+        <p:value value="SECURITY_ZONE_FUNCTION_UNKNOWN"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_ENTRY_EXIT"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_PERIMETER"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_TROUBLE_DAY_ALARM_NIGHT"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_SILENT_24HOUR"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_AUDIBLE_24HOUR"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_FIRE_24HOUR"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_MONITOR_24HOUR"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_NO_ALARM_RESPONSE"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_SILENT_BURGLARY"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_INTERIOR_FOLLOWER"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_INTERIOR_WITH_DELAY"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_INTERIOR_ARM_NIGHT"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_INTERIOR_ARM_NIGHT_DELAY"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_ARM_STAY"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_ARM_AWAY"/>
+        <p:value value="SECURITY_ZONE_FUNCTION_DISARM"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="securityZoneType" description="overall type of zone.  works in conjunction with 'zone function'">
+        <p:value value="SECURITY_ZONE_TYPE_UNKNOWN"/>
+        <p:value value="SECURITY_ZONE_TYPE_DOOR"/>
+        <p:value value="SECURITY_ZONE_TYPE_WINDOW"/>
+        <p:value value="SECURITY_ZONE_TYPE_MOTION"/>
+        <p:value value="SECURITY_ZONE_TYPE_GLASS_BREAK"/>
+        <p:value value="SECURITY_ZONE_TYPE_SMOKE"/>
+        <p:value value="SECURITY_ZONE_TYPE_CO"/>
+        <p:value value="SECURITY_ZONE_TYPE_ENVIRONMENTAL"/>
+        <p:value value="SECURITY_ZONE_TYPE_WATER"/>
+        <p:value value="SECURITY_ZONE_TYPE_PANIC"/>
+        <p:value value="SECURITY_ZONE_TYPE_DURESS"/>
+        <p:value value="SECURITY_ZONE_TYPE_MEDICAL"/>
+    </p:typedef>
+
+    <!-- TODO: see if we can delete this -->
+    <p:typedef enumTypeName="crossZoneAssociationResultType" description="set of possible results to 'cross zone' requests">
+        <p:value value="CROSS_ZONE_MAX"     description="All available Cross-Zone definitions have been defined"/>
+        <p:value value="CROSS_ZONE_EXISTS"  description="One of the zones is already included in a Cross-Zone association"/>
+        <p:value value="CROSS_ZONE_GENERAL" description="Unexpected error while creating Cross-Zone association"/>
+        <p:value value="CROSS_ZONE_SUCCESS" description="No error.  Cross-Zone definition accepted"/>
+    </p:typedef>
+
+    <!-- high-level categorization of troubles -->
+    <p:typedef enumTypeName="troubleType" description="category of trouble">
+        <p:value value="TROUBLE_TYPE_NONE"/>
+        <p:value value="TROUBLE_TYPE_GENERIC" description="essentially a 'misc' category"/>
+        <p:value value="TROUBLE_TYPE_SYSTEM"  description="trouble with the system itself (tamper, hardware, software, etc)"/>
+        <p:value value="TROUBLE_TYPE_NETWORK" description="network problem (WiFi, Ethernet, Cellular, XMPP, XMiDT, etc)"/>
+        <p:value value="TROUBLE_TYPE_POWER"   description="power problem (AC, Battery)"/>
+        <p:value value="TROUBLE_TYPE_DEVICE"  description="device or peripheral problem (lots of possibilities here)"/>
+    </p:typedef>
+
+    <!-- set of trouble reasons.  some can be used with multiple 'troubleTypes' -->
+    <p:typedef enumTypeName="troubleReason" description="generic classification of the trouble.  many are applicable for multiple 'troubleTypes'">
+        <p:value value="TROUBLE_REASON_NONE"/>
+        <p:value value="TROUBLE_REASON_SOFTWARE"            description="generally used for type=TROUBLE_TYPE_SYSTEM; system software"/>
+        <p:value value="TROUBLE_REASON_HARDWARE"            description="generally used for type=TROUBLE_TYPE_SYSTEM; system hardware"/>
+        <p:value value="TROUBLE_REASON_STORAGE"             description="generally used for type=TROUBLE_TYPE_SYSTEM; system storage (local, USB, SD)"/>
+        <p:value value="TROUBLE_REASON_COMM_FAIL"           description="communication lost (bband, cell, zigbee, ble, etc)"/>
+        <p:value value="TROUBLE_REASON_TAMPER"              description="system/device was tampered"/>
+        <p:value value="TROUBLE_REASON_AC_LOSS"             description="AC power is lost"/>
+        <p:value value="TROUBLE_REASON_BATTERY_LOW"         description="battery is low"/>
+        <p:value value="TROUBLE_REASON_BATTERY_BAD"         description="battery is bad (generally for devices that support chargable batteries)"/>
+        <p:value value="TROUBLE_REASON_BATTERY_MISSING"     description="battery is bad (generally for devices that support chargable batteries)"/>
+        <p:value value="TROUBLE_REASON_HIGH_TEMP"           description="device temperature is high"/>
+        <p:value value="TROUBLE_REASON_LOW_TEMP"            description="device temperature is low"/>
+        <p:value value="TROUBLE_REASON_END_OF_LIFE"         description="device is at the end of it's life"/>
+        <p:value value="TROUBLE_REASON_END_OF_LINE"         description="generally used for takeover sensors that had a wire cut"/>
+        <p:value value="TROUBLE_REASON_DIRTY"               description="device contact dirty"/>
+        <p:value value="TROUBLE_REASON_BOOTLOADER"          description="device bootloader failure or OTA failure"/>
+        <p:value value="TROUBLE_REASON_ROUTER"              description="device routing issue"/>
+        <p:value value="TROUBLE_REASON_SWINGER"             description="device is in 'swinger shutdown' (specific to security zones)"/>
+        <p:value value="TROUBLE_REASON_LOCK_BOLT"           description="generally a door-lock device"/>
+        <p:value value="TROUBLE_REASON_PIN"                 description="generally a door-lock device"/>
+        <p:value value="TROUBLE_REASON_ZIGBEE_INTERFERENCE" description="interference detected on our zigbee network"/>
+        <p:value value="TROUBLE_REASON_ZIGBEE_PAN_ID_ATTACK" description="pan id attack detected on our zigbee network"/>
+        <p:value value="TROUBLE_REASON_BATTERY_HIGH_TEMP"   description="battery temperature is high"/>
+        <p:value value="TROUBLE_REASON_GENERIC"             description="catch-all for generic trouble reasons"/>
+    </p:typedef>
+
+    <!--available mechanisms for sorting troubles -->
+    <p:typedef enumTypeName="troubleSortAlgo">
+        <p:value value="TROUBLE_SORT_BY_CREATE_DATE"      description="oldest first (ASCENDING)"/>
+        <p:value value="TROUBLE_SORT_BY_CRITICALITY"      description="most critical at the top (DESCENDING)"/>
+        <p:value value="TROUBLE_SORT_BY_INDICATION_GROUP" description="internally used for trouble 'replay' (DESCENDING)"/>
+    </p:typedef>
+
+    <!-- trouble criticality -->
+    <p:typedef enumTypeName="troubleCriticalityType" description="specify how critical a trouble can be; listed from most critical to lowest.  taken from 'Syslog Message Severities'">
+        <p:value value="TROUBLE_CRIT_EMERGENCY" numeric="0" description="Emergency: system is unusable"/>
+        <p:value value="TROUBLE_CRIT_ALERT"     numeric="1" description="Alert: action must be taken immediately"/>
+        <p:value value="TROUBLE_CRIT_CRITICAL"  numeric="2" description="Critical: critical conditions"/>
+        <p:value value="TROUBLE_CRIT_ERROR"     numeric="3" description="Error: error conditions"/>
+        <p:value value="TROUBLE_CRIT_WARNING"   numeric="4" description="Warning: warning conditions"/>
+        <p:value value="TROUBLE_CRIT_NOTICE"    numeric="5" description="Notice: normal but significant condition"/>
+        <p:value value="TROUBLE_CRIT_INFO"      numeric="6" description="Informational: informational messages"/>
+        <p:value value="TROUBLE_CRIT_DEBUG"     numeric="7" description="Debug: debug-level messages"/>
+    </p:typedef>
+
+    <!-- trouble indication category -->
+    <p:typedef enumTypeName="indicationCategory" description="category of trouble used for indication intervals">
+        <p:value value="INDICATION_CATEGORY_IOT"    numeric="0" description="indication interval for things that do not fall into other categories (light, thermostat, camera)"/>
+        <p:value value="INDICATION_CATEGORY_BURG"   numeric="1" description="indication interval for standard burg zone troubles"/>
+        <p:value value="INDICATION_CATEGORY_SYSTEM" numeric="2" description="indication interval for system troubles"/>
+        <p:value value="INDICATION_CATEGORY_SAFETY" numeric="3" description="indication interval for life-safety zone troubles"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="indicationType" description="indicate if the event/alarm should be visibile and/or audible">
+        <p:value value="INDICATION_NONE"    description="no indication (silent and invisible)"/>
+        <p:value value="INDICATION_AUDIBLE" description="indicate via audible tone"/>
+        <p:value value="INDICATION_VISUAL"  description="indicate visually (led, UI, etc)"/>
+        <p:value value="INDICATION_BOTH"    description="indicate visually and audibly"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="updateZoneResultCode">
+        <p:value value="UPDATE_ZONE_SUCCESS"/>
+        <p:value value="UPDATE_ZONE_FAIL_MISSING_ZONE"/>
+        <p:value value="UPDATE_ZONE_FAIL_ARMED_ARMING"/>
+        <p:value value="UPDATE_ZONE_FAIL_UPGRADING"/>
+        <p:value value="UPDATE_ZONE_FAIL_MISMATCH" description="used when setting type/function incorrectly"/>
+    </p:typedef>
+
+    <!-- input parameter for 'change systemMode' -->
+    <p:pojo varName="systemModeRequest" varDescription="IPC request - change the current system mode (aka scene)">
+        <p:stringVariable varName="systemMode"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+    </p:pojo>
+
+    <!-- output parameter for 'get all systemModes' -->
+    <p:pojo varName="systemModeList" varDescription="IPC response - list of all possible systemm modes (aka scenes)">
+        <p:arrayVariable varName="list" varDescription="list of system modes (string)">
+            <p:stringVariable varName="systemMode"/>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="systemPanelStatus" varDescription="IPC response - current state of the panel (alarm state, system in trouble, systemMode)">
+        <p:enumVariable varName="alarmStatus" enumTypeName="alarmStatusType" varDescription="current status of the alarm system"/>
+        <p:enumVariable varName="armMode" enumTypeName="armModeType" varDescription="curent arm-state of the alarm system"/>
+        <p:boolVariable varName="trouble"  varDescription="true if system is in trouble"/>
+        <p:boolVariable varName="bypassActive" varDescription="true if system has a bypassed zone"/>
+        <p:numVariable kind="int" nativeSigned="false" varName="testModeSecsRemaining" varDescription="number of seconds remaining in test mode, or 0 if not in test mode"/>
+        <p:stringVariable varName="systemMode" varDescription="defined if alarms are NOT supported"/>
+    </p:pojo>
+
+    <p:pojo varName="armRequest">
+        <p:enumVariable varName="armMode" enumTypeName="armModeType" />
+        <p:enumVariable varName="armSource" enumTypeName="armSourceType" />
+        <p:stringVariable varName="armCode"/>
+        <p:numVariable varName="exitDelayOverrideSeconds" kind="int"/>
+    </p:pojo>
+
+    <p:pojo varName="armForRuleRequest">
+        <p:enumVariable varName="armMode" enumTypeName="armModeType" />
+        <p:stringVariable varName="token" varDescription="Token used to verify the command came from rules"/>
+        <p:numVariable varName="exitDelayOverrideSeconds" kind="int"/>
+    </p:pojo>
+
+    <p:pojo varName="armResult">
+        <p:enumVariable varName="result" enumTypeName="armResultType" />
+    </p:pojo>
+
+    <p:pojo varName="disarmRequest">
+        <p:stringVariable varName="disarmCode"/>
+        <p:enumVariable varName="armSource" enumTypeName="armSourceType" />
+    </p:pojo>
+
+    <p:pojo varName="disarmResult">
+        <p:enumVariable varName="result" enumTypeName="disarmResultType" />
+    </p:pojo>
+
+    <p:pojo varName="panicRequest">
+        <p:enumVariable varName="panicType" enumTypeName="alarmPanicType" />
+        <p:enumVariable varName="armSource" enumTypeName="armSourceType" />
+    </p:pojo>
+
+    <p:pojo varName="alarmTestModeResult">
+        <p:enumVariable varName="testResp" enumTypeName="alarmTestModeType" />
+    </p:pojo>
+
+    <p:pojo varName="crossZoneResult">
+        <p:enumVariable varName="result" enumTypeName="crossZoneAssociationResultType" />
+    </p:pojo>
+
+    <p:pojo varName="crossZoneAssociation">
+        <p:numVariable varName="firstZoneId" kind="int" nativeSigned="false"/>
+        <p:numVariable varName="secondZoneId" kind="int" nativeSigned="false"/>
+        <p:numVariable varName="secondsBetweenTrips" kind="int" nativeSigned="false"/>
+    </p:pojo>
+
+    <p:pojo varName="crossZoneAssociationList">
+        <p:arrayVariable varName="crossZones">
+            <p:customRef>crossZoneAssociation</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="keypadUserCode">
+        <p:numVariable varName="uuid" kind="int" nativeSigned="true"/>
+        <p:enumVariable varName="authorityLevel" enumTypeName="userAuthLevelType" />
+        <p:stringVariable varName="code"/>
+        <p:stringVariable varName="label"/>
+        <p:boolVariable varName="validSunday"/>
+        <p:boolVariable varName="validMonday"/>
+        <p:boolVariable varName="validTuesday"/>
+        <p:boolVariable varName="validWednesday"/>
+        <p:boolVariable varName="validThursday"/>
+        <p:boolVariable varName="validFriday"/>
+        <p:boolVariable varName="validSaturday"/>
+    </p:pojo>
+
+    <p:pojo varName="keypadUserCodeList">
+        <p:arrayVariable varName="userCodes">
+            <p:customRef>keypadUserCode</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="keypadCodeValidation">
+        <p:enumVariable varName="authorityLevel" enumTypeName="userAuthLevelType" />
+    </p:pojo>
+
+    <p:pojo varName="keypadUserCodeRequest">
+        <p:customRef customObj="keypadUserCode" localName="userCode"/>
+        <p:enumVariable varName="armSource" enumTypeName="armSourceType" />
+    </p:pojo>
+
+    <p:pojo varName="validAlarmRange">
+        <p:numVariable varName="min" kind="int"/>
+        <p:numVariable varName="max" kind="int"/>
+    </p:pojo>
+
+    <p:pojo varName="unfaultedZoneIdsForAlarmTest">
+        <p:arrayVariable varName="unfaultedZoneIds">
+            <p:numVariable varName="securityZoneId" kind="int" nativeSigned="false"/>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <!-- input for 'get all troubles' -->
+    <p:pojo varName="getTroublesInput" varDescription="IPC request - get all troubles">
+        <p:boolVariable varName="includeAck" varDescription="if true, include 'acknowledged' troubles"/>
+        <p:enumVariable varName="sortAlgo" enumTypeName="troubleSortAlgo"/>
+    </p:pojo>
+
+    <!-- input for 'get all troubles for a specific device/endpoint' -->
+    <p:pojo varName="getTroublesTargetedInput" varDescription="IPC request - get troubles for a specific device/endpoint">
+        <p:boolVariable varName="includeAck" varDescription="if true, include 'acknowledged' troubles"/>
+        <p:enumVariable varName="sortAlgo" enumTypeName="troubleSortAlgo"/>
+        <p:stringVariable varName="targetId" varDescription="the 'deviceId' or 'endpointId' filter"/>
+    </p:pojo>
+
+    <p:pojo varName="alarmDetails" varDescription="container used when event is part of an alarm">
+        <p:enumVariable varName="alarmReason" enumTypeName="alarmReasonType" varDescription="describe the type of alarm.  when NONE, all other data can be ignored"/>
+        <p:numVariable varName="alarmSessionId" kind="long" nativeSigned="false" varDescription="identifies the alarm session this event is part of.  only valid when a positive value"/>
+        <p:stringVariable varName="contactId" varDescription="the Central Station Code for this event.  only applicable if alarmReason is not NONE"/>
+        <p:boolVariable varName="sendImmediately" varDescription="if the alarm should be sent NOW"/>
+        <p:boolVariable varName="isZoneInSwingerShutdown"/>
+        <p:boolVariable varName="isDuressCodeAlarm" varDescription="true if 'duress' alarm"/>
+        <p:boolVariable varName="isExitError" varDescription="true if 'exit error' alarm"/>
+        <p:boolVariable varName="isRecentClosing" varDescription="true if 'recent closing'"/>
+        <p:boolVariable varName="isWithinCancelWindow" varDescription="true if within the 'cancel window'"/>
+        <p:boolVariable varName="isZonesFaulted" varDescription="if a security zone is faulted"/>
+    </p:pojo>
+
+    <!-- may be needed for the UI to ask if currently in alarm, and if so what's the details about that alarm -->
+    <p:pojo varName="currentAlarmStatus" varDescription="response to GET_CURRENT_ALARM_STATUS">
+        <p:customRef customObj="alarmDetails" localName="alarm"/>
+        <p:enumVariable varName="panicType" enumTypeName="alarmPanicType" varDescription="only set if panic alarm (event code == ALARM_EVENT_PANIC)"/>
+        <p:enumVariable varName="panicSource" enumTypeName="armSourceType" varDescription="only valid if 'panicType' is set"/>
+    </p:pojo>
+
+
+    <!--
+      - copy of troubleEvent since there is a serious problem with POJO objects
+      - that depend on Event definitions.  TODO: fix this dependency problem
+      -->
+    <p:pojo varName="troubleObj" varDescription="definition of a 'trouble'; also used in the troubleEvent">
+        <p:numVariable    varName="eventId" kind="long" nativeSigned="false" varDescription="eventId of the trouble"/>
+        <p:dateVariable   varName="eventTime" varDescription="time of the trouble"/>
+        <p:numVariable    varName="troubleId" kind="long" nativeSigned="false" varDescription="id for the trouble.  if 'cleared' then should match original troubleId"/>
+        <p:enumVariable   varName="type" enumTypeName="troubleType"      varDescription="trouble category"/>
+        <p:enumVariable   varName="reason" enumTypeName="troubleReason"  varDescription="trouble reason"/>
+        <p:stringVariable varName="description" varDescription="text description"/>
+        <p:enumVariable   varName="critical" enumTypeName="troubleCriticalityType"  varDescription="level of criticality"/>
+        <p:boolVariable   varName="acknowledged" varDescription="true if this trouble has been acknowledged (but still exists)"/>
+        <p:boolVariable   varName="restored" varDescription="true if this is a trouble restore (also reflected in troubleEvent->eventCode)"/>
+        <p:boolVariable   varName="treatAsLifeSafety" varDescription="true if this trouble should be considered 'life safety' (Acknowledgement, UI, Audible tones, etc)"/>
+        <p:enumVariable   varName="indicationGroup" enumTypeName="indicationCategory" varDescription="trouble category for notification intervals (how often does it 'beep')"/>
+        <p:enumVariable   varName="indication" enumTypeName="indicationType" varDescription="the type of notification to the user for this trouble"/>
+        <p:jsonVariable   varName="extra" varDescription="JSON object containing additional details about the trouble"/>
+    </p:pojo>
+
+    <!-- output for 'get all troubles' -->
+    <p:pojo varName="troubleObjList" varDescription="IPC response - list of troubleObj">
+        <p:arrayVariable varName="troubles" varDescription="list of troubles (troubleObj)">
+            <p:customRef>troubleObj</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="deferTroublesConfig" varDescription="used for the 'defer troubles during sleep hours' feature">
+        <p:boolVariable varName="deferTroublesAtNight" varDescription="if the feature is enabled or not"/>
+        <p:numVariable varName="deferTroublesStartHour"   kind="int" nativeSigned="false"/>
+        <p:numVariable varName="deferTroublesStartMinute" kind="int" nativeSigned="false"/>
+        <p:numVariable varName="durationInHours"          kind="int" nativeSigned="false"/>
+    </p:pojo>
+
+
+    <!-- zone object -->
+    <p:pojo varName="securityZone" varDescription="define a 'security' zone (one that can be associated with alarmService); also used in zoneEvent">
+
+        <!-- base information -->
+        <p:numVariable  varName="zoneNumber" kind="int" nativeSigned="false" varDescription="zone number (aka zoneId)"/>
+        <p:numVariable  varName="sensorId"   kind="int" nativeSigned="false" varDescription="another identifier, carryover from legacy and only used for the comm layer"/>
+        <p:stringVariable varName="label" varDescription="the label/name of the zone (what is displayed to the user)"/>
+        <p:enumVariable varName="zoneType"     enumTypeName="securityZoneType" varDescription="overall kind of zone, requires zoneFunction"/>
+        <p:enumVariable varName="zoneFunction" enumTypeName="securityZoneFunctionType" varDescription="operation of the zone, works with zoneType"/>
+        <p:enumVariable varName="zoneMute"     enumTypeName="zoneMutedType" varDescription="used by remote panels, PIM, and UI"/>
+        <p:numVariable  varName="displayIndex" kind="int" nativeSigned="false" varDescription="display order"/>
+
+        <!-- device/sensor information -->
+        <p:stringVariable varName="deviceId"        varDescription="deviceId of the sensor"/>
+        <p:stringVariable varName="endpointId"      varDescription="endpointId of the device"/>
+        <p:stringVariable varName="sensorSerialNum" varDescription="serial number of the sensor"/>
+
+        <!-- runtime flags -->
+        <p:boolVariable varName="isBypassed"        varDescription="runtime state that may have implications"/>
+        <p:boolVariable varName="isFaulted"         varDescription="runtime state that may have implications"/>
+        <p:boolVariable varName="isTroubled"        varDescription="runtime state that may have implications"/>
+        <p:boolVariable varName="isConfigured"      varDescription="runtime state initially false until edited.  unconfigured zones cannot trigger alarms"/>
+        <p:boolVariable varName="inSwingerShutdown" varDescription="runtime state only applicable during 'swinger shutdown'"/>
+        <p:boolVariable varName="isInTestMode"      varDescription="runtime state only set when in 'alarm test mode'"/>
+
+        <!-- measurements/statistics -->
+        <p:boolVariable varName="isWirelessDevice"  varDescription="capability flag only set if the zone is wireless. see securityZoneHelper.h to extract wireless data"/>
+        <p:boolVariable varName="isBatteryDevice"   varDescription="capability flag only set if the zone is battery powered. see securityZoneHelper.h to extract battery data"/>
+        <p:boolVariable varName="hasTemperature"    varDescription="capability flag only set if the zone supports reading temperature. see securityZoneHelper.h to extract temperature data"/>
+        <p:boolVariable varName="isSimpleDevice"    varDescription="flag set if the device is a single zone, and the zone authoritatively represents the entire device status"/>
+        <p:mapVariable varName="currentMeasurements" varDescription="hash of current measurements (wireless, battery, temperature)">
+            <p:stringVariable varName="value"/>
+        </p:mapVariable>
+
+    </p:pojo>
+
+    <p:pojo varName="securityZoneNumList" varDescription="IPC response - list of zone numbers (integers)">
+        <p:arrayVariable varName="numArray">
+            <p:numVariable varName="zoneNumber" kind="int" nativeSigned="false"/>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="securityZoneList" varDescription="IPC response - list of securityZone objecs">
+        <p:arrayVariable varName="zoneArray">
+            <p:customRef>securityZone</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <!-- input parameter for 'update zone' -->
+    <p:pojo varName="updateSecurityZoneRequest" varDescription="IPC request - input to modify a securityZone label, type/function, bypass or muted state">
+        <p:customRef customObj="securityZone" localName="zone"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+    </p:pojo>
+
+    <p:pojo varName="updateSecurityZoneMutedRequest" varDescription="IPC request - input to modify a securityZone muted state">
+        <p:numVariable varName="zoneNum" kind="int" nativeSigned="false" varDescription="zoneNumber to modify"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+        <p:boolVariable varName="muted" varDescription="set the 'muted' for this zone on/off"/>
+    </p:pojo>
+
+    <p:pojo varName="updateSecurityZoneBypassedRequest" varDescription="IPC request - input to modify a securityZone bypassed state">
+        <p:numVariable varName="zoneNum" kind="int" nativeSigned="false" varDescription="zoneNumber to modify"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+        <p:boolVariable varName="bypassed" varDescription="set the 'bypassed' for this zone on/off"/>
+    </p:pojo>
+
+    <!-- input parameter for 'remove zone' -->
+    <p:pojo varName="removeSecurityZoneRequest" varDescription="IPC request - input to delete a securityZone">
+        <p:numVariable varName="zoneNum" kind="int" nativeSigned="false" varDescription="zoneNumber to delete"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+    </p:pojo>
+
+    <!-- input parameter for 'bypass zone toggle' -->
+    <p:pojo varName="bypassZoneToggleRequest" varDescription="IPC request - input to toggle bypass a securityZone">
+        <p:numVariable varName="displayIndex" kind="int" nativeSigned="false" varDescription="zone display index to toggle bypass"/>
+        <p:stringVariable varName="userCode" varDescription="User that entered the bypass toggle request" sensitive="true"/>
+        <p:enumVariable varName="bypassSource" enumTypeName="armSourceType"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+    </p:pojo>
+
+    <!-- For zone discovery related events -->
+    <p:pojo varName="securityZoneDiscoveryDetails">
+        <p:numVariable varName="zoneNumber" kind="int" nativeSigned="false" varDescription="zone number (aka zoneId)"/>
+        <p:stringVariable varName="deviceId"        varDescription="device UUID of the device"/>
+        <p:stringVariable varName="manufacturer"    varDescription="manufacturer of the device"/>
+        <p:stringVariable varName="model"           varDescription="model of the device"/>
+        <p:stringVariable varName="hardwareVersion" varDescription="hardware version of the device"/>
+        <p:stringVariable varName="firmwareVersion" varDescription="firmware version of the device"/>
+        <p:stringVariable varName="deviceClass"     varDescription="device class of the device"/>
+        <p:mapVariable varName="metadata"           varDescription="metadata about the device">
+            <p:stringVariable varName="item"/>
+        </p:mapVariable>
+    </p:pojo>
+
+    <!-- For getting zones preventing arming -->
+    <p:pojo varName="securityZoneArmStatusDetails">
+        <p:customRef customObj="securityZone" localName="zone"/>
+        <p:boolVariable varName="faultPreventingArm"/>
+        <p:arrayVariable varName="troublesPreventingArm">
+            <p:enumVariable enumTypeName="troubleReason" varName="reason"/>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="securityZoneArmStatusDetailsList">
+        <p:arrayVariable varName="zoneArmStatusDetails">
+            <p:customRef>securityZoneArmStatusDetails</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="updateSecurityZoneResult">
+        <p:enumVariable varName="resultCode" enumTypeName="updateZoneResultCode"/>
+    </p:pojo>
+
+    <!--
+      - define the events
+      -->
+    <p:eventList generate="C">
+
+        <!-- system changed to another systemMode -->
+        <p:event varName="systemModeChangedEvent" varDescription="System changed from one mode to another (non-security modes).  ">
+            <p:stringVariable varName="previousSystemMode"     varDescription="mode the system was set to"/>
+            <p:stringVariable varName="currentSystemMode"      varDescription="mode the system is now set to"/>
+            <p:numVariable varName="configVersion" kind="long" nativeSigned="false" varDescription="version of our local XML config file"/>
+            <p:numVariable varName="requestId" kind="long"     nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+
+            <p:eventCode>SYSTEM_MODE_CHANGED_EVENT</p:eventCode>
+        </p:event>
+
+        <!-- define structure for a basic trouble details -->
+        <p:event varName="troubleEvent" varDescription="describe basics about a trouble that occured.  see troubleObj->indication for audible/visual notification preference">
+            <p:customRef customObj="troubleObj" localName="trouble"/>
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+            <p:customRef customObj="alarmDetails" localName="alarm"/>
+
+            <p:eventCode>TROUBLE_OCCURED_EVENT</p:eventCode>        <!-- watch for TROUBLE_EVENT_REPLAY_VALUE as the eventValue -->
+            <p:eventCode>TROUBLE_CLEARED_EVENT</p:eventCode>
+            <p:eventCode>TROUBLE_ACKNOWLEDGED_EVENT</p:eventCode>
+            <p:eventCode>TROUBLE_UNACKNOWLEDGED_EVENT</p:eventCode> <!-- watch for TROUBLE_EVENT_REPLAY_VALUE as the eventValue -->
+            <p:eventCode>TROUBLE_ALARM_SESSION_CODE</p:eventCode>   <!-- specific to sending alarms to the server -->
+        </p:event>
+
+        <!-- define the "arming" event definition -->
+        <p:event varName="armingEvent" varDescription="Broadcasted at the beginning (and during) the 'arming' sequence" >
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+            <p:enumVariable varName="armSource" enumTypeName="armSourceType"/>
+            <p:stringVariable varName="userCode" varDescription="User that entered the arm code" sensitive="true"/>
+            <p:numVariable varName="exitDelay" kind="int" nativeSigned="false" varDescription="seconds until 'armed'"/>
+            <p:boolVariable varName="isZonesFaulted" varDescription="if a security zone is faulted"/>
+            <p:enumVariable varName="indication" enumTypeName="indicationType" varDescription="if this arm event should be shown (visible and/or audible)"/>
+
+            <p:eventCode>ALARM_EVENT_ARMING</p:eventCode>
+            <p:eventCode>ALARM_EVENT_EXIT_DELAY_REMAINING</p:eventCode>
+        </p:event>
+
+        <!-- define the "armed" event definition -->
+        <p:event varName="armedEvent" varDescription="Broadcasted when the system is considerd 'armed'" >
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+            <p:enumVariable varName="requestedArmMode" enumTypeName="armModeType" varDescription="armModeType requested (could be different then what actual armMode became)"/>
+            <p:enumVariable varName="armSource" enumTypeName="armSourceType"/>
+            <p:stringVariable varName="userCode" varDescription="User that entered the arm code" sensitive="true"/>
+            <p:boolVariable varName="didZonesFaulted" varDescription="if a zone ever faulted during arm sequence"/>
+            <p:boolVariable varName="isReArmed" varDescription="flag to indicate if the CPE just ARMED or if it RE-ARMED"/>
+            <p:enumVariable varName="indication" enumTypeName="indicationType" varDescription="if this arm event should be shown (visible and/or audible)"/>
+
+            <p:eventCode>ALARM_EVENT_ARMED</p:eventCode>
+        </p:event>
+
+        <!-- define the "entry-delay" event definition -->
+        <p:event varName="entryDelayEvent" varDescription="Broadcasted at the beginning (and during) the 'entry-delay' sequence" >
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+            <p:enumVariable varName="armSource" enumTypeName="armSourceType"/>
+            <p:stringVariable varName="userCode" varDescription="User that entered the arm code" sensitive="true"/>
+            <p:numVariable varName="entryDelay" kind="int" nativeSigned="false" varDescription="seconds until 'alarm'"/>
+            <p:numVariable varName="zoneNumber" kind="int" nativeSigned="false" varDescription="zone number (aka zoneId) that caused Entry Delay to begin"/>
+            <p:boolVariable varName="isExitError" varDescription="scenario of switch from ARMING to ENTRY due to EXIT_ERROR"/>
+            <p:boolVariable varName="isZonesFaulted" varDescription="if a security zone is faulted"/>
+            <p:enumVariable varName="indication" enumTypeName="indicationType" varDescription="if this entry-delay event should be shown (visible and/or audible)"/>
+
+            <p:eventCode>ALARM_EVENT_ENTRY_DELAY</p:eventCode>
+            <p:eventCode>ALARM_EVENT_ENTRY_DELAY_REMAINING</p:eventCode>
+        </p:event>
+
+        <!-- define the "disarm" event definition -->
+        <p:event varName="disarmEvent" varDescription="Broadcasted when system is disarmed">
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+            <p:enumVariable varName="previousArmMode" enumTypeName="armModeType" varDescription="armMode value prior to disarm"/>
+            <p:stringVariable varName="userCode" varDescription="User that entered the disarm code" sensitive="true"/>
+            <p:enumVariable varName="disarmSource" enumTypeName="armSourceType"/>
+            <p:boolVariable varName="isZonesFaulted" varDescription="if a security zone is faulted"/>
+            <p:enumVariable varName="indication" enumTypeName="indicationType" varDescription="if this disarm event should be shown (visible and/or audible)"/>
+
+            <!-- valid for ARMING or ARMED -->
+            <p:eventCode>ALARM_EVENT_DISARMED</p:eventCode>
+        </p:event>
+
+        <!-- define the struct for all other alarm codes -->
+        <p:event varName="alarmEvent" varDescription="Broadcasted when alarm state changes (excluding arming/armed/disarm/entry-delay)">
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+            <p:enumVariable varName="armSource" enumTypeName="armSourceType"/>
+            <p:customRef customObj="alarmDetails" localName="alarm"/>
+            <p:customRef customObj="securityZone" localName="zone"/>
+            <p:enumVariable varName="indication" enumTypeName="indicationType" varDescription="if this alarm should be shown (visible and/or audible)"/>
+
+            <!-- panic details -->
+            <p:enumVariable varName="panicType" enumTypeName="alarmPanicType" varDescription="only set if panic alarm (event code == ALARM_EVENT_PANIC)"/>
+            <p:enumVariable varName="panicSource" enumTypeName="armSourceType" varDescription="only valid if 'panicType' is set"/>
+
+            <!-- valid for most of our codes -->
+            <p:eventCode>ALARM_EVENT_STATE_READY</p:eventCode>
+            <p:eventCode>ALARM_EVENT_STATE_NOT_READY</p:eventCode>
+            <p:eventCode>ALARM_EVENT_ALARM</p:eventCode>
+            <p:eventCode>ALARM_EVENT_ALARM_CLEAR</p:eventCode>
+            <p:eventCode>ALARM_EVENT_ALARM_CANCELLED</p:eventCode>
+            <p:eventCode>ALARM_EVENT_ALARM_RESET</p:eventCode>
+            <p:eventCode>ALARM_EVENT_PANIC</p:eventCode>
+            <p:eventCode>ALARM_EVENT_TEST_MODE</p:eventCode>
+            <p:eventCode>ALARM_EVENT_ACKNOWLEDGED</p:eventCode>
+            <p:eventCode>ALARM_EVENT_SEND_ALARM</p:eventCode>
+        </p:event>
+
+        <p:event varName="userCodeChangedEvent" varDescription="Broadcasted when user codes change (add, edit, delete)">
+            <p:customRef customObj="keypadUserCode" localName="userCode"/>
+            <p:numVariable varName="version" kind="long" nativeSigned="false"/>
+            <p:enumVariable varName="source" enumTypeName="armSourceType" varDescription="where request came from"/>
+            <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+
+            <!-- valid for user add,mod,del  -->
+            <p:eventCode>ALARM_EVENT_USER_CODE_ADDED</p:eventCode>
+            <p:eventCode>ALARM_EVENT_USER_CODE_DEL</p:eventCode>
+            <p:eventCode>ALARM_EVENT_USER_CODE_MOD</p:eventCode>
+        </p:event>
+
+
+        <!-- the zone event structure -->
+        <p:event varName="securityZoneEvent" varDescription="event when a zone faults/restores, bypassed/unbypassed, added, modified, or deleted.
+when eventCode is FAULT or RESTORE, examine the eventValue to check for qualifiers.  when eventCode is ALARM_SESSION,
+use eventValue to see if FAULT/RESTORE">
+            <!-- info about the zone -->
+            <p:customRef customObj="securityZone" localName="zone"/>
+            <p:enumVariable varName="eventSource"  enumTypeName="securityZoneSourceType" varDescription="if applicable, source causing the event"/>
+            <p:enumVariable varName="indication" enumTypeName="indicationType" varDescription="if this zone event should be shown (visible and/or audible)"/>
+
+            <!-- overall status values -->
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+            <p:customRef customObj="alarmDetails" localName="alarm"/>
+            <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (0 if not valid)"/>
+
+            <!-- possible codes -->
+            <p:eventCode>ZONE_EVENT_FAULT_CODE</p:eventCode>
+            <p:eventCode>ZONE_EVENT_RESTORE_CODE</p:eventCode>
+            <p:eventCode>ZONE_EVENT_BYPASSED_CODE</p:eventCode>
+            <p:eventCode>ZONE_EVENT_UNBYPASSED_CODE</p:eventCode>
+            <p:eventCode>ZONE_EVENT_ADDED_CODE</p:eventCode>
+            <p:eventCode>ZONE_EVENT_UPDATED_CODE</p:eventCode>
+            <p:eventCode>ZONE_EVENT_REMOVED_CODE</p:eventCode>
+            <p:eventCode>ZONE_EVENT_ALARM_SESSION_CODE</p:eventCode>    <!-- rebroadcast during alarm -->
+            <p:eventCode>ZONE_EVENT_RECENT_CLOSE_CODE</p:eventCode>     <!-- rebroadcast during alarm that is 'recent closing' -->
+        </p:event>
+
+        <p:event varName="securityZoneReorderEvent" varDescription="broadcasted when zones are re-ordered (change the displayIndex)">
+            <p:customRef customObj="securityZoneList" localName="zoneList"/>
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+
+            <p:eventCode>ZONE_EVENT_REORDER_CODE</p:eventCode>
+        </p:event>
+
+        <p:event varName="securityZoneDiscoveredEvent" varDescription="A security zone was discovered, but not yet configured or added">
+            <p:customRef customObj="securityZoneDiscoveryDetails" localName="discoverDetails"/>
+            <p:eventCode>ZONE_EVENT_DISCOVERED</p:eventCode>
+        </p:event>
+
+        <p:event varName="securityZoneRejectedEvent" varDescription="A security zone was discovered, but subsequently rejected">
+            <p:customRef customObj="securityZoneDiscoveryDetails" localName="rejectDetails"/>
+            <p:eventCode>ZONE_EVENT_REJECTED</p:eventCode>
+        </p:event>
+
+        <p:event varName="securityZonesRemovedEvent" varDescription="broadcasted when multiple zones are removed at once">
+            <p:customRef customObj="securityZoneList" localName="zoneList"/>
+            <p:customRef customObj="systemPanelStatus" localName="panelStatus"/>
+
+            <p:eventCode>ZONE_EVENT_BULK_REMOVE_CODE</p:eventCode>
+        </p:event>
+
+        <!-- the various codes sent for alarms -->
+        <p:code name="ALARM_EVENT_ARMING"                value="37"   description="Exit Delay"/>           <!-- make same as MIN -->
+        <p:code name="ALARM_EVENT_ARMED"                 value="-1"   description="System Armed"/>
+        <p:code name="ALARM_EVENT_DISARMED"              value="-1"   description="System Disarmed"/>
+        <p:code name="ALARM_EVENT_STATE_READY"           value="-1"   description="System Ready"/>
+        <p:code name="ALARM_EVENT_STATE_NOT_READY"       value="-1"   description="System Not Ready"/>
+        <p:code name="ALARM_EVENT_ENTRY_DELAY"           value="-1"   description="Entry Delay"/>
+        <p:code name="ALARM_EVENT_ALARM"                 value="-1"   description="System Alarm"/>
+        <p:code name="ALARM_EVENT_ALARM_CLEAR"           value="-1"   description="System Alarm Clear (deprecated and can be removed someday)"/>
+        <p:code name="ALARM_EVENT_EXIT_DELAY_REMAINING"  value="-1"   description="Exit Delay Time Remaining - follow the ALARM_EVENT_ARMING event"/>
+        <p:code name="ALARM_EVENT_ENTRY_DELAY_REMAINING" value="-1"   description="Entry Delay Time Remaining"/>
+        <p:code name="ALARM_EVENT_ALARM_CANCELLED"       value="-1"   description="alarm has been cancelled"/>
+        <p:code name="ALARM_EVENT_ALARM_RESET"           value="-1"   description="alarm has been reset"/>
+        <p:code name="ALARM_EVENT_USER_CODE_ADDED"       value="-1"   description="user code has been added"/>
+        <p:code name="ALARM_EVENT_USER_CODE_DEL"         value="-1"   description="user code has been removed"/>
+        <p:code name="ALARM_EVENT_USER_CODE_MOD"         value="-1"   description="user code has been modified"/>
+        <p:code name="ALARM_EVENT_PANIC"                 value="-1"   description="panic button pressed"/>
+        <p:code name="ALARM_EVENT_TEST_MODE"             value="-1"   description="put in alarm test mode"/>
+        <p:code name="ALARM_EVENT_ACKNOWLEDGED"          value="-1"   description="ack event for an alarm session"/>
+        <p:code name="ALARM_EVENT_SEND_ALARM"            value="-1"   description="event forcing a send of queued alarm events on the server"/>
+
+        <!-- the various eventCodes sent for zones -->
+        <p:code name="ZONE_EVENT_FAULT_CODE"         value="220" description="Zone Fault"/>
+        <p:code name="ZONE_EVENT_RESTORE_CODE"       value="-1"  description="Zone Restore"/>
+        <p:code name="ZONE_EVENT_BYPASSED_CODE"      value="-1"  description="Zone Bypassed"/>
+        <p:code name="ZONE_EVENT_UNBYPASSED_CODE"    value="-1"  description="Zone Un-bypassed"/>
+        <p:code name="ZONE_EVENT_ADDED_CODE"         value="-1"  description="zone added event"/>
+        <p:code name="ZONE_EVENT_UPDATED_CODE"       value="-1"  description="zone updated event"/>
+        <p:code name="ZONE_EVENT_REMOVED_CODE"       value="-1"  description="zone removed event"/>
+        <p:code name="ZONE_EVENT_REORDER_CODE"       value="-1"  description="zones re-ordered"/>
+        <p:code name="ZONE_EVENT_DISCOVERED"         value="-1"  description="zone discovered"/>
+        <p:code name="ZONE_EVENT_REJECTED"           value="-1"  description="zone rejected"/>
+        <p:code name="ZONE_EVENT_ALARM_SESSION_CODE" value="-1"  description="re-broadcast of a zoneEvent when part of a delayed alarm"/>
+        <p:code name="ZONE_EVENT_RECENT_CLOSE_CODE"  value="-1"  description="re-broadcast of a zoneEvent when the delayed alarm is 'recent closing' (has different CID)"/>
+        <p:code name="ZONE_EVENT_BULK_REMOVE_CODE"   value="-1"  description="zone bulk remove"/>
+
+        <!-- the various eventValues sent for zones -->
+        <p:code name="ZONE_EVENT_FAULT_BYPASSED_VALUE"   value="10"  description="eventValue - Zone Fault when Bypassed"/>
+        <p:code name="ZONE_EVENT_RESTORE_BYPASSED_VALUE" value="-1"  description="eventValue - Zone Restore when Bypassed"/>
+        <p:code name="ZONE_EVENT_RESTORE_AFTER_SWINGER_SHUTDOWN" value="-1"  description="eventValue - Zone Restore after swinger shutdown clear"/>
+        <p:code name="ZONE_EVENT_OCC_FAULT_VALUE"        value="-1"  description="eventValue - Zone Occupancy Fault"/>
+        <p:code name="ZONE_EVENT_OCC_RESTORE_VALUE"      value="-1"  description="eventValue - Zone Occupancy Restore"/>
+        <p:code name="ZONE_EVENT_USER_FAULT_VALUE"       value="-1"  description="eventValue - Zone User Fault"/>
+        <p:code name="ZONE_EVENT_USER_RESTORE_VALUE"     value="-1"  description="eventValue - Zone User Restore"/>
+        <p:code name="ZONE_EVENT_BULK_VALUE"             value="-1"  description="eventValue - Zone part of a bulk zone modification"/>
+
+        <!-- eventValue for enter/exit alarm test mode -->
+        <p:code name="ALARM_TEST_MODE_ENTERED_VALUE"   value="30"  description="eventValue - used with ALARM_EVENT_TEST_MODE"/>
+        <p:code name="ALARM_TEST_MODE_EXITED_VALUE"    value="31"  description="eventValue - used with ALARM_EVENT_TEST_MODE"/>
+
+        <!-- systemMode changed event codes -->
+        <p:code name="SYSTEM_MODE_CHANGED_EVENT"    value="250"/>
+
+        <!-- trouble event codes -->
+        <p:code name="TROUBLE_OCCURED_EVENT"        value="255"/>
+        <p:code name="TROUBLE_CLEARED_EVENT"        value="-1"/>
+        <p:code name="TROUBLE_ACKNOWLEDGED_EVENT"   value="-1"/>
+        <p:code name="TROUBLE_UNACKNOWLEDGED_EVENT" value="-1"/>
+        <p:code name="TROUBLE_ALARM_SESSION_CODE"   value="-1"  description="re-broadcast of a troubleEvent when part of a delayed alarm"/>
+
+        <p:code name="TROUBLE_EVENT_REPLAY_VALUE"   value="7" description="the eventValue when resending troubleEvent for visual/display replay (beep every hour until the trouble clears).  Only applicable with TROUBLE_OCCURED_EVENT or TROUBLE_UNACKNOWLEDGED_EVENT codes"/>
+
+    </p:eventList>
+
+
+    <!--
+      - define the IPC messages
+      -->
+    <p:ipc>
+
+        <!--
+          - systemMode
+          -->
+
+        <p:message id="10" name="GET_CURRENT_SYSTEM_MODE" generate="C">
+            <p:description>Return the current systemMode</p:description>
+            <p:output>
+                <p:string varName="mode"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="15" name="SET_CURRENT_SYSTEM_MODE" generate="C">
+            <p:description>Switch from one systemMode to another</p:description>
+            <p:input>
+                <p:customRef>systemModeRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="20" name="GET_ALL_SYSTEM_MODES" generate="C">
+            <p:description>Return the list of known systemMode names</p:description>
+            <p:output>
+                <p:customRef>systemModeList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <!-- get the configuration version -->
+        <p:message id="25" name="SYSTEM_MODE_CONFIG_VERSION" generate="C">
+            <p:description>get the systemMode configuration version</p:description>
+            <p:output>
+                <p:number varName="version" kind="long" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="26" name="ALARM_CONFIG_VERSION" generate="C">
+            <p:description>get the version of the Alarm configuration file</p:description>
+            <p:output>
+                <p:number varName="version" kind="long" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="27" name="USER_CONFIG_VERSION" generate="C">
+            <p:description>get the version of the User configuration file</p:description>
+            <p:output>
+                <p:number varName="version" kind="long" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+
+        <!--
+          - arm/disarm message requests
+          -->
+
+        <p:message id="30" name="ARM_SYSTEM" generate="C">
+            <p:description>Arm the system (standard mechanism)</p:description>
+            <p:input>
+                <p:customRef>armRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>armResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="31" name="ARM_SYSTEM_FOR_RULE" generate="C">
+            <p:description>Arm the system via Rule Execution</p:description>
+            <p:input>
+                <p:customRef>armForRuleRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>armResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="34" name="ARM_SYSTEM_QUICK_FOR_ALARM_TEST" generate="C">
+            <p:description>Quick-Arm the system for alarm testing</p:description>
+            <p:input>
+                <p:number varName="numSeconds" kind="int"/>
+            </p:input>
+            <p:output>
+                <p:customRef>armResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="36" name="DISARM_SYSTEM" generate="C">
+            <p:description>Disarm the system (standard mechanism)</p:description>
+            <p:input>
+                <p:customRef>disarmRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>disarmResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="37" name="DISARM_SYSTEM_FOR_RULE" generate="C">
+            <p:description>Disarm the system via Rule Execution</p:description>
+            <p:input>
+                <p:string varName="token" varDescription="Token used to validate the disarm came from automation service"/>
+            </p:input>
+            <p:output>
+                <p:customRef>disarmResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="39" name="DISARM_SYSTEM_FROM_TEST" generate="C">
+            <p:description>Disarm the system (standard mechanism)</p:description>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+
+        <!--
+          - troubleService
+          -->
+
+        <!-- return the number of troubles -->
+        <p:message id="50" name="GET_TROUBLE_COUNT" generate="C">
+            <p:description>return the number of troubles known to the system</p:description>
+            <p:input>
+                <p:bool varName="includeAcknowledged" varDescription="if true, include 'acknowledged' troubles"/>
+            </p:input>
+            <p:output>
+                <p:number varName="count" kind="int" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+        <!-- get list of troubles -->
+        <p:message id="51" name="GET_TROUBLE_LIST" generate="C">
+            <p:description>Get the total list of known troubles</p:description>
+            <p:input>
+                <p:customRef>getTroublesInput</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>troubleObjList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <!-- get troubles for a specific deviceId-->
+        <p:message id="52" name="GET_TROUBLES_FOR_DEVICE" generate="C">
+            <p:description>Get the list of known troubles for a specific device</p:description>
+            <p:input>
+                <p:customRef>getTroublesTargetedInput</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>troubleObjList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <!-- get troubles for a specific uri-->
+        <p:message id="53" name="GET_TROUBLES_FOR_URI" generate="C">
+            <p:description>Get the list of known troubles for a specific device service uri prefix, could be a device uri, endpoint uri, or resource uri</p:description>
+            <p:input>
+                <p:customRef>getTroublesTargetedInput</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>troubleObjList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <!-- acknowledge a trouble -->
+        <p:message id="60" name="ACK_TROUBLE" generate="C">
+            <p:description>acknowledge a single trouble.</p:description>
+            <p:input>
+                <p:number varName="troubleId" kind="long" nativeSigned="false" varDescription="troubleId to acknowledge"/>
+            </p:input>
+        </p:message>
+        <p:message id="65" name="UNACK_TROUBLE" generate="C">
+            <p:description>un-acknowledge a single trouble.</p:description>
+            <p:input>
+                <p:number varName="troubleId" kind="long" nativeSigned="false" varDescription="troubleId to un-acknowledge"/>
+            </p:input>
+        </p:message>
+
+        <p:message id="70" name="IS_DEFER_TROUBLES_DURING_SLEEP_HOURS_ENABLED" generate="C">
+            <p:description>If defering troubles during sleep hours</p:description>
+            <p:output>
+                <p:bool varName="deferredTroublesEnabled"/>
+            </p:output>
+        </p:message>
+
+        <!-- get defer trouble configuration -->
+        <p:message id="71" name="GET_DEFER_TROUBLES_CONFIG" generate="C">
+            <p:description>Get the 'defer troubles during sleep hours' configuration.</p:description>
+            <p:output>
+                <p:customRef>deferTroublesConfig</p:customRef>
+            </p:output>
+        </p:message>
+
+        <!-- set defer trouble configuration -->
+        <p:message id="72" name="SET_DEFER_TROUBLES_CONFIG" generate="C">
+            <p:description>Set the 'defer troubles during sleep hours' configuration.</p:description>
+            <p:input>
+                <p:customRef>deferTroublesConfig</p:customRef>
+            </p:input>
+        </p:message>
+
+
+        <!--
+          - alarm message requests
+          -->
+
+        <p:message id="100" name="GET_SYSTEM_PANEL_STATUS" generate="C">
+            <p:description>Get the current panel status</p:description>
+            <p:output>
+                <p:customRef>systemPanelStatus</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="101" name="GET_CURRENT_ALARM_STATUS" generate="C">
+            <p:description>If the system is currently in alarm, returns the information about the alarm</p:description>
+            <p:output>
+                <p:customRef>currentAlarmStatus</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="103" name="GET_ZONES_PREVENT_ARMING" generate="C">
+            <p:description>To retrieve list of zones that prevent arming</p:description>
+            <p:output>
+                <p:customRef>securityZoneArmStatusDetailsList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="104" name="ARE_ZONES_PREVENT_ARMING" generate="C">
+            <p:description>slight variation to GET_ZONES_PREVENT_ARMING to perform a quick check to see if something is faulted or troubled</p:description>
+            <p:output>
+                <p:bool varName="faultedOrTroubled"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="105" name="START_PANIC_ALARM" generate="C">
+            <p:description>Put the system into a panic mode</p:description>
+            <p:input>
+                <p:customRef>panicRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="110" name="HAS_ALARM_SESSION_TO_ACK" generate="C">
+            <p:description>Returns true if there is an un-acknowledged alarm session</p:description>
+            <p:output>
+                <p:bool varName="hasAlarmSession"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="112" name="ACK_ALARM_SESSION" generate="C">
+            <p:description>Acknowledges the alarm session.  Called by the UI once it knows the user has witnessed the alarm.</p:description>
+        </p:message>
+
+        <!--
+          - test mode requests (there are more at the bottom)
+          -->
+
+        <p:message id="120" name="IN_TEST_MODE" generate="C">
+            <p:description>Return if the system is in "test mode"</p:description>
+            <p:output>
+                <p:bool varName="testMode"/>
+            </p:output>
+        </p:message>
+
+        <!--
+          - NOTE: set this IPC with a large timeout because securityService
+          -       will wait up-to 65 seconds for a response from the central station
+          -       before it will return.
+          -->
+        <p:message id="121" name="SET_TEST_MODE" generate="C" readTimeout="75">
+            <p:description>Puts the system is in "test mode".  If autoExitSeconds is greater than zero, test mode
+will automatically terminate after the timeout.  this will block until we get the ACK_TEST_ALARM call, indicating
+the server processed the change</p:description>
+            <p:input>
+                <p:number varName="autoExitSeconds" kind="int" nativeSigned="false"/>
+            </p:input>
+            <p:output>
+                <p:customRef>alarmTestModeResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="122" name="UNSET_TEST_MODE" generate="C">
+            <p:description>Take the system out of "test mode"</p:description>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="123" name="IS_TEST_ALARM_SEND_CODE_ENABLED" generate="C">
+            <p:description>gets the "test alarm send central station codes" enabled flag</p:description>
+            <p:output>
+                <p:bool varName="flag"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="124" name="SET_TEST_ALARM_SEND_CODE_ENABLED" generate="C">
+            <p:description>sets the "test alarm send central station codes" enabled flag</p:description>
+            <p:input>
+                <p:bool varName="flag"/>
+            </p:input>
+        </p:message>
+
+        <!-- TODO: check that XHUI is not using this.  I don't think we use this anywhere in our codebase -->
+        <p:message id="126" name="GET_UNFAULTED_ZONES_FOR_ALARM_TEST" generate="C">
+            <p:description>return the list of unfaulted zone ids during alarm test</p:description>
+            <p:output>
+                <p:customRef>unfaultedZoneIdsForAlarmTest</p:customRef>
+            </p:output>
+        </p:message>
+
+        <!--
+          - Alarm Behaviour Options
+          -->
+
+        <p:message id="140" name="IS_FIRE_VERIFY_ENABLED" generate="C">
+            <p:description>gets the "fire alarm verification" enabled flag</p:description>
+            <p:output>
+                <p:bool varName="flag"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="141" name="SET_FIRE_VERIFY_ENABLED" generate="C">
+            <p:description>sets the "fire alarm verification" enabled flag</p:description>
+            <p:input>
+                <p:bool varName="flag"/>
+            </p:input>
+        </p:message>
+
+        <p:message id="145" name="IS_SWINGER_SHUTDOWN_ENABLED" generate="C">
+            <p:description>gets the "swinger shutdown" enabled flag</p:description>
+            <p:output>
+                <p:bool varName="flag"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="146" name="SET_SWINGER_SHUTDOWN_ENABLED" generate="C">
+            <p:description>sets the "swinger shutdown" enabled flag</p:description>
+            <p:input>
+                <p:bool varName="flag"/>
+            </p:input>
+        </p:message>
+
+        <p:message id="147" name="GET_SWINGER_SHUTDOWN_MAX_TRIPS" generate="C">
+            <p:description>gets the "swinger shutdown" max trip count</p:description>
+            <p:output>
+                <p:number varName="maxTrips" kind="int" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="148" name="SET_SWINGER_SHUTDOWN_MAX_TRIPS" generate="C">
+            <p:description>sets the "swinger shutdown" max trip count</p:description>
+            <p:input>
+                <p:number varName="maxTrips" kind="int" nativeSigned="false"/>
+            </p:input>
+        </p:message>
+
+        <p:message id="149" name="GET_SWINGER_SHUTDOWN_MAX_TRIPS_RANGE" generate="C">
+            <p:output>
+                <p:customRef>validAlarmRange</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="150" name="GET_ENTRY_DELAY" generate="C">
+            <p:output>
+                <p:number varName="seconds" kind="int" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="151" name="SET_ENTRY_DELAY" generate="C">
+            <p:input>
+                <p:number varName="seconds" kind="int" nativeSigned="false"/>
+            </p:input>
+        </p:message>
+
+        <p:message id="152" name="GET_ENTRY_DELAY_RANGE" generate="C">
+            <p:output>
+                <p:customRef>validAlarmRange</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="154" name="GET_EXIT_DELAY" generate="C">
+            <p:output>
+                <p:number varName="seconds" kind="int" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="155" name="SET_EXIT_DELAY" generate="C">
+            <p:input>
+                <p:number varName="seconds" kind="int" nativeSigned="false"/>
+            </p:input>
+        </p:message>
+
+        <p:message id="156" name="GET_EXIT_DELAY_RANGE" generate="C">
+            <p:output>
+                <p:customRef>validAlarmRange</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="157" name="GET_DIALER_DELAY" generate="C">
+            <p:output>
+                <p:number varName="seconds" kind="int" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="158" name="SET_DIALER_DELAY" generate="C">
+            <p:input>
+                <p:number varName="seconds" kind="int" nativeSigned="false"/>
+            </p:input>
+        </p:message>
+
+        <p:message id="159" name="GET_DIALER_DELAY_RANGE" generate="C">
+            <p:output>
+                <p:customRef>validAlarmRange</p:customRef>
+            </p:output>
+        </p:message>
+
+
+        <!--
+          - Cross-Zone association
+          -->
+
+        <p:message id="160" name="ADD_CROSS_ZONE_ASSOC" generate="C">
+            <p:description>add a cross-zone association</p:description>
+            <p:input>
+                <p:customRef>crossZoneAssociation</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>crossZoneResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="161" name="MOD_CROSS_ZONE_ASSOC" generate="C">
+            <p:description>update a cross-zone association</p:description>
+            <p:input>
+                <p:customRef>crossZoneAssociation</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>crossZoneResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="162" name="DEL_CROSS_ZONE_ASSOC" generate="C">
+            <p:description>delete a cross-zone association</p:description>
+            <p:input>
+                <p:customRef>crossZoneAssociation</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="163" name="GET_CROSS_ZONE_ASSOC" generate="C">
+            <p:description>return the cross-zone associations</p:description>
+            <p:output>
+                <p:customRef>crossZoneAssociationList</p:customRef>
+            </p:output>
+        </p:message>
+
+
+        <!--
+          - User Code management
+          -->
+
+        <p:message id="170" name="ADD_USER_CODE" generate="C">
+            <p:description>add a user code</p:description>
+            <p:input>
+                <p:customRef>keypadUserCodeRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="171" name="MOD_USER_CODE" generate="C">
+            <p:description>update a user code</p:description>
+            <p:input>
+                <p:customRef>keypadUserCodeRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="172" name="DEL_USER_CODE" generate="C">
+            <p:description>delete a user code.  only looks at uuid and source</p:description>
+            <p:input>
+                <p:customRef>keypadUserCodeRequest</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="173" name="GET_USER_CODES" generate="C">
+            <p:description>return the known user codes</p:description>
+            <p:output>
+                <p:customRef>keypadUserCodeList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="174" name="VALIDATE_USER_CODE" generate="C">
+            <p:description>validate the user code and return the authorization level</p:description>
+            <p:input>
+                <p:string varName="code"/>
+            </p:input>
+            <p:output>
+                <p:customRef>keypadCodeValidation</p:customRef>
+            </p:output>
+        </p:message>
+
+
+        <!--
+          - zoneService
+          -->
+
+        <p:message id="300" name="GET_ALL_ZONE_NUMBERS" generate="C">
+            <p:output>
+                <p:customRef>securityZoneNumList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="310" name="GET_ALL_ZONES" generate="C">
+            <p:description>Retrieves a list of all security zones. The list is ordered by display index.</p:description>
+            <p:output>
+                <p:customRef>securityZoneList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="315" name="GET_ZONE_FOR_NUM" generate="C">
+            <p:input>
+                <p:number varName="zoneNum" kind="int" nativeSigned="false" varDescription="zoneNumber to query for"/>
+            </p:input>
+            <p:output>
+                <p:customRef>securityZone</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="320" name="UPDATE_ZONE" generate="C">
+            <p:description>Modify the zone label, type/function, bypass or muted state</p:description>
+            <p:input>
+                <p:customRef>updateSecurityZoneRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>updateSecurityZoneResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="323" name="BYPASS_ZONE_TOGGLE" generate="C">
+            <p:description>Toggle the zone bypassed state</p:description>
+            <p:input>
+                <p:customRef>bypassZoneToggleRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="worked"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="325" name="REMOVE_ZONE" generate="C">
+            <p:input>
+                <p:customRef>removeSecurityZoneRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="worked" varDescription="if update was successful"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="330" name="REORDER_ZONES" generate="C">
+            <p:input>
+                <p:customRef>securityZoneNumList</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="worked"/>
+            </p:output>
+        </p:message>
+
+    </p:ipc>
+
+</p:service>

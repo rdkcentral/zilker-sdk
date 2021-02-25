@@ -1,0 +1,10 @@
+##
+## template file for Pojo header-file typedef definitions
+##
+
+/*
+ * pojo definitions
+ */
+
+${c_type_defs}
+

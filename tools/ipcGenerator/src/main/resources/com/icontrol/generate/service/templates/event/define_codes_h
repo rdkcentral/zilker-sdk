@@ -1,0 +1,10 @@
+##
+## template file for Event header-file misc #defines
+##
+
+/*
+ * various definitions
+ */
+
+${c_type_defs}
+

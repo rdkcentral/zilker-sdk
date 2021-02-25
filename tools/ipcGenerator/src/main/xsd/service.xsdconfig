@@ -1,0 +1,15 @@
+<xb:config xmlns:xb="http://xml.apache.org/xmlbeans/2004/02/xbean/config"
+           xmlns:events="http://icontrol.com/service/v1.0">
+
+  <!--
+    We remove the namespace from the schema name in order to make
+    new versions of the schema not break any existing code.  In
+    order to provide backwards compatibility, we'll want to use
+    XSLT stylesheets to transform the old schema into the new one.
+    -->
+  <xb:namespace uri="http://icontrol.com/service/v1.0">
+    <xb:package>com.icontrol.xmlns.service</xb:package>
+    <xb:prefix>IC</xb:prefix>
+  </xb:namespace>
+
+</xb:config>

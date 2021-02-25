@@ -1,0 +1,9 @@
+##
+## template for a single POJO "destroy" function prototype
+## specific to ArrayVar and MapVar
+##
+
+/*
+ * 'destroy' function for ${pojo_c_varname}
+ */
+extern void destroy_${pojo_c_varname}(${pojo_classname} *pojo);

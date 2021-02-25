@@ -1,0 +1,13 @@
+##
+## template file for EventAdapter header-file 
+## used to define the function prototype that a
+## consumer needs to supply to receive events
+## for a particular Event struct
+##
+
+/*
+ * function signature of the 'listener' to call when
+ * ${event_classname} events are received by ${service}
+ */
+typedef void (*handleEvent_${event_classname})(${event_classname} *event);
+

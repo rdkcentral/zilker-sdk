@@ -1,0 +1,70 @@
+/*
+ * Copyright 2021 Comcast Cable Communications Management, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * define the name of the 'root' project
+ */
+rootProject.name = 'zilker'
+
+/*
+ * define each sub-project.  since the directory names won't
+ * match their artifact names, need to provide the 'name' override
+ * for each after it is included.  also makes finding the correct
+ * gradle file a bit nicer.
+ */
+
+
+/* Libraries */
+
+// util library.  needed for local-tools, ZITH
+include 'utilLib'
+project(":utilLib").projectDir = file('source/libs/util/java/common')
+project(":utilLib").buildFileName = "utilLib.gradle"
+project(":utilLib").name = "utilLib"
+
+// IPC library.  needed for local-tools, ZITH
+include 'ipcLib'
+project(":ipcLib").projectDir = file('source/libs/ipc/java')
+project(":ipcLib").buildFileName = "ipcLib.gradle"
+project(":ipcLib").name = "ipcLib"
+
+/* Service APIs */
+
+include 'watchdogService-api'
+project(":watchdogService-api").projectDir = file('source/services/watchdog/api/java')
+project(":watchdogService-api").buildFileName = "watchdogService-api.gradle"
+project(":watchdogService-api").name = "watchdogService-api"
+
+include 'propsService-api'
+project(":propsService-api").projectDir = file('source/services/props/api/java')
+project(":propsService-api").buildFileName = "propsService-api.gradle"
+project(":propsService-api").name = "propsService-api"
+
+/* Tools */
+
+include 'ipcGenerator'
+project(":ipcGenerator").projectDir = file('tools/ipcGenerator')
+project(":ipcGenerator").buildFileName = "ipcGenerator.gradle"
+project(":ipcGenerator").name = "ipcGenerator"
+
+/* ZITH */
+include 'zith'
+project(":zith").projectDir = file('tools/zith')
+project(":zith").buildFileName = "zith.gradle"
+project(":zith").name = "zith"
+

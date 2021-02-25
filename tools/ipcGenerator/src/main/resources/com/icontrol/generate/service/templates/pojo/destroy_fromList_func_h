@@ -1,0 +1,9 @@
+##
+## template for a single POJO "destroy" function prototype
+## when being removed from an icLinkedList
+##
+
+/*
+ * 'linkedListItemFreeFunc' implementation for ${pojo_c_varname}
+ */
+extern void destroy_${pojo_c_varname}_fromList(void *item);

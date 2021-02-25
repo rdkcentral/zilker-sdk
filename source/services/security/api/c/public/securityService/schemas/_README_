@@ -1,0 +1,3 @@
+Directory listing JSON Schemas for the various trouble "payloads" that can occur.
+Troubles contain an opaque "payload" to allow for details within the trouble without
+overcomplicating the object hierarchy for C and Java.

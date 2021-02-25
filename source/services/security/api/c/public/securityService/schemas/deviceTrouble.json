@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "title": "DeviceTrouble",
+  "description": "Schema of a 'device trouble'",
+  "type": "object",
+  "properties": {
+    "rootId": {
+      "description": "The ID of the root device.",
+      "type": "string"
+    },
+    "ownerUri": {
+      "description": "The URI of the device/endpoint.",
+      "type": "string"
+    },
+    "resourceUri": {
+      "description": "The uri of the resource which triggered the trouble",
+      "type": "string"
+    },
+    "deviceClass": {
+      "description": "the deviceClass of the device",
+      "type": "string"
+    }
+  },
+  "required": ["rootId", "ownerId", "resourceUri", "deviceClass"]
+}

@@ -1,0 +1,563 @@
+##
+## Native IPC request handler template that attempts to mimic Java as best as possible
+##
+
+/**
+ * IPC Message Handling for ${service} Service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <pthread.h>
+#include <icLog/logging.h>
+#include <icUtil/stringUtils.h>
+#include <icIpc/ipcMessage.h>
+#include <icIpc/ipcReceiver.h>
+#include <icIpc/ipcStockMessages.h>
+#include <icConcurrent/delayedTask.h>
+#include <watchdog/watchdogService_ipc.h>
+#include <watchdog/watchdogService_eventAdapter.h>
+${c_include_sec}
+
+/*
+ * forward declaration of the handler function (for IPCReceiver to call)
+ */
+static IPCCode local_${service}_ipc_handler(IPCMessage *request, IPCMessage *response);
+static bool register_${service}_ipc_handler(uint16_t minThreads, uint16_t maxThreads, uint32_t maxQueueSize);
+static void allServicesDoneEventListener(watchdogEvent *event);
+static void cleanupForShutdown();
+static void shutdown_${service}_notify_callback(void);
+bool is_${service}_ipc_handler_shutdown(void);
+
+/*
+ * private variables
+ */
+static IpcReceiver receiver = NULL;     // local handle to the IPC receiver
+static bool gotInitRequest = false;     // set when watchdog calls START_INIT
+static bool gotAllComplete = false;     // set when watchdog sends WATCHDOG_INIT event
+static char *shutdownToken = NULL;      // random generated shutdown token
+static bool receiverIsValid = false;    // flag to denote if the receiver is valid and running
+static performServiceInitCallback   serviceInitCallback = NULL;     // optional
+static allServicesAvailableCallback allInitCallback = NULL;         // optional
+static performShutdownCallback doShutdownCallback = NULL;           // optional
+static pthread_mutex_t INIT_MTX = PTHREAD_MUTEX_INITIALIZER;
+
+/*
+ * begin the service startup sequence.  this function will:
+ *   1. start the IPC receiver,
+ *   2. create random shutdown token
+ *   3. inform watchdog this service is started
+ *   4. notify the 'performServiceInitCallback' when told to via watchdog
+ *   5. notify the 'allServicesAvailableCallback' when watchdog sends the event
+ *
+ *  NOTE: when 'blockOnIpc' is set, this function will not return until the
+ *        IPC receiver exits it's processing loop; and once this returns,
+ *        the process should perform cleanup and exit.
+ *
+ * @param initCallback - optional, but if defined called during "step 1"
+ * @param allCompleteCallback - optional, but if defined called during "step 2"
+ * @param shutdownCallback - optional function to call when asked to shutdown via IPC
+ * @param minIpcThreadCount - the min number of threads for the 'threadPool'
+ * @param maxIpcThreadCount - the max number of threads for the 'threadPool'
+ * @param maxIpcQueueCount - the max number of requests to keep in the threadPool's queue
+ * @param blockOnIpc - if true (what most do), blocks until the IPC receiver exits
+ */
+void startupService_${service}(performServiceInitCallback initCallback,
+                               allServicesAvailableCallback allCompleteCallback,
+                               performShutdownCallback shutdownCallback,
+                               uint16_t minIpcThreadCount,
+                               uint16_t maxIpcThreadCount,
+                               uint32_t maxIpcQueueCount,
+                               bool blockOnIpc)
+{
+    // save the optional function pointers
+    //
+    pthread_mutex_lock(&INIT_MTX);
+    serviceInitCallback = initCallback;
+    allInitCallback = allCompleteCallback;
+    doShutdownCallback = shutdownCallback;
+    gotInitRequest = false;
+    gotAllComplete = false;
+    pthread_mutex_unlock(&INIT_MTX);
+
+    // start the IPC handler
+    //
+    icLogDebug("${service}", "starting IPC handler");
+    if (register_${service}_ipc_handler(minIpcThreadCount, maxIpcThreadCount, maxIpcQueueCount) == false)
+    {
+        icLogError("${service}", "error starting IPC handler; exiting");
+        return;
+    }
+
+    // create the 'shutdown token'
+    //
+    shutdownToken = generateRandomToken(10, 16, (int)getpid());
+
+    // register for watchdog events
+    //
+    icLogDebug("${service}", "registering for watchdog events");
+    register_watchdogEvent_eventListener(allServicesDoneEventListener);
+
+    // send ack to watchdogService
+    //
+    icLogDebug("${service}", "sending acknowledgement to watchdogService");
+    ackServiceDef *ack = create_ackServiceDef();
+    ack->serviceName = strdup("${service}");
+    ack->ipcPortNum = ${server_port_name}_IPC_PORT_NUM;
+    ack->token = strdup(shutdownToken);
+    IPCCode rc = watchdogService_request_ACK_SERVICE_STARTUP(ack);
+    if (rc != IPC_SUCCESS)
+    {
+        icLogError("${service}", "error sending acknowledgement to watchdogService - %s", IPCCodeLabels[rc]);
+    }
+    destroy_ackServiceDef(ack);
+    ack = NULL;
+
+    // finally, block forever waiting for the ipc handler to exit
+    //
+    if (blockOnIpc == true)
+    {
+        waitForRequestHandlerToShutdown(receiver);
+        cleanupForShutdown();
+    }
+}
+
+/*
+ * Start to listen for and handle IPC requests.
+ * Should be the LAST function called from main()
+ * as this will not return unless there is an
+ * error establishing the listening socket
+ *
+ * @param minThreads - the min number of threads for the 'threadPool'
+ * @param maxThreads - the max number of threads for the 'threadPool'
+ * @param maxQueueSize - the max number of requests to keep in the threadPool's queue
+ */
+static bool register_${service}_ipc_handler(uint16_t minThreads, uint16_t maxThreads, uint32_t maxQueueSize)
+{
+    // register our port/IP with the IPCReceiver and provide
+    // the callback function when requests come in
+    //
+    icLogDebug("${service}", "starting IPC handler on port %d", ${server_port_name}_IPC_PORT_NUM);
+    receiver = startRequestHandler(${server_port_name}_IPC_PORT_NUM, local_${service}_ipc_handler, 
+               SERVICE_VISIBLE_LOCAL_HOST, minThreads, maxThreads, maxQueueSize, shutdown_${service}_notify_callback);
+
+    if (receiver != NULL)
+    {
+        pthread_mutex_lock(&INIT_MTX);
+        receiverIsValid = true;
+        pthread_mutex_unlock(&INIT_MTX);
+        return true;
+    }
+    return false;
+}
+
+/*
+ * watchdog event callback
+ */
+static void allServicesDoneEventListener(watchdogEvent *event)
+{
+    if (event->baseEvent.eventCode == WATCHDOG_INIT_COMPLETE)
+    {
+        // forward to our callbacks if necessary
+        pthread_mutex_lock(&INIT_MTX);
+        bool didInit = gotInitRequest;
+        bool didEvent = gotAllComplete;
+        pthread_mutex_unlock(&INIT_MTX);
+
+        // first call our 'init' if not done already via IPC.
+        // note that a restart of the service won't get called direct via the IPC,
+        // so we have to handle that here
+        //
+        if (didInit == false)
+        {
+            pthread_mutex_lock(&INIT_MTX);
+            gotInitRequest = true;
+            pthread_mutex_unlock(&INIT_MTX);
+
+            if (serviceInitCallback != NULL)
+            {
+                serviceInitCallback();
+            }
+        }
+
+        // now the 'all complete' callback
+        //
+        if (didEvent == false)
+        {
+            pthread_mutex_lock(&INIT_MTX);
+            gotAllComplete = true;
+            pthread_mutex_unlock(&INIT_MTX);
+
+            if (allInitCallback != NULL)
+            {
+                allInitCallback();
+            }
+        }
+    }
+}
+
+/*
+ * cleanup variables and mem established from startupService_${service}
+ */
+static void cleanupForShutdown()
+{
+    unregister_watchdogEvent_eventListener(allServicesDoneEventListener);
+    pthread_mutex_lock(&INIT_MTX);
+    free(shutdownToken);
+    shutdownToken = NULL;
+    gotInitRequest = false;
+    gotAllComplete = false;
+    serviceInitCallback = NULL;
+    allInitCallback = NULL;
+    doShutdownCallback = NULL;
+    receiver = NULL;
+    receiverIsValid = false;
+    pthread_mutex_unlock(&INIT_MTX);
+}
+
+/*
+ * Callback for when the receiver had to be shutdown asynchronously.
+ */
+static void shutdown_${service}_notify_callback(void)
+{
+    cleanupForShutdown();
+}
+
+/*
+ * Tell the IPC receiver to shut down and wait for it to exit.
+ */
+void shutdown_${service}_ipc_handler()
+{
+    icLogInfo("${service}", "shutting down IPC handler");
+    cleanupForShutdown();
+    receiver = NULL;
+}
+
+/*
+ * return the IPC receiver object
+ */
+IpcReceiver get_${service}_ipc_receiver()
+{
+    return receiver;
+}
+
+/*
+ * return if the ipc handler is shutdown
+ */
+bool is_${service}_ipc_handler_shutdown(void)
+{
+    bool retVal;
+    pthread_mutex_lock(&INIT_MTX);
+    // Consider us shutdown if we don't have a valid receiver
+    retVal = (receiverIsValid == false);
+    pthread_mutex_unlock(&INIT_MTX);
+
+    return retVal;
+}
+
+
+/**
+ * request the service to shutdown.  requires the caller to have the magic
+ * token, or else this request will fail.
+ *   credentials - ensure caller has permission to request a shutdown
+ **/
+static IPCCode handle_${service}_SHUTDOWN_SERVICE_request(char *credentials)
+{
+    IPCCode retVal = IPC_GENERAL_ERROR;
+
+    // called direct from local_${service}_ipc_handler()
+    // see if this matches our internal shutdown token
+    //
+    if (stringCompare(credentials, shutdownToken, false) == 0)
+    {
+        // perform the shutdown
+        //
+        icLogInfo("${service}", "handling IPC request to SHUTDOWN_SERVICE");
+
+        // first notify the callback (if defined).  this way we don't shutdown
+        // if the service is performing a critical operation
+        //
+        if (doShutdownCallback != NULL)
+        {
+            icLogDebug("${service}", "calling internal shutdown hook");
+            doShutdownCallback();
+        }
+
+        /// the IPC layer will get a shutdown callback when the response is sent
+        //
+        retVal = IPC_SHUT_DOWN;
+
+        shutdown_${service}_ipc_handler();
+    }
+    else
+    {
+        icLogWarn("shutdownToken", "unable to handle IPC request to SHUTDOWN_SERVICE; invalid credentials");
+    }
+
+    // cleanup and return
+    //
+    free(shutdownToken);
+    shutdownToken = NULL;
+    return retVal;
+}
+
+/**
+ * inform a service that it's safe to query other services for information. this is
+ * a direct call from watchdog as the last phasse of the "start all services" sequences.
+ */
+static IPCCode handle_${service}_START_INIT(bool *output)
+{
+    // Mark gotInitRequest to avoid attempting to call init again later (e.g., when all services are ready).
+    //
+    pthread_mutex_lock(&INIT_MTX);
+    gotInitRequest = true;
+    pthread_mutex_unlock(&INIT_MTX);
+
+    // invoke callback if defined
+    //
+    if (serviceInitCallback != NULL)
+    {
+        serviceInitCallback();
+    }
+
+    *output = true;
+    return IPC_SUCCESS;
+}
+
+
+/*
+ * serviceRequestHandler callback from ipcReceiver for ${service}
+ */
+static IPCCode local_${service}_ipc_handler(IPCMessage *request, IPCMessage *response)
+{
+    IPCCode rc = IPC_GENERAL_ERROR;
+    if (request == NULL)
+    {
+        // unable to process request
+        //
+        icLogWarn("${service}", "unable to process request, missing 'request' input variable");
+        return IPC_INVALID_ERROR;
+    }
+    if (response == NULL)
+    {
+        // unable to process request
+        //
+        icLogWarn("${service}", "unable to process request, missing 'response' output variable");
+        return IPC_INVALID_ERROR;
+    }
+
+    // process request based on the msgCode
+    //
+#ifdef CONFIG_DEBUG_IPC
+    icLogDebug("${service}", "processing request %d", request->msgCode);
+#endif
+    switch (request->msgCode)
+    {
+         case STOCK_IPC_SHUTDOWN_SERVICE:
+        {
+            char *input = NULL;
+            icLogDebug("${service}", "processing request SHUTDOWN_SERVICE");
+
+            // parse input
+            //
+            if (request->payloadLen > 0)
+            {
+                cJSON *item = NULL;
+                cJSON *inRoot = cJSON_Parse((const char *)request->payload);
+                if (inRoot != NULL)
+                {
+                    item = cJSON_GetObjectItem(inRoot, "s");
+                    if (item != NULL)
+                    {
+                        input = strdup(item->valuestring);
+                    }
+                    cJSON_Delete(inRoot);
+                }
+            }
+
+            // call handle function stub
+            //
+            rc = handle_${service}_SHUTDOWN_SERVICE_request(input);
+
+            // mem cleanup
+            //
+            if (input != NULL)
+            {
+               free(input);
+            }
+               break;
+           }
+
+        case STOCK_IPC_GET_RUNTIME_STATS:
+        {
+            bool input = 0;
+            runtimeStatsPojo *output = create_runtimeStatsPojo();
+            icLogDebug("${service}", "processing request GET_RUNTIME_STATS");
+
+            // parse input
+            //
+            if (request->payloadLen > 0)
+            {
+                cJSON *item = NULL;
+                cJSON *inRoot = cJSON_Parse((const char *)request->payload);
+                if (inRoot != NULL)
+                {
+                    item = cJSON_GetObjectItem(inRoot, "b");
+                    if (item != NULL)
+                    {
+                        input = (bool)item->valueint;
+                        rc = 0;
+                    }
+                    cJSON_Delete(inRoot);
+                }
+            }
+            
+            // call handle function stub
+            //
+            rc = handle_${service}_GET_RUNTIME_STATS_request(input, output);
+
+            // encode output parameter
+            //
+            cJSON *outRoot = encode_runtimeStatsPojo_toJSON(output);
+#ifdef CONFIG_DEBUG_IPC
+            char *encodeStr = cJSON_Print(outRoot);
+#else
+            char *encodeStr = cJSON_PrintUnformatted(outRoot);
+#endif
+            populateIPCMessageWithJSON(response, encodeStr);
+
+            // mem cleanup
+            //
+            free(encodeStr);
+            cJSON_Delete(outRoot);
+            destroy_runtimeStatsPojo(output);
+
+            break;
+        }
+
+        case STOCK_IPC_GET_SERVICE_STATUS:
+        {
+            serviceStatusPojo *output = create_serviceStatusPojo();
+            icLogDebug("${service}", "processing request GET_SERVICE_STATUS");
+
+            // call handle function stub
+            //
+            rc = handle_${service}_GET_SERVICE_STATUS_request(output);
+
+            // encode output parameter
+            //
+            cJSON *outRoot = encode_serviceStatusPojo_toJSON(output);
+#ifdef CONFIG_DEBUG_IPC
+            char *encodeStr = cJSON_Print(outRoot);
+#else
+            char *encodeStr = cJSON_PrintUnformatted(outRoot);
+#endif
+            populateIPCMessageWithJSON(response, encodeStr);
+
+            // mem cleanup
+            //
+            free(encodeStr);
+            cJSON_Delete(outRoot);
+            destroy_serviceStatusPojo(output);
+
+            break;
+        }
+
+        case STOCK_IPC_CONFIG_RESTORED:
+        {
+            configRestoredInput *input = create_configRestoredInput();
+
+            configRestoredOutput *output = create_configRestoredOutput();
+
+
+            icLogDebug("stockMessages", "processing request STOCK_IPC_CONFIG_RESTORED");
+            rc = IPC_GENERAL_ERROR;
+            // parse input
+            //
+            if (request->payloadLen > 0)
+            {
+                cJSON *item = NULL;
+                cJSON *inRoot = cJSON_Parse((const char *)request->payload);
+                if (inRoot != NULL)
+                {
+                    rc = decode_configRestoredInput_fromJSON(input, inRoot) == 0 ? IPC_SUCCESS : IPC_GENERAL_ERROR;
+                    cJSON_Delete(inRoot);
+                }
+            }
+
+            if (rc != IPC_SUCCESS)
+            {
+                destroy_configRestoredInput(input);
+                destroy_configRestoredOutput(output);
+                return rc;
+            }
+
+
+            // call handle function stub
+            rc = handle_${service}_CONFIG_RESTORED_request(input, output);
+
+            // encode output parameter
+            cJSON *outRoot = encode_configRestoredOutput_toJSON(output);
+#ifdef CONFIG_DEBUG_IPC
+            char *encodeStr = cJSON_Print(outRoot);
+#else
+            char *encodeStr = cJSON_PrintUnformatted(outRoot);
+#endif
+            populateIPCMessageWithJSON(response, encodeStr);
+
+            // mem cleanup
+            free(encodeStr);
+            cJSON_Delete(outRoot);
+            destroy_configRestoredInput(input);
+            destroy_configRestoredOutput(output);
+
+			break;
+        }
+
+        case STOCK_IPC_START_INIT:
+        {
+            icLogDebug("${service}", "processing request STOCK_IPC_START_INIT");
+
+            // call handle function stub
+            //
+            bool output = false;
+            rc = handle_${service}_START_INIT(&output);
+
+            // encode output parameter
+            cJSON *outRoot = cJSON_CreateObject();
+            if (output == true)
+                cJSON_AddItemToObjectCS(outRoot, "b", cJSON_CreateTrue());
+            else
+                cJSON_AddItemToObjectCS(outRoot, "b", cJSON_CreateFalse());
+#ifdef CONFIG_DEBUG_IPC
+            char *encodeStr = cJSON_Print(outRoot);
+#else
+            char *encodeStr = cJSON_PrintUnformatted(outRoot);
+#endif
+            populateIPCMessageWithJSON(response, encodeStr);
+
+            // mem cleanup
+            free(encodeStr);
+            cJSON_Delete(outRoot);
+            break;
+        }
+
+${message_handle}
+
+        default:
+        {
+            icLogWarn("${service}", "unable to process unknown request %d", request->msgCode);
+        }
+    }
+
+#ifdef CONFIG_DEBUG_IPC
+    icLogDebug("${service}", "done processing request %d; returning rc=%d", request->msgCode, rc);
+#endif
+    return rc;
+}
+
+

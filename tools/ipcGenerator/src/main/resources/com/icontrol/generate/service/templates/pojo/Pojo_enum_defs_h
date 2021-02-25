@@ -1,0 +1,10 @@
+##
+## template file for Pojo header-file enum typedef definitions
+##
+
+/*
+ * enum definitions
+ */
+
+${c_type_defs}
+

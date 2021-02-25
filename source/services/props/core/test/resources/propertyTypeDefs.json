@@ -1,0 +1,611 @@
+[
+[
+  {
+    "propertyName": "automation.testing.fastTimerAction.flag",
+    "propertyType": "boolean"
+  }
+]
+,
+[
+  {
+    "propertyName": "xconf.telemetry.max.roll.size",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "cpe.troubles.minTroubleVolume",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "cpe.hometones.minHometoneVolume",
+    "propertyType": "int32"
+  }
+],
+[
+  {
+    "propertyName": "touchscreen.speaker.silent.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "comm.activation.server.notified",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "comm.activation.state",
+    "propertyType": "uint32",
+    "minValue":     "0"
+  },
+  {
+    "propertyName": "persist.cpe.setupwizard.state",
+    "propertyType": "int32",
+    "minValue":     "-1",
+    "maxValue":     "3"
+  }
+],
+[
+  {
+    "propertyName": "alarmService.disabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "alarmService.sendAttempts.timeoutSeconds",
+    "propertyType": "uint32",
+    "minValue":     "60"
+  },
+  {
+    "propertyName": "alarmService.commCheckSeconds",
+    "propertyType": "uint32",
+    "minValue":     "300"
+  },
+  {
+    "propertyName": "alarmService.commCheckFailiureCountForTrouble",
+    "propertyType": "uint32",
+    "minValue":     "1"
+  },
+  {
+    "propertyName": "alarmService.commCheckRetrySeconds",
+    "propertyType": "uint32",
+    "minValue":     "30"
+  },
+  {
+    "propertyName": "alarmService.devMode",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "alarmService.url",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "alarmService.url.set.bband",
+    "propertyType": "urlSet"
+  },
+  {
+    "propertyName": "alarmService.url.set.cell",
+    "propertyType": "urlSet"
+  },
+  {
+    "propertyName": "alarmService.connTest.url",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "alarmService.connTest.url.set.bband",
+    "propertyType": "urlSet"
+  },
+  {
+    "propertyName": "alarmService.connTest.url.set.cell",
+    "propertyType": "urlSet"
+  }
+],
+[
+  {
+    "propertyName": "awsChannel.enabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "awsChannel.timeoutSecs",
+    "propertyType": "uint32",
+    "minValue":     "15"
+  },
+  {
+    "propertyName": "awsChannel.caCertPath",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "awsChannel.certPath",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "awsChannel.privateKeyPath",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "awsChannel.host",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "awsChannel.port",
+    "propertyType": "uint32",
+    "minValue":     "1",
+    "maxValue":     "65535"
+  },
+  {
+    "propertyName": "awsChannel.partner",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "awsChannel.xboAccountId",
+    "propertyType": "string"
+  }
+],
+[
+  {
+    "propertyName": "cpe.comm.deviceCrudFailure.dataSyncDelaySecs",
+    "propertyType": "uint32",
+    "minValue":     "1"
+  },
+  {
+    "propertyName": "cpe.comm.deviceCrudFailure.devMode.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "touchscreen.camera.maxAllowed",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "cpe.google.geocoder.api.key",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "cpe.dev.geocoder.url.override",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "cpe.geocoding.enabled.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "userver.enabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "suspendReconnectTime",
+    "propertyType": "uint32",
+    "minValue":     "1"
+  }
+],
+[
+  {
+    "propertyName": "cpe.migrated.rules.version",
+    "propertyType": "uint64"
+  },
+  {
+    "propertyName": "cpe.migrated.camera.version",
+    "propertyType": "uint64"
+  }
+],
+[
+  {
+    "propertyName": "devHal.tamper",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "coredumps.save",
+    "propertyType": "enum",
+    "enumValues":   ["true","false","dev"]
+  }
+],
+[
+  {
+    "propertyName": "cpe.net.captiveportal.forcevalid",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.net.captiveportal.server",
+    "propertyType": "string"
+  }
+]
+,
+[
+  {
+    "propertyName": "cpe.gatewaySync.enabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.gatewaySync.url",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "cpe.gatewaySync.downBeforePostSecs",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "cpe.gatewaySync.postTimeoutSecs",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "cpe.gatewaySync.retryIntervalSecs",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "cpe.gatewaySync.retryMaxAttempts",
+    "propertyType": "int32"
+  }
+]
+,
+[
+  {
+    "propertyName": "cpe.net.wifi.watchdog",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "network.lnf.bssid",
+    "propertyType": "string"
+  }
+]
+,
+[
+  {
+    "propertyName": "cpe.account.maxAllowedDaysWithInactiveAccount",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "security.testing.fastCommFail.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.troubles.safety.annunciationUseSeconds",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.troubles.iot.annunciationIntervalMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.burg.annunciationIntervalMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.safety.annunciationIntervalMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.systemTroubles.annunciationIntervalMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.iot.annunciationAckExpireMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.burg.annunciationAckExpireMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.safety.annunciationAckExpireMinutes",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.troubles.system.annunciationAckExpireMinutes",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "cpe.dnd.default.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "touchscreen.sensor.commFail.troubleDelay",
+    "propertyType": "uint32",
+    "minValue":     56
+  },
+  {
+    "propertyName": "cpe.troubles.noAlarmOnCommFailure",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "device.tamper.enabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "touchscreen.duressCode.disabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "alarm.cancel.contactId",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "ignore.removed.battery.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "siren.onboardpiezo.silent.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.trouble.preLowBatteryDays",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.trouble.preLowBatteryDays.dev.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "ignore.screensaver.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.camera.offlineDetectionThreshold",
+    "propertyType": "uint32",
+    "minValue":     "2"
+  },
+  {
+    "propertyName": "cpe.camera.onlineDetectionThreshold",
+    "propertyType": "uint32",
+    "minValue":     "1"
+  },
+  {
+    "propertyName": "cpe.camera.pingIntervalSeconds",
+    "propertyType": "uint32",
+    "minValue":     "30"
+  },
+  {
+    "propertyName": "camera.local.motion.default",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "cameraFirmwareBaseUrl",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "localIpAddress",
+    "propertyType": "string"
+  }
+],
+[
+  {
+    "propertyName": "zigbee.testing.fastCommFail.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "deviceDescriptor.whitelist.url.override",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "deviceDescriptorList",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "deviceDescriptor.blacklist",
+    "propertyType": "url"
+  }
+],
+[
+  {
+    "propertyName": "POSIX_TZ",
+    "propertyType": "string"
+  }
+],
+[
+  {
+    "propertyName": "motionEventsBlackoutPeriod",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "camera.discovery.ipPrefix",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "camera.maxToDiscover",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "camera.fw.update.delay.seconds",
+    "propertyType": "int64",
+    "minValue":     "0"
+  }
+],
+[
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeThreshold",
+    "propertyType": "uint8"
+  },
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeWindowMillis",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeRestoreMillis",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "zigbee.fw.upgrade.nodelay.flag",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "firmware.upgrade.delaySecs",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "deviceFirmwareBaseUrl",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "firmware.upgrade.retryDelaySecs",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "cpe.zigbee.healthCheck.intervalMillis",
+    "propertyType": "uint32",
+    "minValue":     "1000"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.ccaThreshold",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.ccaFailureThreshold",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.restoreThreshold",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.delayBetweenThresholdRetriesMillis",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "cpe.zigbee.watchdog.enabled.flag",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.zigbee.panIdConflict.enabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.diagnostics.zigBeeData.channelScanDurationMs",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.diagnostics.zigBeeData.numberOfScansPerChannel",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.channelChange.maxWaitTimeMin",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.channelChange.enabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "touchscreen.sensor.commFail.alarmDelay",
+    "propertyType": "uint32",
+    "minValue":     60
+  }
+],
+[
+  {
+    "propertyName": "telemetry.hoursRemaining",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "telemetry.upload",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "telemetry.maxAllowedFileStorage",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "config.fastbackuptimer.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.codebig.useproduction",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.xconf.url",
+    "propertyType": "url"
+  }
+],
+[
+  {
+    "propertyName": "firmwareUpdateWaitTimeAfterDisarm",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.override.xhui.size.limit.flag",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.xconf.firmwareConfigurationQueryRange",
+    "propertyType": "string"
+  }
+],
+[
+  {
+    "propertyName": "cpe.xconf.featureControlQueryInterval",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "pnp.unmanaged.network.force",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.sms.script.preserveScripts",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "panicScreenDisabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "alarm.skipPolicePanicImmediateAudibleAlarm",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cellular.twoWayVoice.maxCallLength",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "cellular.twoWayVoice.enabled",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.troubles.safety.acknowledgementRequiresPIN",
+    "propertyType": "boolean"
+  }
+]]

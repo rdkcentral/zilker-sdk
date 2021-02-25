@@ -1,0 +1,14 @@
+[
+  {
+    "propertyName": "deviceDescriptor.whitelist.url.override",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "deviceDescriptorList",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "deviceDescriptor.blacklist",
+    "propertyType": "url"
+  }
+]

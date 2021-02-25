@@ -1,0 +1,75 @@
+{
+  "results" : [
+    {
+      "address_components" : [
+        {
+          "long_name" : "Bldg 4, Ste 500",
+          "short_name" : "Bldg 4, Ste 500",
+          "types" : [ "subpremise" ]
+        },
+        {
+          "long_name" : "6200",
+          "short_name" : "6200",
+          "types" : [ "street_number" ]
+        },
+        {
+          "long_name" : "Bridge Point Parkway",
+          "short_name" : "Bridge Point Pkwy",
+          "types" : [ "route" ]
+        },
+        {
+          "long_name" : "Hidden Valley",
+          "short_name" : "Hidden Valley",
+          "types" : [ "neighborhood", "political" ]
+        },
+        {
+          "long_name" : "Austin",
+          "short_name" : "Austin",
+          "types" : [ "locality", "political" ]
+        },
+        {
+          "long_name" : "Travis County",
+          "short_name" : "Travis County",
+          "types" : [ "administrative_area_level_2", "political" ]
+        },
+        {
+          "long_name" : "Texas",
+          "short_name" : "TX",
+          "types" : [ "administrative_area_level_1", "political" ]
+        },
+        {
+          "long_name" : "United States",
+          "short_name" : "US",
+          "types" : [ "country", "political" ]
+        },
+        {
+          "long_name" : "78730",
+          "short_name" : "78730",
+          "types" : [ "postal_code" ]
+        }
+      ],
+      "formatted_address" : "6200 Bridge Point Pkwy Bldg 4, Ste 500, Austin, TX 78730, USA",
+      "geometry" : {
+        "location" : {
+          "lat" : 30.3543131,
+          "lng" : -97.79914710000001
+        },
+        "location_type" : "ROOFTOP",
+        "viewport" : {
+          "northeast" : {
+            "lat" : 30.3556620802915,
+            "lng" : -97.79779811970852
+          },
+          "southwest" : {
+            "lat" : 30.3529641197085,
+            "lng" : -97.80049608029152
+          }
+        }
+      },
+      "partial_match" : true,
+      "place_id" : "Ej5CbGRnIDQsIFN0ZSA1MDAsIDYyMDAgQnJpZGdlIFBvaW50IFBrd3ksIEF1c3RpbiwgVFggNzg3MzAsIFVTQSIrGikKFgoUChIJhTSh58Q0W4YR4zaky52bWGUSD0JsZGcgNCwgU3RlIDUwMA",
+      "types" : [ "subpremise" ]
+    }
+  ],
+  "status" : "OK"
+}

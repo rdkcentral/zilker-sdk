@@ -1,0 +1,22 @@
+
+package ${java_pkg};
+
+//-----------------------------------------------------------------------------
+// Class definition:    ${java_class}
+/**
+ *  Set of event codes used within the BaseEvent.getEventCode()
+ *  and BaseEvent.getEventValue() when events are broadcasted by
+ *  the ${service} Service.
+ *  <p>
+ *  THIS IS AN AUTO-GENERATED FILE, DO NOT EDIT!!!!!!!!
+ **/
+//-----------------------------------------------------------------------------
+public interface ${java_class}
+{
+    // port number of service to listen for event broadcasts on
+    //
+    public static final int ${server_port_name}_PORT_NUM = ${server_port_num};
+
+${java_var_sec}
+}
+

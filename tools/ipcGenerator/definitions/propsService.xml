@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!-- 
+  -
+  - Define the IPC/Events for "Properties Service"
+  -
+  -->
+<p:service 
+    xmlns:p="http://icontrol.com/service/v1.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://icontrol.com/service/v1.0 ../src/main/xsd/service.xsd "
+    eventPort="13512" ipcPort="1610" name="propsService" >
+
+    <!-- define the directory structure for generated code -->
+    <p:pragma>
+        <p:native>
+            <p:apiHeaderDir>source/services/props/api/c/public/propsMgr</p:apiHeaderDir>
+            <p:apiSrcDir>source/services/props/api/c/src</p:apiSrcDir>
+            <p:ipcHandlerSrcDir>source/services/props/core/src</p:ipcHandlerSrcDir>
+            <p:configFlag>CONFIG_SERVICE_PROPERTY</p:configFlag>
+            <p:freeform>#define PROPS_SERVICE_NAME "propsService"  // matches this service name as defined in watchdog.conf.  primarily used for name comparison on watchdogEvent notifications.</p:freeform>
+        </p:native>
+        <p:java>
+            <p:apiDir>source/services/props/api/java/src/main/java</p:apiDir>
+            <p:apiPkg>com.icontrol.api.properties</p:apiPkg>
+            <p:eventDir>source/services/props/api/java/src/main/java</p:eventDir>
+            <p:eventPkg>com.icontrol.event.properties</p:eventPkg>
+        </p:java>
+    </p:pragma>
+
+    <!--
+      - define POJOs and enumerations
+      -->
+    <p:typedef enumTypeName="propSource" description="source of 'set' property; describes priority ranking when saving properties (larger is higher priority)">
+        <p:value value="PROPERTY_SRC_DEFAULT"   numeric="0"/>
+        <p:value value="PROPERTY_SRC_SERVER"    numeric="1"/>
+        <p:value value="PROPERTY_SRC_XCONF"     numeric="2"/>
+        <p:value value="PROPERTY_SRC_DEVICE"    numeric="3"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="propSetResult" description="the result from a property set operation">
+        <p:value value="PROPERTY_SET_OK"                numeric="0"/>
+        <p:value value="PROPERTY_SET_VALUE_NOT_ALLOWED" numeric="1"/>
+        <p:value value="PROPERTY_SET_GENERAL_ERROR"     numeric="2"/>
+        <p:value value="PROPERTY_SET_INVALID_REQUEST"   numeric="3"/>
+        <p:value value="PROPERTY_SET_ALREADY_EXISTS"    numeric="4"/>
+        <p:value value="PROPERTY_SET_IPC_ERROR"         numeric="5"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="propPathType" description="type of path">
+        <p:value value="DYNAMIC_PATH"           numeric="0"/>
+        <p:value value="DYNAMIC_CONFIG_PATH"    numeric="1"/>
+        <p:value value="STATIC_PATH"            numeric="2"/>
+        <p:value value="STATIC_CONFIG_PATH"     numeric="3"/>
+    </p:typedef>
+
+    <p:pojo varName="property" varDescription="single property definition">
+        <p:stringVariable varName="key"/>
+        <p:stringVariable varName="value"/>
+        <p:enumVariable varName="source" enumTypeName="propSource"/>
+    </p:pojo>
+
+    <p:pojo varName="propertyKeys" varDescription="container of known property keys">
+        <p:arrayVariable varName="list" varDescription="all known property keys (as string)">
+            <p:stringVariable varName="key"/>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="propertyValues" varDescription="container of known property key/values">
+        <p:mapVariable varName="set">
+            <p:customRef>property</p:customRef>
+        </p:mapVariable>
+    </p:pojo>
+
+    <p:pojo varName="propertyPath" varDescription="container of property path type">
+        <p:enumVariable varName="pathType" enumTypeName="propPathType"/>
+    </p:pojo>
+
+    <p:pojo varName="propertySetResult" varDescription="the result of a property set operation">
+        <p:enumVariable varName="result" enumTypeName="propSetResult"/>
+        <p:stringVariable varName="errorMessage"/>
+    </p:pojo>
+
+    <!--
+      - define the events
+      -->
+    <p:eventList generate="BOTH">
+
+        <p:event varName="cpePropertyEvent">
+            <p:numVariable varName="overallPropsVersion" kind="long" nativeSigned="false"/>
+            <p:numVariable varName="source" kind="int" varDescription="usually 0 to match ARM_SOURCE_CPE_KEYPAD"/>
+            <p:stringVariable varName="propKey" varDescription="the property key"/>
+            <p:stringVariable varName="propValue" varDescription="the property value"/>
+
+            <p:eventCode>GENERIC_PROP_EVENT</p:eventCode>
+        </p:event>
+
+        <!-- the event code used for property events -->
+        <p:code name="GENERIC_PROP_EVENT"       value="115"/>
+
+        <!-- the event values used in the events -->
+        <p:code name="GENERIC_PROP_ADDED"       value="1"/>
+        <p:code name="GENERIC_PROP_DELETED"     value="2"/>
+        <p:code name="GENERIC_PROP_UPDATED"     value="3"/>
+
+    </p:eventList>
+
+
+    <!--
+      - define the IPC messages
+      -->
+    <p:ipc>
+
+        <!-- IPC notification that a config file has changed.  Not implemented as an event for backward compatibility -->
+        <p:message id="10" name="GET_CPE_PROPERTY" generate="BOTH">
+            <p:description>Get the 'property' with the given 'key'</p:description>
+            <p:input>
+                <p:string varName="key"/>
+            </p:input>
+            <p:output>
+                <p:customRef>property</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="20" name="SET_CPE_PROPERTY" generate="BOTH">
+            <p:description>Set (add or replace) a property using 'key' and 'value'</p:description>
+            <p:input>
+                <p:customRef>property</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>propertySetResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="21" name="SET_CPE_PROPERTY_OVERWRITE" generate="BOTH">
+            <p:description>Set (add or replace) a property using 'key' and 'value', however overwrite even if the value is the same to force the 'GENERIC_PROP_UPDATED' event.</p:description>
+            <p:input>
+                <p:customRef>property</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>propertySetResult</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="25" name="SET_CPE_PROPERTIES_BULK" generate="C">
+            <p:description>Set (add/replace) a group of proerties</p:description>
+            <p:input>
+                <p:customRef>propertyValues</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="bulkSuccess"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="30" name="DEL_CPE_PROPERTY" generate="BOTH">
+            <p:description>Delete the 'property' with the given 'key'</p:description>
+            <p:input>
+                <p:string varName="key"/>
+            </p:input>
+        </p:message>
+
+        <p:message id="35" name="COUNT_PROPERTIES" generate="C">
+            <p:description>Return number of properties known to the service</p:description>
+            <p:output>
+                <p:number varName="count" kind="int"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="40" name="GET_ALL_KEYS" generate="C">
+            <p:description>Return all property keys known to the service</p:description>
+            <p:output>
+                <p:customRef>propertyKeys</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="41" name="GET_ALL_KEY_VALUES" generate="BOTH">
+            <p:description>Return all properties known to the service.  This is expensive, so use sparingly</p:description>
+            <p:output>
+                <p:customRef>propertyValues</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="45" name="GET_FILE_VERSION" generate="C">
+            <p:description>Return version number used during initialInform</p:description>
+            <p:output>
+                <p:number varName="ver" kind="long" nativeSigned="false"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="50" name="GET_PATH" generate="BOTH">
+            <p:description>Get a filesystem path</p:description>
+            <p:input>
+                <p:customRef>propertyPath</p:customRef>
+            </p:input>
+            <p:output>
+                <p:string varName="path"/>
+            </p:output>
+        </p:message>
+
+    </p:ipc>
+
+</p:service>

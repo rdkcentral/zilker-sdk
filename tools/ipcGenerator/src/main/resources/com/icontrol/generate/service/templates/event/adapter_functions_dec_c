@@ -1,0 +1,8 @@
+##
+## template file for EventAdapter source
+## used to generate the internal function prototypes within the source
+##
+void notifyListeners_${event_classname}(${event_classname} *event);
+bool ${event_classname}_iterator(void *item, void *arg);
+
+
