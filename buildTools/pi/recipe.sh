@@ -20,23 +20,19 @@
 #-------------------------------------------
 #
 # build script to follow the recipe of creating
-# secupg and images for a Linux workstation.
-#
-# NOTE: intended for use by build agents
-#       as this will re-create the entire
-#       build process for a single platform
+# secupg and images for a Raspberry Pi
 #
 #-------------------------------------------
 
 # define globall paths
-BUILD_DIR=${ZILKER_SDK_TOP}/build/linux
+BUILD_DIR=${ZILKER_SDK_TOP}/build/pi
 
 #
 # show options
 #
 printUsage()
 {
-    echo "linux_recipe:";
+    echo "pi_recipe:";
     echo "  options:";
     echo "  -h         : show this help";
     echo "  -t         : build 3rd-party";
@@ -44,7 +40,6 @@ printUsage()
     echo "  -D         : build DEBUG";
     echo "  -R         : build RELEASE";
     echo "  -v         : verbose build";
-    echo "  -z         : build with zith tests"
     echo "";
 }
 
@@ -94,7 +89,6 @@ doMirror=0;
 doDebugBuild=0;
 doReleaseBuild=0;
 doVerbose=0
-doZith=0
 
 if [ $# -eq 0 ]; then
     printUsage;
@@ -104,7 +98,7 @@ fi
 # parse options
 #
 OPTIND=1    # reset getops
-while getopts "htmvzDR" opt; do
+while getopts "htmvDR" opt; do
     case "$opt" in
     h)  printUsage;
         exit 0;
@@ -123,9 +117,6 @@ while getopts "htmvzDR" opt; do
         ;;
 
     v)  doVerbose=1;
-        ;;
-
-    z)  doZith=1;
         ;;
 
     *)  echo "ERROR: unknown option.  use -h for usage";
@@ -162,21 +153,16 @@ if [ $doMirror -eq 1 ]; then
     buildMirrorArg="-b";
 fi
 
-# for ZITH test execution
-buildZith=""
-if [ $doZith -eq 1 ]; then
-    buildZith="-z"
-fi
-
 # pass along to setup_build
 #
 cd ${ZILKER_SDK_TOP};
-./setup_build.sh -rp${verboseOpt} ${buildTypeArg} ${buildThirdArg} ${buildMirrorArg} ${buildZith} linux;
+./setup_build.sh -rp${verboseOpt} ${buildTypeArg} ${buildThirdArg} ${buildMirrorArg} pi;
 
 # copy specific files that are not part of CMake
-export BUILD_MODEL="linux"
+export BUILD_MODEL="pi"
 export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
 buildDir=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}
 if [ -d ${buildDir}/mirror/include ]; then
     cp ${buildDir}/include/*.h ${buildDir}/mirror/include;
 fi
+

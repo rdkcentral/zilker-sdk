@@ -40,6 +40,7 @@ set(CONFIG_STATIC_PATH "/opt/zilker" CACHE INTERNAL "")
 if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "")
     set(CONFIG_OS "Linux" CACHE INTERNAL "")
 else()
+    # Linux & Darwin
     set(CONFIG_OS "${CMAKE_HOST_SYSTEM_NAME}" CACHE INTERNAL "")
 endif()
 

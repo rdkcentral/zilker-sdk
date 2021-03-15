@@ -51,6 +51,7 @@ target_include_directories(xhUtil PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhUtil DESTINATION lib)
+install(DIRECTORY public/icUtil DESTINATION include)
 
 add_zilker_test(
         NAME testStringUtils

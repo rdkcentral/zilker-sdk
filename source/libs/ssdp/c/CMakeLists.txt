@@ -44,5 +44,6 @@ target_include_directories(xhSsdp PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhSsdp DESTINATION lib)
+install(DIRECTORY public/ssdp DESTINATION include)
 
 #TODO: test target

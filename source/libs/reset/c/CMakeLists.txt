@@ -45,5 +45,6 @@ target_include_directories(xhReset PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhReset DESTINATION lib)
+install(DIRECTORY public/icReset DESTINATION include)
 
 #TODO: test target

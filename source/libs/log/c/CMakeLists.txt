@@ -70,5 +70,6 @@ target_include_directories(xhLog PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhLog DESTINATION lib)
+install(DIRECTORY public/icLog DESTINATION include)
 
 #TODO: test target

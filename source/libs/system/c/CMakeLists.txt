@@ -50,3 +50,4 @@ target_include_directories(xhSystem PUBLIC public ${CURRENT_SOURCE_GENERATED_DIR
 
 # install in $PREFIX/lib
 install(TARGETS xhSystem DESTINATION lib)
+install(DIRECTORY public/icSystem DESTINATION include)

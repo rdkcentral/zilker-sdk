@@ -237,7 +237,7 @@ runCreateMakefiles()
     # create Makefiles via CMake into the 'build' dir
     showHeader "Creating Makefiles for core ${BUILD_MODEL}";
     cd ${BUILD_DIR};
-    echo "cmake -G \"Unix Makefiles\" -C ${top}/buildTools/cmake/products/${BUILD_MODEL}.cmake $brandArg $buildDebugFlag $zithTestOptions $compOpt ${top}"
+    echo "cmake -G \"Unix Makefiles\" -C ${top}/buildTools/cmake/products/${BUILD_MODEL}.cmake $brandArg $buildDebugFlag $zithTestOptions $compOpt ${top}";
     cmake -G "Unix Makefiles" -C ${top}/buildTools/cmake/products/${BUILD_MODEL}.cmake $brandArg $buildDebugFlag $zithTestOptions $compOpt ${top};
 
     cd ${top};

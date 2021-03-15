@@ -49,6 +49,7 @@ target_include_directories(xhUrlHelper PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhUrlHelper DESTINATION lib)
+install(DIRECTORY public/urlHelper DESTINATION include)
 
 # add our 'unit test' to be part of the "make unitTest"
 add_subdirectory(test)

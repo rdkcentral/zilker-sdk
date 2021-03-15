@@ -44,7 +44,7 @@ target_include_directories(xhSolar PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhSolar DESTINATION lib)
-
+install(DIRECTORY public/solar DESTINATION include)
 
 add_zilker_test(
         NAME testSunriseSunsetCalculator

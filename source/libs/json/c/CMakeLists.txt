@@ -44,5 +44,6 @@ target_include_directories(xhJsonHelper PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhJsonHelper DESTINATION lib)
+install(DIRECTORY public/jsonHelper DESTINATION include)
 
 #TODO: test target

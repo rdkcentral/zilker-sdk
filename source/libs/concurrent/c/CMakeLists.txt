@@ -42,6 +42,7 @@ target_include_directories(xhConcurrent PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhConcurrent DESTINATION lib)
+install(DIRECTORY public/icConcurrent DESTINATION include)
 
 # add our 'unit tests' (part of the "make unitTest")
 add_zilker_test(

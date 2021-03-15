@@ -44,6 +44,7 @@ target_include_directories(zhal PUBLIC public)
 
 # install in $PREFIX/lib
 #install(TARGETS zhal DESTINATION lib)
+install(DIRECTORY public/zhal DESTINATION include)
 
 # add our test to be part of the "make manualTest"
 add_subdirectory(test)

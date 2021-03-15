@@ -43,15 +43,9 @@ if [ "${BUILD_TCHAIN}" = "linux" ]; then
     $1/config -DOPENSSL_NO_HEARTBEATS shared --prefix=${CROSS_OUTPUT} --openssldir=${CROSS_OUTPUT};
 
 elif [ "${BUILD_TCHAIN}" = "darwin" ]; then
-    # TODO: test this out
     $1/Configure -DOPENSSL_NO_HEARTBEATS shared --prefix=${CROSS_OUTPUT} --openssldir=${CROSS_OUTPUT} darwin64-x86_64-cc;
 
-elif [ "${BUILD_TCHAIN}" = "flextronics" -o "${BUILD_TCHAIN}" = "netgear" ]; then
-    # need to use "mips-generic" as the compiler
-	$1/Configure -DOPENSSL_NO_HEARTBEATS shared --prefix=${CROSS_OUTPUT} --openssldir=${CROSS_OUTPUT} no-async linux-mips32;
-
 elif [[ "${BUILD_TCHAIN}" = "android_ndk"* ]]; then
-
     # for Android, need to ensure our NDK and API are set and "force" the SYSROOT
     # also need to clear our CC, LD, AR, RANLIB commands since openssl will re-define them
     #
@@ -70,7 +64,8 @@ elif [[ "${BUILD_TCHAIN}" = "android_ndk"* ]]; then
 	$1/Configure -DOPENSSL_NO_HEARTBEATS no-shared --prefix=${CROSS_OUTPUT}/local --openssldir=${CROSS_OUTPUT}/local --sysroot=${CROSS_SYSROOT} android-armeabi;
 
 else
-    # TODO: figure out the others
-	$1/Configure -DOPENSSL_NO_HEARTBEATS shared --prefix=${CROSS_OUTPUT} --openssldir=${CROSS_OUTPUT} os/compiler:${CROSS_HOST};
+    # use 'CROSS_HOST2' value from the environment
+	$1/Configure -DOPENSSL_NO_HEARTBEATS shared --prefix=${CROSS_OUTPUT} --openssldir=${CROSS_OUTPUT} ${CROSS_HOST2};
+
 fi
 

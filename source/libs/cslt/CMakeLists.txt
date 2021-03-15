@@ -55,5 +55,6 @@ target_include_directories(xhCslt PRIVATE ${PROJECT_SOURCE_DIR}/source/services/
 
 # install in $PREFIX/lib
 install(TARGETS xhCslt DESTINATION lib)
+install(DIRECTORY public/cslt DESTINATION include)
 
 add_subdirectory(test)

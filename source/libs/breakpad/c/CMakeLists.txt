@@ -34,6 +34,7 @@ include_directories(
 
 # define source files (using wildcard)
 file(GLOB SOURCES "src/*.cpp")
+file(GLOB HEADERS "public/*.h")
 
 # build as static library
 add_library(xhBreakpadHelper SHARED ${SOURCES})
@@ -49,6 +50,8 @@ set_target_properties(xhBreakpadHelper PROPERTIES
 
 # install in $PREFIX/lib
 install(TARGETS xhBreakpadHelper DESTINATION lib)
+install(FILES ${HEADERS} DESTINATION include)
+
 
 if (CONFIG_DEBUG_BREAKPAD)
     if (CONFIG_DEBUG_BREAKPAD_WRAPPER)

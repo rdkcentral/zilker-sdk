@@ -53,6 +53,7 @@ target_include_directories(xhIpc PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhIpc DESTINATION lib)
+install(DIRECTORY public/icIpc DESTINATION include)
 
 # test target (unitTest)
 add_subdirectory(test)

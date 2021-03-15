@@ -44,5 +44,6 @@ target_include_directories(xhCrypto PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhCrypto DESTINATION lib)
+install(DIRECTORY public/icCrypto DESTINATION include)
 
 add_subdirectory(test)

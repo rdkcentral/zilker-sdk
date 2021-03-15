@@ -45,5 +45,6 @@ target_include_directories(icrule PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS icrule DESTINATION lib)
+install(DIRECTORY public/icrule DESTINATION include)
 
 add_subdirectory(test)

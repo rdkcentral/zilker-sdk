@@ -43,6 +43,7 @@ target_include_directories(xhTypes PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhTypes DESTINATION lib)
+install(DIRECTORY public/icTypes DESTINATION include)
 
 # add our 'unit test' to be part of the "make unitTest"
 add_subdirectory(test)

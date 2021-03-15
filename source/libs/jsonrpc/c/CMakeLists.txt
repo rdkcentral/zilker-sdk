@@ -45,5 +45,6 @@ target_include_directories(xhJsonrpc PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhJsonrpc DESTINATION lib)
+install(DIRECTORY public/jsonrpc DESTINATION include)
 
 add_subdirectory(test)

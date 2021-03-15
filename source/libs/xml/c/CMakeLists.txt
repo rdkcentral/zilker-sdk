@@ -44,5 +44,6 @@ target_include_directories(xhXmlHelper PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhXmlHelper DESTINATION lib)
+install(DIRECTORY public/xmlHelper DESTINATION include)
 
 #TODO: test target

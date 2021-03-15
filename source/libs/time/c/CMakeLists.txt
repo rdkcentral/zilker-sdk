@@ -44,6 +44,7 @@ target_include_directories(xhTime PUBLIC public)
 
 # install in $PREFIX/lib
 install(TARGETS xhTime DESTINATION lib)
+install(DIRECTORY public/icTime DESTINATION include)
 
 # add our 'unit test' to be part of the "make unitTest"
 add_zilker_test(

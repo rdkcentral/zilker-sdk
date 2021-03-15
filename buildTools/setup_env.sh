@@ -50,16 +50,10 @@
 #     ORIG_LDFLAGS  - LDFLAGS before this script ran
 #
 #
-# NOTE: this script will setup environment variables, so it should be 
-#       'sourced' not executed.
+# NOTE: this script will setup environment variables, so it should be 'sourced' not executed.
 #
 # For example, to get setup for building on a Raspberry Pi:
 #   . setup_env.sh pi
-#
-# TODO: make sure these are removed
-#     CROSS_ARCH      - architecture setup for (should equal input parm)
-#     TARGET_PLATFORM
-#     TARGET_PLATFORM_OS
 #
 #------------------------------------------------------------------------------
 
@@ -167,17 +161,32 @@ reset_vars()
 #---------------------------
 setup_pi()
 {
-    # TODO: finish this is we are going to support it
+    export BUILD_TCHAIN="pi";
+    export CROSS_OUTPUT=${ZILKER_SDK_TOP}/build/3rdParty/${BUILD_TCHAIN};
+
+    # look for environment variable dictating the root of the raspberry-pi tools.
+    # it can be downloaded via https://github.com/raspberrypi/tools
+    if [ -z "$PI_TOOLS" ]; then
+        echo "Missing environment variable \$PI_TOOLS";
+        echo "Please download from github https://github.com/raspberrypi/tools";
+        echo "and set export PI_TOOLS to that location";
+        exit 1;
+    fi
+
+    # setup the variables needed for the cross-compile
+    TCHAIN=$PI_TOOLS/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf;
 
     export CROSS_HOST="arm-linux-gnueabihf";
-    export CROSS_HOST2="arm-linux-gnueabihf";
+    export CROSS_HOST2="linux-generic32";
     export SKIP_CMOCKA="true"
 
     # set compile/link flags
     #
-    export CC="${CROSS_HOST}-gcc";
+    export CC="$TCHAIN/bin/${CROSS_HOST}-gcc";
 
-    export CFLAGS="-O2 -fPIC -std=gnu99 -DBUILDENV_ARM -DBUILDENV_pi"
+    export CFLAGS="--sysroot=$TCHAIN/$CROSS_HOST/sysroot -O2 -fPIC -std=gnu99 -DBUILDENV_ARM -DBUILDENV_pi"
+    #include rpath so 3rdParty libs have rpath in them for ubuntu 18.04 and later
+    export LDFLAGS="-L${CROSS_OUTPUT}/lib -Wl,-rpath,${CROSS_OUTPUT}/lib";
     export DEBUG_COMPILE="yes";
 }
 

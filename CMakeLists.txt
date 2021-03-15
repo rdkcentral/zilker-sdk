@@ -107,7 +107,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CONFIG_LDFLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
 
-if (NOT CONFIG_OS_DARWIN)
+if (CONFIG_PRODUCT STREQUAL "linux" AND NOT CONFIG_OS_DARWIN)
     # OS X doesn't know these flags
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-but-set-variable")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-truncation")
@@ -119,7 +119,6 @@ if (NOT CONFIG_OS_DARWIN)
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-enum-compare")
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-")
 
 # This one seems weird. We get a "size" passed in as (n) Bytes.
 # Then do a `memset` with that and we get a warning saying

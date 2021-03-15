@@ -50,6 +50,7 @@ target_include_directories(xhCron PUBLIC public ${CURRENT_SOURCE_GENERATED_DIR}/
 
 # install in $PREFIX/lib
 install(TARGETS xhCron DESTINATION lib)
+install(DIRECTORY public/xhCron DESTINATION include)
 
 if (NOT CONFIG_OS_DARWIN)
     # Unit Tests

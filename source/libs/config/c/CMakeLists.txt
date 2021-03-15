@@ -48,6 +48,7 @@ target_include_directories(xhConfig PUBLIC public ${CROSS_OUTPUT}/include/libxml
 
 # install in $PREFIX/lib
 install(TARGETS xhConfig DESTINATION lib)
+install(DIRECTORY public/icConfig DESTINATION include)
 
 # add our 'unit test' to be part of the "make unitTest"
 if (NOT CONFIG_OS_DARWIN)

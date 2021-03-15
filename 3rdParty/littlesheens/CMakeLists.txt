@@ -39,6 +39,7 @@ ExternalProject_Add(ext_littlesheens
         GIT_REPOSITORY https://github.com/Comcast/littlesheens.git
         GIT_TAG 0.1
         PREFIX ${CMAKE_CURRENT_BINARY_DIR}/git
+        PATCH_COMMAND ${CMAKE_CURRENT_LIST_DIR}/patch.sh ${CMAKE_CURRENT_LIST_DIR}
         CMAKE_ARGS "${CMAKE_ARGS}" "-DBUILD_MODEL=${CONFIG_PRODUCT}" "-DCMAKE_INSTALL_PREFIX=${CROSS_OUTPUT}"
         INSTALL_DIR ${CROSS_OUTPUT}
 )
