@@ -24,14 +24,9 @@
 #
 #-------------------------------
 
-# assumed we are running out of the 'mirror', 
-# not the CROSS_OUTPUT directory
-#
-base=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}/mirror
-
-# base paths
-IC_HOME=$base
-IC_CONF=$base/config
+# base paths for running on a Raspberry Pi
+IC_HOME=/opt/zilker
+IC_CONF=/opt
 UPG_CACHE=/tmp/upg
 export IC_HOME IC_CONF UPG_CACHE
 export PATH=$PATH:$IC_HOME/bin

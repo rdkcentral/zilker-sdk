@@ -27,7 +27,7 @@ set(CONFIG_OS "Linux" CACHE INTERNAL "")
 set(CONFIG_CPU arm CACHE INTERNAL "")
 
 # runtime paths
-set(CONFIG_DYNAMIC_PATH "/tmp" CACHE INTERNAL "")
+set(CONFIG_DYNAMIC_PATH "/opt" CACHE INTERNAL "")
 set(CONFIG_STATIC_PATH "/opt/zilker" CACHE INTERNAL "")
 
 # main platform scope definition

@@ -61,7 +61,7 @@ cd $confDir ; tar -czf $archive .
 
 # use curl to upload the archive 
 #
-curl -k -u "$user:$pass" -F "cpeId=$cpeId" -F "configVersion=$configVer" -F "cpeConfigBackup.tar.gz.gpg=@$archive" "$targetUrl"
+curl -k -u "$user:$pass" -F "cpeId=$cpeId" -F "configVersion=$configVer" -F "cpeConfigBackup.tar.gz=@$archive" "$targetUrl"
 
 # cleanup
 #

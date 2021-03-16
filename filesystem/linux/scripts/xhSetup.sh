@@ -60,7 +60,7 @@ if [ ! -f $IC_CONF/etc/WhiteList.xml ]; then
     cp $IC_HOME/etc/WhiteList.xml $IC_CONF/etc;
 fi
 
-# lower stack size for iControl processes
+# lower stack size for our processes
 # default is 8M, which is awfully large
 ulimit -s 1024
 
