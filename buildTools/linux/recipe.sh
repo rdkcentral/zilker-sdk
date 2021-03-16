@@ -30,6 +30,7 @@
 
 # define globall paths
 BUILD_DIR=${ZILKER_SDK_TOP}/build/linux
+DOCS_SUBDIR=build/docs
 
 #
 # show options
@@ -41,6 +42,7 @@ printUsage()
     echo "  -h         : show this help";
     echo "  -t         : build 3rd-party";
     echo "  -m         : build mirror";
+    echo "  -d         : produce doxygen docs ($DOCS_SUBDIR)";
     echo "  -D         : build DEBUG";
     echo "  -R         : build RELEASE";
     echo "  -v         : verbose build";
@@ -88,13 +90,14 @@ fi
 
 # define defaults
 #
-set -e;
-doThirdParty=0;
-doMirror=0;
-doDebugBuild=0;
-doReleaseBuild=0;
+set -e
+doThirdParty=0
+doMirror=0
+doDebugBuild=0
+doReleaseBuild=0
 doVerbose=0
 doZith=0
+doDocs=0
 
 if [ $# -eq 0 ]; then
     printUsage;
@@ -104,7 +107,7 @@ fi
 # parse options
 #
 OPTIND=1    # reset getops
-while getopts "htmvzDR" opt; do
+while getopts "htmvzdDR" opt; do
     case "$opt" in
     h)  printUsage;
         exit 0;
@@ -114,6 +117,9 @@ while getopts "htmvzDR" opt; do
         ;;
 
     m)  doMirror=1;
+        ;;
+
+    d)  doDocs=1;
         ;;
 
     D)  doDebugBuild=1;
@@ -173,10 +179,24 @@ fi
 cd ${ZILKER_SDK_TOP};
 ./setup_build.sh -rp${verboseOpt} ${buildTypeArg} ${buildThirdArg} ${buildMirrorArg} ${buildZith} linux;
 
-# copy specific files that are not part of CMake
-export BUILD_MODEL="linux"
-export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
-buildDir=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}
-if [ -d ${buildDir}/mirror/include ]; then
-    cp ${buildDir}/include/*.h ${buildDir}/mirror/include;
+if [ $doMirror -eq 1 ]; then
+    # copy specific files that are not part of CMake
+    export BUILD_MODEL="linux"
+    export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
+    buildDir=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}
+    if [ -d ${buildDir}/mirror/include ]; then
+        cp ${buildDir}/include/*.h ${buildDir}/mirror/include;
+    fi
+fi
+
+if [ $doDocs -eq 1 ]; then
+    # finally, produce doxygen documentation
+    set +e
+    which doxygen > /dev/null
+    if [ $? -eq 0 ]; then
+        # have the tool, so generate the docs
+        cd ${ZILKER_SDK_TOP};
+        rm -rf ${DOCS_SUBDIR}
+        doxygen buildTools/doxygen.conf;
+    fi
 fi

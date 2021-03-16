@@ -83,11 +83,11 @@ fi
 
 # define defaults
 #
-set -e;
-doThirdParty=0;
-doMirror=0;
-doDebugBuild=0;
-doReleaseBuild=0;
+set -e
+doThirdParty=0
+doMirror=0
+doDebugBuild=0
+doReleaseBuild=0
 doVerbose=0
 
 if [ $# -eq 0 ]; then
@@ -158,11 +158,13 @@ fi
 cd ${ZILKER_SDK_TOP};
 ./setup_build.sh -rp${verboseOpt} ${buildTypeArg} ${buildThirdArg} ${buildMirrorArg} pi;
 
-# copy specific files that are not part of CMake
-export BUILD_MODEL="pi"
-export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
-buildDir=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}
-if [ -d ${buildDir}/mirror/include ]; then
-    cp ${buildDir}/include/*.h ${buildDir}/mirror/include;
+if [ $doMirror -eq 1 ]; then
+    # copy specific files that are not part of CMake
+    export BUILD_MODEL="pi"
+    export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
+    buildDir=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}
+    if [ -d ${buildDir}/mirror/include ]; then
+        cp ${buildDir}/include/*.h ${buildDir}/mirror/include;
+    fi
 fi
 
