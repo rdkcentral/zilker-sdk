@@ -25,7 +25,13 @@
 #-------------------------------------------
 
 # define globall paths
-BUILD_DIR=${ZILKER_SDK_TOP}/build/pi
+export BUILD_MODEL="pi"
+export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
+baseSubdir=build/${BUILD_MODEL}
+buildDir=${ZILKER_SDK_TOP}/${baseSubdir}
+mirrorDir=${buildDir}/mirror
+includeDir=${mirrorDir}/include
+installDir=${buildDir}/install
 
 #
 # show options
@@ -36,40 +42,12 @@ printUsage()
     echo "  options:";
     echo "  -h         : show this help";
     echo "  -t         : build 3rd-party";
-    echo "  -m         : build mirror";
+    echo "  -m         : build mirror and includes  (${baseSubdir}/mirror)";
+    echo "  -i         : build installation package (${baseSubdir}/install)";
     echo "  -D         : build DEBUG";
     echo "  -R         : build RELEASE";
     echo "  -v         : verbose build";
     echo "";
-}
-
-#
-# create miniturized version of a mirror to have some.
-# files available within the .secupg archive.
-# needs arguments of 'source dir' and 'dest dir'
-#
-createMiniMirror()
-{
-    echo "  setting up mini-mirror...";
-
-    # first create the subdirs we want
-    #
-    mkdir -p ${2}/bin;
-    mkdir -p ${2}/etc;
-    mkdir -p ${2}/stock/actions;
-
-    # copy min amount of data needed for createPackage.sh
-    #
-    cp ${1}/bin/install* ${2}/bin/;
-    cp ${1}/bin/env.sh ${2}/bin/;
-    cp ${1}/etc/version ${2}/etc/;
-    cp ${1}/stock/actions/masterActionList.xml ${2}/stock/actions/;
-
-    # copy branding tar into both the mirror and mini-mirror
-    # (mirror will unpack the tarball)
-    #
-    cp ${BUILD_DIR}/staging/branding/${3}.tar ${1}/etc/branding.tar;
-    cp ${BUILD_DIR}/staging/branding/${3}.tar ${2}/etc/branding.tar;
 }
 
 # check that our environment is setup propery via the
@@ -86,6 +64,7 @@ fi
 set -e
 doThirdParty=0
 doMirror=0
+doInstall=0
 doDebugBuild=0
 doReleaseBuild=0
 doVerbose=0
@@ -98,7 +77,7 @@ fi
 # parse options
 #
 OPTIND=1    # reset getops
-while getopts "htmvDR" opt; do
+while getopts "htmivDR" opt; do
     case "$opt" in
     h)  printUsage;
         exit 0;
@@ -108,6 +87,10 @@ while getopts "htmvDR" opt; do
         ;;
 
     m)  doMirror=1;
+        ;;
+
+    i)  doInstall=1;
+        doMirror=1;
         ;;
 
     D)  doDebugBuild=1;
@@ -151,6 +134,7 @@ fi
 buildMirrorArg="";
 if [ $doMirror -eq 1 ]; then
     buildMirrorArg="-b";
+    rm -rf ${includeDir};
 fi
 
 # pass along to setup_build
@@ -158,13 +142,39 @@ fi
 cd ${ZILKER_SDK_TOP};
 ./setup_build.sh -rp${verboseOpt} ${buildTypeArg} ${buildThirdArg} ${buildMirrorArg} pi;
 
+# copy specific files that are not part of CMake
 if [ $doMirror -eq 1 ]; then
-    # copy specific files that are not part of CMake
-    export BUILD_MODEL="pi"
-    export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
-    buildDir=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}
-    if [ -d ${buildDir}/mirror/include ]; then
-        cp ${buildDir}/include/*.h ${buildDir}/mirror/include;
-    fi
+
+    # first the includes outside of CMake
+    mkdir -p ${includeDir};
+    cp ${buildDir}/include/icBuildtime.h ${includeDir};
+
+    # now the generated headers
+    list=`find build/generated -name public -type d`;
+    for x in $list; do
+        cp -r ${x}/* ${includeDir};
+    done
 fi
 
+# potentially create the installation package
+if [ $doInstall -eq 1 ]; then
+
+    # create temp area
+    rm -rf ${installDir}/tmp;
+    mkdir -p ${installDir}/tmp;
+
+    # build and package ZITH
+    cd ${ZILKER_SDK_TOP};
+    gradle -PjarToApk.enabled=false :zith:installDist;
+    (cd ${ZILKER_SDK_TOP}/tools/zith/build/install/zith ; tar -czf ${installDir}/tmp/zith.tgz *);
+
+    # create tar of the runtime code
+    (cd ${mirrorDir} ; tar -czf ${installDir}/tmp/zilker.tgz --exclude=include *);
+
+    # create rollup of the two + our script
+    cp -a ${ZILKER_SDK_TOP}/buildTools/pi/installZilker.sh ${installDir};
+    (cd ${installDir}/tmp ; tar -czf ${installDir}/zilker_pi.tgz zith.tgz zilker.tgz);
+
+    # cleanup
+    rm -rf ${installDir}/tmp;
+fi

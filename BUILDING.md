@@ -1,83 +1,48 @@
 # Building
 
-## Quick Steps
-If you're like most developers and don't feel like reading instructions, you can
-attempt these steps as a quick-n-dirty "just build it" approach for a workstation target.  
-When this fails, please consider reading the rest of this file before asking stupid questions to others:
+The instructions below are broken up by platform.  Many of the concepts are similar across
+different Operating Systems, but will have some variations.
 
-~~~~
-# setup env
-cd <wherever-the-code-is>
-export ZILKER_SDK_TOP=`pwd`
+## General Concepts and Information
 
-# build and let script show steps necessary
-./buildTools/linux/recipe.sh -m
-~~~~
+Similar to other software, this has a variety of ways to build.  The preferred approach is
+to utilize `recipe.sh` scripts under the corresponding `buildTools/<platform>` subdirectory.  
+Each supported platform will contain a `recipie.sh` script that is specific to that Operating System.  
+For example: `buildTools/linux/recipe.sh`
 
-## Setup Build Environment
+### Setup Build Environment
 
-Each platform you build from (suggestion is to use linux), requires a set of utilities:
-- git -- _for code extraction_
-- cmake (3.10 or higher), make, autoconf, texinfo -- _for building source_
-- jdk 8, gradle 4.8.1 -- _for ipcGenerator, ZITH, mocked Zigbee_
-  - **NOTE** _Newer versions of Java/Gradle may work, but these are tested versions_
-
-### Ubuntu (tested on 14.04, 16.04, 18.04, 20.04)
-
-Additional tools for Linux:
-- m4, libtool, libtool-bin, curl
-- lib32z1, gcc-multilib, doxygen
-
-~~~~
-# enable building base code
-sudo apt-get install git cmake autoconf texinfo openjdk-8-jdk openjdk-8-jre \
-  m4 libtool libtool-bin curl pkg-config lib32z1 gcc-multilib doxygen
-~~~~
-
-### macOS:
-
-Additional tools for Linux:
-- **NOTE: Not fully supported at this time**
-- wget, gnu-tar, libtool -- _used as glibtool for some 3rdParty items_
-- Xcode -- _for git, gcc, make, libtool_
-- homebrew -- _to install missing packages_
-- docker -- _**optional** can be used for building as linux_
-
-~~~~
-# enable building base code
-brew install pkgconfig cmake wget automake autoconf texinfo libtool coreutils gpg gnu-tar 
-~~~~
-
-### Raspberry Pi (cross-compile):
-
-Must be build on a linux host, and requires the raspberry-tools be installed locally.
-See [https://github.com/raspberrypi/tools](https://github.com/raspberrypi/tools) for details.
-
-After downloading the raspberry-tools locally, export the `PI_TOOLS` environment variable 
-to define the location:
-
-~~~
-export PI_TOOLS=/opt/toolchains/raspberry-tools
-~~~
-
-Performing the build is similar to **linux**, but uses a different recipe script `./buildTools/pi/recipe.sh`
+Each platform you build from requires a common set of utilities, however, each platform
+may have additional requirements:
+- `git` -- _for code extraction_
+- `cmake` (3.10 or higher), `make`, `autoconf`, `texinfo` -- _for building source_
+- `jdk 8`, `gradle 4.8.1` -- _for ipcGenerator, ZITH, mocked Zigbee_
+  - **NOTE** _Newer versions of Java/Gradle may work, but these are the tested versions_
 
 ### Environment Variables
-Define the location of the source tree as the environment variable `ZILKER_SDK_TOP`.
+
+For builds to properly function, it requires knowing the location of the top of the tree.
+This is defined by the environment variable `ZILKER_SDK_TOP`.  For example:
+
+~~~
+cd <location-of-this-tree>
+export ZILKER_SDK_TOP=`pwd`
+~~~
+
 It is suggested that this variable is added to your main shell environment (ex: `~/.bashrc`).
 
-## 3rd-Party Dependencies
+### 3rd-Party Dependencies
 
-Many of the platforms we build for will not supply needed 3rd-Party dependencies.
-Therefore we must build them using the appropriate toolchain.  If missing, the
-3rd-Party dependencies will be built as part of each `recipe.sh` script execution.
-See usage of that script to explicitly build these dependencies.
+Many of the platforms we build for will not supply needed 3rd-Party dependencies and
+must build them using the appropriate toolchain.  3rd-Party dependencies will be built 
+as part of each `recipe.sh` script execution.  See usage of the platform-specific script 
+to explicitly build these dependencies.
 
-## Code Generation Dependency
+### Code Generation Dependency
 
-Early in the cmake configuration step, a call is made to generate some code.
-This depends on the "`ipcGenerator`" utility, which will be automatically built.
-If for some reason the code generation utility needs a rebuild, it can be built
+Early in the build process, a call is made to generate code for events and 
+inner-process-communication objects.  The code generation utility is internal and located
+in "`tools/ipcGenerator`".  It will build/execute automatically, but can be built
 manually via:
 
 ~~~
@@ -86,58 +51,107 @@ cd $ZILKER_SDK_TOP
 gradle :ipcGenerator:build
 ~~~
 
-## Build Zilker-SDK Codebase
 
-Running the `recipe.sh` will leverage cmake to generate `Makefiles`, apply a 
-branding, then compile the code into the `build/linux` output directory.
+## Linux:
+
+Any flavor of Linux should work, however, all existing development was performed on 
+Ubuntu 18.04 and 20.04.
+
+In addition to the common utilities, Linux requires the following additional tools:
+- `m4`, `libtool`, `libtool-bin`, `curl`, `lib32z1`, `gcc-multilib`, `doxygen`
+
+~~~~
+# install all Linux build dependencies 
+sudo apt-get install git cmake autoconf texinfo openjdk-8-jdk openjdk-8-jre \
+  m4 libtool libtool-bin curl pkg-config lib32z1 gcc-multilib doxygen
+~~~~
+
+Once the `ZILKER_SDK_TOP` environment variable has been set, and the prerequisite 
+tools installed, you will be ready to perform a Linux build.  Unlike other platforms, 
+the automated unit tests will execute as part of the build.
+
 For starters, get the usage by running the script with zero arguments:
 
 ~~~~
-# ensure the $ZILKER_SDK_TOP environment variable is set
 cd $ZILKER_SDK_TOP
 ./buildTools/linux/recipe.sh
 linux_recipe:
   options:
   -h         : show this help
   -t         : build 3rd-party
-  -m         : build mirror
+  -m         : build mirror and includes
+  -d         : produce doxygen docs (build/docs)
   -D         : build DEBUG
   -R         : build RELEASE
   -v         : verbose build
-  -z         : build with zith tests
+  -z         : build with zith tests (work in progress)
 ~~~~
 
-To run the built development code, you'll need to source in the environment (if not done before)
-because the development scripts utilize those variables for the path locations:
+The common option is `-m` to build the **mirror** output.  
+Running the `buildTools/linux/recipe.sh -m` script will:
 
-~~~~
-# source environment
-. $ZILKER_SDK_TOP/buildTools/setup_env.sh linux
+1. Leverage `cmake` to generate `Makefiles`
+2. Compile 3rdParty if necessary
+3. Compile the code into the `build/linux/mirror` output directory.
+4. Build/execute unit tests
+5. Provide headers into the `build/linux/mirror/include` directory
+6. Optionally produce **doxygen** html files
 
-# built code resides in the "mirror" directory
-cd $ZILKER_SDK_TOP/build/linux/mirror
-./bin/xhStartup.sh
-~~~~
-
-## Building Tests
+### Building Tests
 
 Tests are broken into two categories:
 1. Unit Tests
 2. Manual Tests
 
-### Unit Tests
-The *Unit Tests* are items that can be build, executed, and validated at build-time.
-Due to the "cross-compiling" nature of our environment, these should only be ran when the target
-matches the machine (i.e. linux).  These are built/ran during the `buildTools/linux/recipe.sh` execution.
+#### Unit Tests
+The *Unit Tests* are items that are built, executed, and validated at build-time.
+Due to the "cross-compiling" nature of our environment, these are only ran in Linux.
 
-### Manual Tests
+#### Manual Tests
 The *Manual Tests* are interactive in nature and really meant for development use.
 All of these are assumed to be for the native environment and cannot be executed stand-alone.
-Examples include communicating with a known camera or zigbee device (with dependencies on a ZigBee Radio)
-These can be built/ran via:
+One example is communicating with a known camera.  These can be built/ran via:
+
 ~~~~
-# after building main dependencies via recipe.sh
+# after building with recipe.sh
 cd $ZILKER_SDK_TOP/build/linux
 make all install manualTest
 ~~~~
+
+
+## Raspberry Pi 3 B/B+ (cross-compile):
+
+Must be build on a Linux host, and requires the **raspberry-tools** be installed locally.
+See [https://github.com/raspberrypi/tools](https://github.com/raspberrypi/tools) for details.
+
+After downloading the raspberry-tools locally, export the `PI_TOOLS` environment variable
+to define the location:
+
+~~~
+export PI_TOOLS=/opt/toolchains/raspberry-tools
+~~~
+
+Performing the build is similar to **linux**, but uses a different recipe script `./buildTools/pi/recipe.sh`
+
+After build is complete, follow the [Step-by-Step Guide](GUIDE.md) for installing onto a Rapsberry Pi and 
+executing with simulated Zigbee devices.
+
+## MacOS:
+
+**NOTE: This is a work in progress and not fully supported at this time**
+
+In addition to the common utilities, MacOS requires the following additional tools:
+- `wget`, `gnu-tar`, `libtool` -- _used as glibtool for some 3rdParty items_
+- `Xcode` -- _for git, gcc, make, libtool_
+- `homebrew` -- _to install missing packages_
+- `docker` -- _**optional** can be used for building as linux_
+
+After installing Xcode and homebrew, the following can be executed to obtain the remaining
+MacOS prerequisite tools:
+
+~~~~
+# install all MacOS build dependencies
+brew install pkgconfig cmake wget automake autoconf texinfo libtool coreutils gpg gnu-tar 
+~~~~
+
 

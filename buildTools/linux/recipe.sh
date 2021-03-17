@@ -22,15 +22,15 @@
 # build script to follow the recipe of creating
 # secupg and images for a Linux workstation.
 #
-# NOTE: intended for use by build agents
-#       as this will re-create the entire
-#       build process for a single platform
-#
 #-------------------------------------------
 
 # define globall paths
-BUILD_DIR=${ZILKER_SDK_TOP}/build/linux
+export BUILD_MODEL="linux"
+export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
 DOCS_SUBDIR=build/docs
+buildDir=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}
+mirrorDir=${buildDir}/mirror
+includeDir=${mirrorDir}/include
 
 #
 # show options
@@ -41,42 +41,13 @@ printUsage()
     echo "  options:";
     echo "  -h         : show this help";
     echo "  -t         : build 3rd-party";
-    echo "  -m         : build mirror";
+    echo "  -m         : build mirror and includes";
     echo "  -d         : produce doxygen docs ($DOCS_SUBDIR)";
     echo "  -D         : build DEBUG";
     echo "  -R         : build RELEASE";
     echo "  -v         : verbose build";
-    echo "  -z         : build with zith tests"
+    echo "  -z         : build with zith tests (work in progress)";
     echo "";
-}
-
-#
-# create miniturized version of a mirror to have some.
-# files available within the .secupg archive.
-# needs arguments of 'source dir' and 'dest dir'
-#
-createMiniMirror()
-{
-    echo "  setting up mini-mirror...";
-
-    # first create the subdirs we want
-    #
-    mkdir -p ${2}/bin;
-    mkdir -p ${2}/etc;
-    mkdir -p ${2}/stock/actions;
-
-    # copy min amount of data needed for createPackage.sh
-    #
-    cp ${1}/bin/install* ${2}/bin/;
-    cp ${1}/bin/env.sh ${2}/bin/;
-    cp ${1}/etc/version ${2}/etc/;
-    cp ${1}/stock/actions/masterActionList.xml ${2}/stock/actions/;
-
-    # copy branding tar into both the mirror and mini-mirror
-    # (mirror will unpack the tarball)
-    #
-    cp ${BUILD_DIR}/staging/branding/${3}.tar ${1}/etc/branding.tar;
-    cp ${BUILD_DIR}/staging/branding/${3}.tar ${2}/etc/branding.tar;
 }
 
 # check that our environment is setup propery via the
@@ -166,6 +137,7 @@ fi
 buildMirrorArg="";
 if [ $doMirror -eq 1 ]; then
     buildMirrorArg="-b";
+    rm -rf ${includeDir};
 fi
 
 # for ZITH test execution
@@ -179,14 +151,18 @@ fi
 cd ${ZILKER_SDK_TOP};
 ./setup_build.sh -rp${verboseOpt} ${buildTypeArg} ${buildThirdArg} ${buildMirrorArg} ${buildZith} linux;
 
+# copy specific files that are not part of CMake
 if [ $doMirror -eq 1 ]; then
-    # copy specific files that are not part of CMake
-    export BUILD_MODEL="linux"
-    export BUILD_DIR="${ZILKER_SDK_TOP}/build/${BUILD_MODEL}"
-    buildDir=${ZILKER_SDK_TOP}/build/${BUILD_MODEL}
-    if [ -d ${buildDir}/mirror/include ]; then
-        cp ${buildDir}/include/*.h ${buildDir}/mirror/include;
-    fi
+
+    # first the includes outside of CMake
+    mkdir -p ${includeDir};
+    cp ${buildDir}/include/icBuildtime.h ${includeDir};
+
+    # now the generated headers
+    list=`find build/generated -name public -type d`;
+    for x in $list; do
+        cp -r ${x}/* ${includeDir};
+    done
 fi
 
 if [ $doDocs -eq 1 ]; then

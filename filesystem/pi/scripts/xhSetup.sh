@@ -55,9 +55,6 @@ fi
 # default is 8M, which is awfully large
 ulimit -s 1024
 
-# apply our timezone (if already set in properties)
-/bin/sh $IC_HOME/bin/xhSet_tz.sh
-
 # ensure upgrade location is defined in properties
 $IC_HOME/bin/xhProperties -w -s -k IC_UPG_CACHE -v $UPG_CACHE &
 
