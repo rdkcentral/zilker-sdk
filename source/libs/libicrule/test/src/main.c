@@ -104,9 +104,6 @@ static void test_parse_constraint(void** state)
     static const char* xml = XML_HEADER
                              "<constraints>\n"
                              "    <and-expression>\n"
-                             "        <systemConstraint>\n"
-                             "            <sceneStatus>home,night,vacation</sceneStatus>\n"
-                             "        </systemConstraint>\n"
                              "        <timeConstraint>\n"
                              "            <start>\n"
                              "                <exactTime>SUN,MON,TUE,WED,THU,FRI,SAT 16:38</exactTime>\n"
@@ -123,7 +120,6 @@ static void test_parse_constraint(void** state)
 
     icLinkedList* constraints;
     icrule_constraint_t* constraint;
-    icrule_constraint_system_t* sysconstraint;
 
     int ret;
 
@@ -149,14 +145,6 @@ static void test_parse_constraint(void** state)
     constraint = linkedListGetElementAt(constraint->child_constraints, 0);
     assert_non_null(constraint);
     assert_int_equal(linkedListCount(constraint->time_constraints), 1);
-    assert_int_equal(linkedListCount(constraint->system_constraints), 3);
-
-    sysconstraint = linkedListGetElementAt(constraint->system_constraints, 0);
-    assert_int_equal(*sysconstraint, CONSTRAINT_SCENE_HOME);
-    sysconstraint = linkedListGetElementAt(constraint->system_constraints, 1);
-    assert_int_equal(*sysconstraint, CONSTRAINT_SCENE_NIGHT);
-    sysconstraint = linkedListGetElementAt(constraint->system_constraints, 2);
-    assert_int_equal(*sysconstraint, CONSTRAINT_SCENE_VACATION);
 
     linkedListDestroy(constraints, icrule_free_constraint);
 
@@ -333,16 +321,16 @@ static void test_parse_multiaction(void** state)
     xmlFreeDoc(doc);
 }
 
-static void test_parse_zone_trouble_state(void** state)
+static void test_parse_sensor_trouble_state(void** state)
 {
     static const char* xml = XML_HEADER
                              "<triggerList>\n"
-                             "    <zoneTrigger>\n"
-                             "        <description>Zone Trigger</description>\n"
+                             "    <sensorTrigger>\n"
+                             "        <description>Sensor Trigger</description>\n"
                              "        <category>sensor</category>\n"
-                             "        <zoneState>trouble</zoneState>\n"
-                             "        <zoneType>allNonMotionZones</zoneType>\n"
-                             "    </zoneTrigger>\n"
+                             "        <sensorState>trouble</sensorState>\n"
+                             "        <sensorType>allNonMotionSensors</sensorType>\n"
+                             "    </sensorTrigger>\n"
                              "</triggerList>\n";
 
     xmlDocPtr doc;
@@ -366,98 +354,14 @@ static void test_parse_zone_trouble_state(void** state)
 
     trigger = linkedListGetElementAt(trigger_list.triggers, 0);
     assert_non_null(trigger);
-    assert_string_equal(trigger->desc, "Zone Trigger");
-    assert_int_equal(trigger->type, TRIGGER_TYPE_ZONE);
+    assert_string_equal(trigger->desc, "Sensor Trigger");
+    assert_int_equal(trigger->type, TRIGGER_TYPE_SENSOR);
     assert_int_equal(trigger->category, TRIGGER_CATEGORY_SENSOR);
-    assert_int_equal(trigger->trigger.zone.type, TRIGGER_ZONE_TYPE_NONMOTION_ZONES);
-    assert_int_equal(trigger->trigger.zone.state, TRIGGER_ZONE_STATE_TROUBLE);
+    assert_int_equal(trigger->trigger.sensor.type, TRIGGER_SENSOR_TYPE_NONMOTION_SENSORS);
+    assert_int_equal(trigger->trigger.sensor.state, TRIGGER_SENSOR_STATE_TROUBLE);
 
     linkedListDestroy(trigger_list.triggers, icrule_free_trigger);
 
-    xmlFreeDoc(doc);
-}
-
-static void test_parse_scene_trigger(void** state)
-{
-    const char* xml;
-
-    xmlDocPtr doc;
-    xmlNodePtr top;
-
-    int ret;
-
-    icrule_trigger_list_t trigger_list;
-    icrule_trigger_t* trigger;
-
-    unused(state);
-
-    // Test Single scene
-    xml = XML_HEADER
-          "<triggerList>\n"
-          "        <systemSceneTrigger>\n"
-          "            <description>Scene Trigger</description>\n"
-          "            <category>scene</category>\n"
-          "            <sceneName>home</sceneName>\n"
-          "        </systemSceneTrigger>"
-          "</triggerList>\n";
-
-    load_xml(xml, &doc, &top);
-
-    trigger_list.triggers = linkedListCreate();
-    assert_non_null(trigger_list.triggers);
-
-    ret = icrule_parse_trigger_list(top, &trigger_list);
-    assert_int_equal(ret, 0);
-    assert_int_equal(linkedListCount(trigger_list.triggers), 1);
-
-    trigger = linkedListGetElementAt(trigger_list.triggers, 0);
-    assert_non_null(trigger);
-    assert_string_equal(trigger->desc, "Scene Trigger");
-    assert_int_equal(trigger->type, TRIGGER_TYPE_SYSTEM_SCENE);
-    assert_int_equal(trigger->category, TRIGGER_CATEGORY_SCENE);
-    assert_int_equal(trigger->trigger.systemscene.state, TRIGGER_SYSTEMSCENE_STATE_HOME);
-
-    linkedListDestroy(trigger_list.triggers, icrule_free_trigger);
-
-    xmlFreeDoc(doc);
-
-    // Test Multiple Scenes
-    xml = XML_HEADER
-          "<triggerList>\n"
-          "        <systemSceneTrigger>\n"
-          "            <description>Scene Trigger</description>\n"
-          "            <category>scene</category>\n"
-          "            <sceneName>home,away,night,vacation</sceneName>\n"
-          "        </systemSceneTrigger>"
-          "</triggerList>\n";
-
-    load_xml(xml, &doc, &top);
-
-    trigger_list.triggers = linkedListCreate();
-    assert_non_null(trigger_list.triggers);
-
-    ret = icrule_parse_trigger_list(top, &trigger_list);
-    assert_int_equal(ret, 0);
-    assert_int_equal(linkedListCount(trigger_list.triggers), 4);
-
-    int i;
-    icrule_trigger_systemscene_state_t states[4] = {
-            TRIGGER_SYSTEMSCENE_STATE_HOME,
-            TRIGGER_SYSTEMSCENE_STATE_AWAY,
-            TRIGGER_SYSTEMSCENE_STATE_NIGHT,
-            TRIGGER_SYSTEMSCENE_STATE_VACATION,
-    };
-
-    for (i = 0; i < 4; i++) {
-        trigger = linkedListGetElementAt(trigger_list.triggers, i);
-        assert_non_null(trigger);
-        assert_string_equal(trigger->desc, "Scene Trigger");
-        assert_int_equal(trigger->type, TRIGGER_TYPE_SYSTEM_SCENE);
-        assert_int_equal(trigger->category, TRIGGER_CATEGORY_SCENE);
-        assert_int_equal(trigger->trigger.systemscene.state, states[i]);
-    }
-
-    linkedListDestroy(trigger_list.triggers, icrule_free_trigger);
     xmlFreeDoc(doc);
 }
 
@@ -900,13 +804,12 @@ int main(int argc, char* argv[])
             cmocka_unit_test(test_parse_time),
             cmocka_unit_test(test_parse_constraint),
             cmocka_unit_test(test_parse_action),
-            cmocka_unit_test(test_parse_zone_trouble_state),
+            cmocka_unit_test(test_parse_sensor_trouble_state),
             cmocka_unit_test(test_parse_multiaction),
-            cmocka_unit_test(test_parse_scene_trigger),
             cmocka_unit_test(test_parse_light_trigger),
             cmocka_unit_test(test_parse_doorlock_trigger),
             cmocka_unit_test(test_parse_thermostat_trigger),
-            cmocka_unit_test(test_parse_thermostat_threshold_trigger),
+//            cmocka_unit_test(test_parse_thermostat_threshold_trigger),
     };
 
     return cmocka_run_group_tests(tests, test_setup, NULL);

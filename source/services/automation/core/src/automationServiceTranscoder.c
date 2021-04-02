@@ -26,7 +26,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <userverDeviceHelper.h>
 
 #define STOCK_SUBDIR    "stock"
 #define RULE_SUBDIR     "rules"
@@ -46,23 +45,6 @@ static void transcoderSettingsFree(void* key, void* value)
 {
     /* All settings hashmaps are other hashmaps */
     hashMapDestroy(value, settingsMapFree);
-}
-
-static bool automationMapDeviceId(const char* deviceId, char **mappedDeviceId, char **mappedEndpointId)
-{
-    if (mapUserverDeviceId(deviceId, mappedDeviceId, mappedEndpointId) == false) {
-        // For cameras this can fail on migrated devices where the camera was deleted after the rule was created.
-        // We can't fail this mapping because the rule could target multiple cameras and at least one of them
-        // still exists so the rule may still function.  Instead we just populate with something so the rule
-        // gets created and just won't trigger or act on this device.
-        *mappedDeviceId = strdup(deviceId);
-        if (mappedEndpointId != NULL) {
-            // Have to populate an endpoint id
-            *mappedEndpointId = strdup("*");
-        }
-    }
-
-    return true;
 }
 
 void automationTranscoderInit(void)
@@ -92,11 +74,6 @@ void automationTranscoderInit(void)
                    SHEENS_TRANSCODER_SETTING_ACTION_LIST_DIR,
                    (uint16_t) strlen(SHEENS_TRANSCODER_SETTING_ACTION_LIST_DIR),
                    actionListDir);
-
-        hashMapPut(sheensSettings,
-                   SHEENS_TRANSCODER_DEVICE_ID_MAPPER,
-                   (uint16_t) strlen(SHEENS_TRANSCODER_DEVICE_ID_MAPPER),
-                   automationMapDeviceId);
     } else {
         /* We cannot get the action list dir so just let cslt use the defaults. */
         hashMapDestroy(sheensSettings, NULL);

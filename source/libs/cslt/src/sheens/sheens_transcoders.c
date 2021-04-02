@@ -33,7 +33,6 @@
 
 #include <errno.h>
 
-#include <securityService/securityService_event.h>
 #include <icrule/icrule.h>
 #include <inttypes.h>
 #include <deviceService/deviceService_event.h>
@@ -58,10 +57,9 @@
 #define SCHEDULE_ENTRY_NODE "scheduleEntry"
 #define DESCRIPTION_NODE "description"
 
-#define TRIGGER_ZONE_NODE "zoneTrigger"
+#define TRIGGER_SENSOR_NODE "sensorTrigger"
 #define TRIGGER_TOUCHSCREEN_NODE "touchscreenTrigger"
 #define TRIGGER_PANIC_NODE "panicTrigger"
-#define TRIGGER_SYSTEMSCENE_NODE "sceneTrigger"
 #define TRIGGER_NETWORK_NODE "networkTrigger"
 #define TRIGGER_LIGHTING_NODE "lightingTrigger"
 #define TRIGGER_DOORLOCK_NODE "doorLockTrigger"
@@ -77,9 +75,9 @@
 #define ELEMENT_CATEGORY "category"
 #define ELEMENT_DESCRIPTION "description"
 
-#define ELEMENT_ZONE_STATE "zoneState"
-#define ELEMENT_ZONE_ID "zoneID"
-#define ELEMENT_ZONE_TYPE "zoneType"
+#define ELEMENT_SENSOR_STATE "sensorState"
+#define ELEMENT_SENSOR_ID    "sensorID"
+#define ELEMENT_SENSOR_TYPE  "sensorType"
 
 #define ELEMENT_CONSTRAINT_AND "and-expression"
 #define ELEMENT_CONSTRAINT_OR "or-expression"
@@ -256,7 +254,6 @@ static icrule_constraint_time_t* find_and_remove_time_constraint(icLinkedList* c
                 ret = linkedListRemove(constraint->time_constraints, 0);
 
                 if ((linkedListCount(constraint->time_constraints) == 0) &&
-                    (linkedListCount(constraint->system_constraints) == 0) &&
                     (linkedListCount(constraint->child_constraints) == 0)) {
                     /*
                      * Ok, this breaks the way that the icrule library is
@@ -275,7 +272,6 @@ static icrule_constraint_time_t* find_and_remove_time_constraint(icLinkedList* c
                     linkedListRemove(constraints, i);
 
                     linkedListDestroy(constraint->time_constraints, NULL);
-                    linkedListDestroy(constraint->system_constraints, NULL);
                     linkedListDestroy(constraint->child_constraints, NULL);
 
                     free(constraint);
@@ -306,9 +302,9 @@ static icrule_constraint_time_t* find_and_remove_time_constraint(icLinkedList* c
  *   Wait for timer tick, and then determine if this matches the "start" time.
  *   If the start time has been reached then we jump to the "trigger window" node.
  * Trigger Window:
- *   Wait for both the timer tick and a zone event.
+ *   Wait for both the timer tick and a sensor event.
  *   If the timer tick reaches the "end" time then jump to the "action" node.
- *   If the zone event matches the trigger condition then jump to "reset" as we
+ *   If the sensor event matches the trigger condition then jump to "reset" as we
  *   have been validated.
  * Action:
  *   Perform whatever actions have been assigned then jump to "reset" node.

@@ -23,9 +23,10 @@
 #ifndef ZILKER_ZONECHANGED_H
 #define ZILKER_ZONECHANGED_H
 
+#include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <icUtil/array.h>
-#include "securityState.h"
 
 #define ZONE_CHANGED_DISPLAY_INDEX "displayIndex"
 #define ZONE_CHANGED_LABEL "label"
@@ -65,7 +66,6 @@ typedef struct
 {
     uint8_t displayIndex;
     char *label;
-    SecurityIndication indication;
     bool faulted;
     bool bypassed;
     bool bypassActive;
@@ -85,7 +85,6 @@ ZoneChanged *zoneChangedCreate(uint8_t displayIndex,
                                bool faulted,
                                bool bypassed,
                                bool bypassActive,
-                               SecurityIndication indication,
                                uint64_t eventId,
                                ZoneChangedReason reason);
 

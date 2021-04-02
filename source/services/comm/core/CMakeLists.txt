@@ -26,7 +26,7 @@
 
 # add library dependencies for this binary
 set(SERVICE_LIBS xhLog xhTypes xhTime xhUtil xhConcurrent xhConfig xhCron xhSystem xhReset xhXmlHelper xhUrlHelper
-        xhDeviceHelper xhCommServiceAPI xhPropsServiceAPI xhBackupRestoreServiceAPI xhSecurityServiceAPI
+        xhDeviceHelper xhCommServiceAPI xhPropsServiceAPI xhBackupRestoreServiceAPI
         xhAutomationServiceAPI xhDeviceServiceAPI xhWatchdogServiceAPI xhSolar )
 
 if (CONFIG_SERVICE_PKI)

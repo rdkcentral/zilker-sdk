@@ -26,7 +26,6 @@ public interface CommonProperties
     public static final String LOGGING_DEBUG_BOOL_PROP                      = "logging.debug";
     public static final String SSL_CERT_VALIDATE_FOR_HTTPS_TO_SERVER        = "cpe.sslCert.validateForHttpsToServer";
     public static final String SSL_CERT_VALIDATE_FOR_HTTPS_TO_DEVICE        = "cpe.sslCert.validateForHttpsToDevice";
-    public static final String SSL_CERT_VALIDATE_FOR_XMPP                   = "cpe.sslCert.validateForXmpp";
     public static final String COREDUMPS_SAVE                               = "coredumps.save";
 //  public static final String TELEMETRY_CAPABILITIES                       = "telemetry.capabilities";
 //  public static final String TELEMETRY_STATE                              = "telemetry.state";

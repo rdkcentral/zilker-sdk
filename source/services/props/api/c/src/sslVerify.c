@@ -39,8 +39,7 @@
 static const char *sslVerifyCategoryToProp[] =
 {
         SSL_CERT_VALIDATE_FOR_HTTPS_TO_SERVER,
-        SSL_CERT_VALIDATE_FOR_HTTPS_TO_DEVICE,
-        SSL_CERT_VALIDATE_FOR_XMPP
+        SSL_CERT_VALIDATE_FOR_HTTPS_TO_DEVICE
 };
 
 static sslVerify convertVerifyPropValToMode(const char *strVal);

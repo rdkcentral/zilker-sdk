@@ -22,10 +22,5 @@
   {
     "propertyName": "cpe.zigbee.channelChange.enabled",
     "propertyType": "boolean"
-  },
-  {
-    "propertyName": "touchscreen.sensor.commFail.alarmDelay",
-    "propertyType": "uint32",
-    "minValue":     60
   }
 ]

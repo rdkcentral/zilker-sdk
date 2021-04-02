@@ -54,67 +54,7 @@
 	</xsd:complexType>	
 	<xsd:element name="trigger" type="trigger" abstract="true"/>
 	
-	<!-- 
-	  - Subclass of trigger for "Touchscreen"
-	  -->
-	<xsd:complexType name="touchscreenTrigger">
-		<xsd:complexContent>
-			<xsd:extension base="trigger">
-				<xsd:sequence>
-			
-					<!-- 
-					  - The particular touchscreen event to cause this to trigger 
-					  - (i.e. armed, disarmed, etc)
-					  -->
-					<xsd:element name="touchscreenState" type="touchscreenStateEnum" minOccurs="1" maxOccurs="1"/>
-			
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>	
-	<xsd:element name="touchscreenTrigger" type="touchscreenTrigger" substitutionGroup="trigger"/>
-	
-	<!-- 
-	  - Subclass of trigger for "Panic".  
-	  -->
-	<xsd:complexType name="panicTrigger">
-		<xsd:complexContent>
-			<xsd:extension base="trigger">
-				<xsd:sequence>
-			
-					<!-- 
-					  - the particular panic event to cause this to trigger 
-					  - (i.e fire, police, medical panic button is pressed)
-					  -->
-					<xsd:element name="panicState" type="panicStateEnum" minOccurs="1" maxOccurs="1"/>
-			
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>	
-	<xsd:element name="panicTrigger" type="panicTrigger" substitutionGroup="trigger"/>
-	
-	<!-- 
-	  - Subclass of trigger for "Scene"
-	  -->
-    <xsd:complexType name="systemSceneTrigger">
-        <xsd:complexContent>
-            <xsd:extension base="trigger">
-                <xsd:sequence>
-            
-                    <!-- 
-                      - Trigger to fire on "scene changed" event when the new scene name matches this value
-                      - left opaque on purpose to allow for custom scene names in the future.
-                      -->
-                    <xsd:element name="sceneName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>  
-    <xsd:element name="systemSceneTrigger" type="systemSceneTrigger" substitutionGroup="trigger"/>
-
-	<!-- 
+	<!--
 	  - Subclass of trigger for "Network"
 	  -->
 	<xsd:complexType name="networkTrigger">
@@ -134,37 +74,37 @@
 	</xsd:complexType>	
 	<xsd:element name="networkTrigger" type="networkTrigger" substitutionGroup="trigger"/>
 	
-	<!-- 
-	  - Subclass of trigger for "Zones".  Can be for a zone 'type' or particular zoneID (or set of zoneIDs)
+	<!--
+	  - Subclass of trigger for "sensors".  Can be for a sensor 'type' or particular sensorID (or set of sensorIDs)
 	  -->
-	<xsd:complexType name="zoneTrigger">
+	<xsd:complexType name="sensorTrigger">
 		<xsd:complexContent>
 			<xsd:extension base="trigger">
 				<xsd:sequence>
-			
-					<!-- the state of the zone to cause this trigger (open, closed, etc) -->
-					<xsd:element name="zoneState" type="sensorStateEnum" minOccurs="1" maxOccurs="1"/>
-					
+
+					<!-- the state of the sensor to cause this trigger (open, closed, etc) -->
+					<xsd:element name="sensortate" type="sensorStateEnum" minOccurs="1" maxOccurs="1"/>
+
 					<xsd:choice>
-					
-						<!-- the particular zone type to cause this to trigger (i.e. any door) -->
-						<xsd:element name="zoneType" type="sensorTypeEnum" minOccurs="1" maxOccurs="1"/>
-						
-						<!-- 
-						  - OR the specific zoneID(s) (i.e. front door) 
-						  - like Zone Parameter, this can be a comma separated list of zoneID integers
+
+						<!-- the particular sensor type to cause this to trigger (i.e. any door) -->
+						<xsd:element name="sensorType" type="sensorTypeEnum" minOccurs="1" maxOccurs="1"/>
+
+						<!--
+						  - OR the specific sensorID(s) (i.e. front door)
+						  - this can be a comma separated list of sensorID integers
 						  -->
-						<xsd:element name="zoneID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-						
+						<xsd:element name="sensorID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+
 					</xsd:choice>
-			
+
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
-	</xsd:complexType>	
-	<xsd:element name="zoneTrigger" type="zoneTrigger" substitutionGroup="trigger"/>
-	
-	<!-- 
+	</xsd:complexType>
+	<xsd:element name="sensorTrigger" type="sensorTrigger" substitutionGroup="trigger"/>
+
+	<!--
 	  - Subclass of trigger for "Lighting Devices".
 	  -->
 	<xsd:complexType name="lightingTrigger">
@@ -371,60 +311,6 @@
 	</xsd:complexType>
 	<xsd:element name="resourceTrigger" type="resourceTrigger" substitutionGroup="trigger"/>
 
-    <!--
-      - Subclass of trigger for Cloud Service events.
-      -->
-    <xsd:complexType name="cloudServiceTrigger">
-        <xsd:complexContent>
-            <xsd:extension base="trigger">
-                <xsd:sequence>
-                    <xsd:element name="cloudServiceName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-                    <xsd:element name="simpleEval" type="cloudSimpleTriggerEvaluation" minOccurs="1" maxOccurs="1"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="cloudServiceTrigger" type="cloudServiceTrigger" substitutionGroup="trigger"/>
-
-    <!--
-      - Subclass of trigger for Cloud commands.
-      -->
-    <xsd:complexType name="cloudTrigger">
-        <xsd:complexContent>
-            <xsd:extension base="trigger">
-                <xsd:sequence>
-
-                    <!-- - The specific cloud object ID. -->
-                    <xsd:element name="cloudObjectID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-
-                    <!-- the evaluation mechanism to apply to this trigger -->
-                    <xsd:choice>
-                        <xsd:element name="simpleEval" type="cloudSimpleTriggerEvaluation"/>
-                        <xsd:element name="comparisonEval" type="cloudComparisonTriggerEvaluation"/>
-                    </xsd:choice>
-
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="cloudTrigger" type="cloudTrigger" substitutionGroup="trigger"/>
-
-    <!-- simple cloud trigger evaluation (just an event, no args) -->
-    <xsd:complexType name="cloudSimpleTriggerEvaluation">
-        <xsd:sequence>
-            <xsd:element name="eventName" type="xsd:string"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <!-- cloud trigger evaluation that compares a value -->
-    <xsd:complexType name="cloudComparisonTriggerEvaluation">
-        <xsd:sequence>
-            <xsd:element name="attributeName" type="xsd:string"/>
-            <xsd:element name="comparisonMethod" type="comparisonMethodEnum"/>
-            <xsd:element name="comparisonValue" type="xsd:double"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
     <!-- comparison methods -->
     <xsd:simpleType name="comparisonMethodEnum">
         <xsd:restriction base="xsd:string">
@@ -450,19 +336,13 @@
     <!-- event category -->
 	<xsd:simpleType name="categoryEnum">
 		<xsd:restriction base="xsd:string">
-			<!-- <xsd:enumeration value="zone"/> -->
 			<xsd:enumeration value="sensor"/>		<!-- for sensorTrigger -->
-			<xsd:enumeration value="touchscreen"/>	<!-- for touchscreenTrigger -->
-			<xsd:enumeration value="scene"/>	    <!-- for systemSceneTrigger -->
 			<xsd:enumeration value="light"/>		<!-- for lightingTrigger -->
 			<xsd:enumeration value="doorLock"/>		<!-- for doorLockTrigger -->
 			<xsd:enumeration value="thermostat"/>	<!-- for thermostatTrigger -->
 			<xsd:enumeration value="network"/>		<!-- for networkTrigger -->
-			<xsd:enumeration value="panic"/>		<!-- for panicTrigger -->
 			<xsd:enumeration value="time"/>			<!-- for timeTrigger -->
 			<xsd:enumeration value="switch"/>		<!-- for switchTrigger -->
-			<xsd:enumeration value="cloud"/>		<!-- for cloudTrigger -->
-			<xsd:enumeration value="cloudService"/> <!-- for cloudServiceTrigger -->
             <xsd:enumeration value="resource"/>     <!-- for UDM style resource change triggers -->
 		</xsd:restriction>
 	</xsd:simpleType>
@@ -487,25 +367,8 @@
 	<!-- touchscreen event state -->
 	<xsd:simpleType name="touchscreenStateEnum">
 		<xsd:restriction base="xsd:string">
-            <xsd:enumeration value="armed"/>         <!-- any armed state (away, stay or night) -->
-            <xsd:enumeration value="armed_away"/>
-            <xsd:enumeration value="armed_stay"/>
-            <xsd:enumeration value="armed_night"/>
-			<xsd:enumeration value="arming"/>
-			<xsd:enumeration value="disarmed"/>
-			<xsd:enumeration value="alarm"/>
 			<xsd:enumeration value="trouble"/>
 			<xsd:enumeration value="power_lost"/>
-<!-- 		<xsd:enumeration value="troubleRestore"/> -->
-		</xsd:restriction>
-	</xsd:simpleType>
-	
-	<!-- panic event state -->
-	<xsd:simpleType name="panicStateEnum">
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="police"/>
-			<xsd:enumeration value="medical"/>
-			<xsd:enumeration value="fire"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 	
@@ -650,14 +513,13 @@
 	<xsd:simpleType name="parameterTypeEnum">
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="cameraID"/>				<!-- single number -->
-			<xsd:enumeration value="zoneID"/>				<!-- supports ALL, a number, or comma separated list of numbers -->
+			<xsd:enumeration value="sensorID"/>				<!-- supports ALL, a number, or comma separated list of numbers -->
 			<xsd:enumeration value="lightID"/>				<!-- supports ALL, a number, or comma separated list of numbers -->
 			<xsd:enumeration value="doorLockID"/>			<!-- supports ALL, a number, or comma separated list of numbers -->
 			<xsd:enumeration value="thermostatID"/>			<!-- supports ALL, a number, or comma separated list of numbers -->
 			<xsd:enumeration value="time"/>					<!-- single time, formated as DDD HH:MM (ex: MON 14:00) -->
 			<xsd:enumeration value="touchscreenStateEnum"/>	<!-- one of values from this enumeration -->
 			<xsd:enumeration value="armTypeEnum"/>	
-			<xsd:enumeration value="panicStateEnum"/>
 			<xsd:enumeration value="networkStateEnum"/>
 			<xsd:enumeration value="doorLockStateEnum"/>
 			<xsd:enumeration value="sensorStateEnum"/>
@@ -796,9 +658,8 @@
 				<xsd:element name="and-expression" type="constraints" />
 				<xsd:element name="or-expression" type="constraints" />
 				
-				<!-- base on a time range or system state -->
+				<!-- base on a time range -->
 				<xsd:element name="timeConstraint" type="timeConstraint"/>
-				<xsd:element name="systemConstraint" type="systemConstraint"/>
 			</xsd:choice>
 		</xsd:sequence>
 	</xsd:complexType>
@@ -836,44 +697,6 @@
 	</xsd:simpleType>
 	-->
 	
-	<!-- 
-	  - System constraint (state of the Touchscreen)
-	  -->
-	<xsd:complexType name="systemConstraint">
-		<xsd:sequence minOccurs="1" maxOccurs="1">
-            <xsd:choice>
-                <!-- either panel status (alarm based devices) -->
-    			<xsd:element name="panelStatus" type="panelStatusEnum" />
-       
-                <!-- or scene status (non-alarm based devices).  Can have multiple values (comma separated) -->
-    			<xsd:element name="sceneStatus" type="xsd:string"/>
-            </xsd:choice>
-		</xsd:sequence>
-	</xsd:complexType>
-
-	<!-- enum of touchscreen states -->
-    <xsd:simpleType name="panelStatusEnum">
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="disarmed"></xsd:enumeration>
-            <xsd:enumeration value="alarm"></xsd:enumeration>
-            <xsd:enumeration value="arming"></xsd:enumeration>
-            <xsd:enumeration value="armed"></xsd:enumeration>
-            <xsd:enumeration value="arm_away"></xsd:enumeration>
-            <xsd:enumeration value="arm_stay"></xsd:enumeration>
-            <xsd:enumeration value="arm_night"></xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-    
-	<!-- enum of arm states -->
-    <xsd:simpleType name="armTypeEnum">
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="disarm"></xsd:enumeration>
-            <xsd:enumeration value="arm_away"></xsd:enumeration>
-            <xsd:enumeration value="arm_stay"></xsd:enumeration>
-            <xsd:enumeration value="arm_night"></xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-    
 	<!-- ***************************************
 	  -
 	  -  Thermostat Scheduling Rule 

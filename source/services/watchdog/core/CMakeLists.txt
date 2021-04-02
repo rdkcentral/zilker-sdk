@@ -26,7 +26,7 @@
 
 # add library dependencies for this binary
 set(SERVICE_LIBS xhLog xhTypes xhTime xhUtil xhConfig xhReset xhConcurrent xhXmlHelper
-                 xhPropsServiceAPI xhWatchdogServiceAPI xhSecurityServiceAPI xhCommServiceAPI)
+                 xhPropsServiceAPI xhWatchdogServiceAPI xhCommServiceAPI)
 
 # Create our executable target
 add_zilker_executable(NAME xhWatchdogService

@@ -28,7 +28,6 @@
 #include <device/icDevice.h>
 #include <device/icDeviceResource.h>
 #include <device/icInitialResourceValues.h>
-#include <deviceService/securityState.h>
 #include <deviceService.h>
 
 typedef bool (*ConfigureDeviceFunc)(void *ctx, icDevice *device, DeviceDescriptor *descriptor);
@@ -403,20 +402,6 @@ typedef enum
     REQUEST_SOURCE_TAKEOVER_KEYPAD
 } RequestSource;
 
-typedef enum
-{
-    ARM_NOTIF_INVALID = 0,
-    ARM_NOTIF_DISARMED,
-    ARM_NOTIF_ARMED_HOME,
-    ARM_NOTIF_ARMED_NIGHT,
-    ARM_NOTIF_ARMED_ALL,
-    ARM_NOTIF_NOT_READY,
-    ARM_NOTIF_ALREADY_DISARMED,
-    ARM_NOTIF_ALREADY_ARMED,
-    ARM_NOTIF_BAD_ACCESS_CODE,
-    ARM_NOTIF_TROUBLE
-} ArmDisarmNotification;
-
 /*
  * These are the callbacks that device drivers use to communicate back to Device Service.
  *
@@ -458,15 +443,6 @@ typedef struct
     bool (*discoverStop)(icLinkedList *deviceClasses);
 
     /**
-     * Request a panel state change (arm/disarm/panic)
-     * @param desiredState
-     * @param accessCode
-     * @param source The requesting device
-     * @return a notification describing the
-     */
-    ArmDisarmNotification (*requestPanelStateChange)(const PanelStatus desiredState, const char *accessCode, const RequestSource source);
-
-    /**
      * Add an endpoint to an existing device, persist to database and send out events.  The endpoint provided
      * must already be added to the device provided.
      * @param device
@@ -481,12 +457,6 @@ typedef struct
      * @param endpoint the endpoint
      */
     void (*enableEndpoint)(icDevice *device, icDeviceEndpoint *endpoint);
-
-    /**
-     * Get a security state descriptor pointer.
-     * The returned object must be destroyed with securityStateDestroy and its freed
-     */
-    SecurityState *(*getSecurityState)(void);
 
 } DeviceServiceCallbacks;
 

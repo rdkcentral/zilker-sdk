@@ -34,33 +34,6 @@
 #include <stdbool.h>
 
 /*
- * return true if "systemMode" (ie: scenes) are supported
- * at this time systems either support "alarms" or
- * "systemMode", but not both
- */
-extern bool supportSystemMode();
-
-/*
- * return true if "alarms" are supported.  at this
- * time systems either support "alarm" or "systemMode",
- * but not both
- */
-extern bool supportAlarms();
-
-/*
- * If this environment supports the full breadth
- * of zone functions and sensors (i.e. motion will
- * allow '24 Monitor Alarm Night' mode)
- */
-extern bool supportSecurityZones();
-
-/*
- * return true if this environment supports PIMs
- * and Takeover Zones
- */
-extern bool supportTakeoverZones();
-
-/*
  * return if this platform supports add-on local
  * applications to be installed and ran.
  */

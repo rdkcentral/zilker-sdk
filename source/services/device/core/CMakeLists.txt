@@ -113,7 +113,7 @@ set(xhDeviceServiceLinkLibraries xhLog xhTypes xhTime xhUtil xhConcurrent xhIpc
         xhConfig xhSystem xhUrlHelper xhXmlHelper xhJsonHelper
         xhDeviceHelper xhDeviceDescriptors xhOpenHomeCamera xhCommServiceAPI
         xhPropsServiceAPI xhDeviceServiceAPI xhBackupRestoreServiceAPI
-        xhWatchdogServiceAPI xhSecurityServiceAPI xhXmlHelper
+        xhWatchdogServiceAPI xhXmlHelper
         ${XTRA_LIBS} uuid curl xml2 z m)
 
 # Create our executable target

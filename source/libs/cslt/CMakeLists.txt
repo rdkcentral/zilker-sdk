@@ -41,7 +41,7 @@ execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/stringifyFiles.sh ${SHEENS_JS}
 
 # build as static library
 add_library(xhCslt SHARED ${SOURCES} src/sheens/sheens_transcoder_negative.c)
-target_link_libraries(xhCslt xhLog xhTypes icrule xhJsonrpc xhSecurityServiceAPI xhDeviceServiceAPI uuid cjson xml2 ${CONFIG_LDFLAG})
+target_link_libraries(xhCslt xhLog xhTypes icrule xhJsonrpc xhDeviceServiceAPI uuid cjson xml2 ${CONFIG_LDFLAG})
 
 # export our 'public' folder so others can include our headers
 target_include_directories(xhCslt PUBLIC public)

@@ -166,7 +166,7 @@ static char *formatMapAsDot(DSZigbeeNetworkMap *map)
     }
     linkedListIteratorDestroy(resourceIter);
 
-    // For touchscreen's eui64
+    // For local device's eui64
     DSZigbeeSubsystemStatus *zigbeeStatus = create_DSZigbeeSubsystemStatus();
     deviceService_request_GET_ZIGBEE_SUBSYSTEM_STATUS(zigbeeStatus);
 

@@ -831,7 +831,7 @@ static bool migrateFromSchemaZero()
     //  1 - reading always assigned properties a source of 0
     //  2 - writing allowed 0, 1, 2, 3 where 1 & 2 were effectively the same
     // These values were not properly mapped into Zilker "source" values, and therefore the
-    // best thing to do is just reset everything to 0 and let uServer or XConf re-assign the source.
+    // best thing to do is just reset everything to 0 and let Server or XConf re-assign the source.
     //
     icHashMapIterator *loop = hashMapIteratorCreate(propertyMap);
     while (hashMapIteratorHasNext(loop) == true)

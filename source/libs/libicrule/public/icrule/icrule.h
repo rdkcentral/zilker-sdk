@@ -34,7 +34,7 @@
 
 // Triggers
 typedef enum {
-    TRIGGER_TYPE_ZONE = 0,
+    TRIGGER_TYPE_SENSOR = 0,
     TRIGGER_TYPE_TOUCHSCREEN,
     TRIGGER_TYPE_SYSTEM_SCENE,
     TRIGGER_TYPE_LIGHTING,
@@ -76,9 +76,8 @@ typedef struct icrule_trigger {
 
     union
     {
-        icrule_trigger_zone_t zone;
+        icrule_trigger_sensor_t sensor;
         icrule_trigger_touchscreen_t touchscreen;
-        icrule_trigger_systemscene_t systemscene;
         icrule_trigger_light_t lighting;
         icrule_trigger_doorlock_t doorlock;
         icrule_trigger_thermostat_t thermostat;
@@ -101,20 +100,6 @@ typedef enum {
     CONSTRAINT_LOGIC_AND,
 } icrule_constraint_logic_t;
 
-typedef enum {
-    CONSTRAINT_PANEL_DISARMED = 0,
-    CONSTRAINT_PANEL_ALARM,
-    CONSTRAINT_PANEL_ARMING,
-    CONSTRAINT_PANEL_ARMED,
-    CONSTRAINT_PANEL_ARM_AWAY,
-    CONSTRAINT_PANEL_ARM_STAY,
-    CONSTRAINT_PANEL_ARM_NIGHT,
-    CONSTRAINT_SCENE_AWAY,
-    CONSTRAINT_SCENE_HOME,
-    CONSTRAINT_SCENE_NIGHT,
-    CONSTRAINT_SCENE_VACATION
-} icrule_constraint_system_t;
-
 typedef struct icrule_constraint_time {
     icrule_time_t start;
     icrule_time_t end;
@@ -124,7 +109,6 @@ typedef struct icrule_constraint
 {
     icrule_constraint_logic_t logic;
 
-    icLinkedList* system_constraints;
     icLinkedList* time_constraints;
 
     icLinkedList* child_constraints;
@@ -148,7 +132,7 @@ typedef enum {
 typedef enum {
     ACTION_TYPE_INVALID = -1,
     ACTION_TYPE_CAMERAID = 0,
-    ACTION_TYPE_ZONEID,
+    ACTION_TYPE_SENSORID,
     ACTION_TYPE_LIGHTID,
     ACTION_TYPE_DOOR_LOCKID,
     ACTION_TYPE_THERMOSTATID,

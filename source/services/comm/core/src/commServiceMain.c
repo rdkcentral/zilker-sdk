@@ -108,7 +108,7 @@ int main(int argc, const char *argv[])
     autoAdjustTimezone();
 
     // ignore SIGPIPE; can happen at odd times (like forcing a connection closed,
-    // or loosing the XMPP connection due to network outage)
+    // or loosing the upstream connection due to network outage)
     //
     struct sigaction pipeAction;
     sigemptyset(&pipeAction.sa_mask);

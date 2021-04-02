@@ -104,12 +104,12 @@ static const char* icrule_spec = ""
     "xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" "
     "xmlns:ns3=\"http://icontrol.com/statreports/v1.0\">\n"
     "    <ns2:triggerList>\n"
-    "        <ns2:zoneTrigger>\n"
-    "            <ns2:description>Zone Trigger</ns2:description>\n"
+    "        <ns2:sensorTrigger>\n"
+    "            <ns2:description>Sensor Trigger</ns2:description>\n"
     "            <ns2:category>sensor</ns2:category>\n"
-    "            <ns2:zoneState>openOrClose</ns2:zoneState>\n"
-    "            <ns2:zoneType>door</ns2:zoneType>\n"
-    "        </ns2:zoneTrigger>\n"
+    "            <ns2:sensorState>openOrClose</ns2:sensorState>\n"
+    "            <ns2:sensorType>door</ns2:sensorType>\n"
+    "        </ns2:sensorTrigger>\n"
     "    </ns2:triggerList>\n"
     "    <ns2:action>\n"
     "        <ns2:actionID>70</ns2:actionID>\n"
@@ -124,9 +124,6 @@ static const char* icrule_spec = ""
     "    </ns2:action>\n"
     "    <ns2:constraints>\n"
     "        <ns2:and-expression>\n"
-    "            <ns2:systemConstraint>\n"
-    "                <ns2:sceneStatus>home</ns2:sceneStatus>\n"
-    "            </ns2:systemConstraint>\n"
     "            <ns2:timeConstraint>\n"
     "                <ns2:start>\n"
     "                    <ns2:exactTime>SUN,MON,TUE,WED,THU,FRI,SAT 12:00</ns2:exactTime>\n"
@@ -618,7 +615,7 @@ static const char* icrule_spec_timetrigger_test = "<ns2:rule xmlns:ns2=\"http://
                                                   "    <ns2:description>When Any date Sunset, Turn On Light 1</ns2:description>\n"
                                                   "</ns2:rule>";
 
-static void test_zone_trigger(void** state)
+static void test_sensor_trigger(void** state)
 {
     const char* xml;
 
@@ -633,18 +630,18 @@ static void test_zone_trigger(void** state)
     assert_non_null(transcoder);
 
     /*
-     * Trigger: Zone Open
+     * Trigger: sensor Open
      * Action: Light On
      */
     xml = XML_HEADER
           "<ns2:rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"32509\">\n"
           "    <ns2:triggerList>\n"
-          "        <ns2:zoneTrigger>\n"
-          "            <ns2:description>Zone Trigger</ns2:description>\n"
+          "        <ns2:sensorTrigger>\n"
+          "            <ns2:description>Sensor Trigger</ns2:description>\n"
           "            <ns2:category>sensor</ns2:category>\n"
-          "            <ns2:zoneState>open</ns2:zoneState>\n"
-          "            <ns2:zoneID>1</ns2:zoneID>\n"
-          "        </ns2:zoneTrigger>\n"
+          "            <ns2:sensorState>open</ns2:sensorState>\n"
+          "            <ns2:sensorID>1</ns2:sensorID>\n"
+          "        </ns2:sensorTrigger>\n"
           "    </ns2:triggerList>\n"
           "    <ns2:action>\n"
           "        <ns2:actionID>70</ns2:actionID>\n"
@@ -663,25 +660,22 @@ static void test_zone_trigger(void** state)
     ret = cslt_transcode(transcoder, xml, &buffer);
     assert_int_not_equal(ret, -1);
     assert_non_null(buffer);
-
-//    save_file("/tmp/zone_open_light_on_sheens.json", buffer, strlen(buffer));
-
     free(buffer);
 
     /*
-     * Trigger: Zone Tamper
+     * Trigger: motion
      * Action: Email
      */
     xml = XML_HEADER
           "<rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" "
           "xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"1052597\">\n"
           "    <triggerList>\n"
-          "        <zoneTrigger>\n"
-          "            <description>Zone Trigger</description>\n"
+          "        <sensorTrigger>\n"
+          "            <description>Sensor Trigger</description>\n"
           "            <category>sensor</category>\n"
-          "            <zoneState>trouble</zoneState>\n"
-          "            <zoneType>allNonMotionZones</zoneType>\n"
-          "        </zoneTrigger>\n"
+          "            <sensorState>trouble</sensorState>\n"
+          "            <sensorType>allNonMotionZones</sensorType>\n"
+          "        </sensorTrigger>\n"
           "    </triggerList>\n"
           "    <action>\n"
           "        <actionID>1</actionID>\n"
@@ -696,25 +690,22 @@ static void test_zone_trigger(void** state)
 
     str = strstr(buffer, ":255");
     assert_non_null(str);
-
-//    save_file("/tmp/zone_tamper_email_sheens.json", buffer, strlen(buffer));
-
     free(buffer);
 
     /*
-     * Trigger: Zone Non-Motion Trouble
+     * Trigger: sensor open or closed
      * Action: Email
      */
     xml = XML_HEADER
           "<rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" "
           "xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"32393\">\n"
           "    <triggerList>\n"
-          "        <zoneTrigger>\n"
-          "            <description>Zone Trigger</description>\n"
+          "        <sensorTrigger>\n"
+          "            <description>Sensor Trigger</description>\n"
           "            <category>sensor</category>\n"
-          "            <zoneState>openOrClose</zoneState>\n"
-          "            <zoneType>door</zoneType>\n"
-          "        </zoneTrigger>\n"
+          "            <sensorState>openOrClose</sensorState>\n"
+          "            <sensorType>door</sensorType>\n"
+          "        </sensorTrigger>\n"
           "    </triggerList>\n"
           "    <action>\n"
           "        <actionID>21</actionID>\n"
@@ -744,24 +735,21 @@ static void test_zone_trigger(void** state)
     ret = cslt_transcode(transcoder, xml, &buffer);
     assert_int_not_equal(ret, -1);
     assert_non_null(buffer);
-
-//    save_file("/tmp/zone_open_close_picture_sheens.json", buffer, strlen(buffer));
-
     free(buffer);
 
     /*
-     * Trigger: Zone Door Open/Close
+     * Trigger: Door sensor Open/Close
      * Action: Multi-Light On
      */
     xml = XML_HEADER
           "<ns2:rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"32592\">\n"
           "    <ns2:triggerList>\n"
-          "        <ns2:zoneTrigger>\n"
-          "            <ns2:description>Zone Trigger</ns2:description>\n"
+          "        <ns2:sensorTrigger>\n"
+          "            <ns2:description>Sensor Trigger</ns2:description>\n"
           "            <ns2:category>sensor</ns2:category>\n"
-          "            <ns2:zoneState>openOrClose</ns2:zoneState>\n"
-          "            <ns2:zoneType>door</ns2:zoneType>\n"
-          "        </ns2:zoneTrigger>\n"
+          "            <ns2:sensorState>openOrClose</ns2:sensorState>\n"
+          "            <ns2:sensorType>door</ns2:sensorType>\n"
+          "        </ns2:sensorTrigger>\n"
           "    </ns2:triggerList>\n"
           "    <ns2:action>\n"
           "        <ns2:actionID>70</ns2:actionID>\n"
@@ -781,13 +769,10 @@ static void test_zone_trigger(void** state)
     ret = cslt_transcode(transcoder, xml, &buffer);
     assert_int_not_equal(ret, -1);
     assert_non_null(buffer);
-
-    save_file("/tmp/zone_open_close_light_on_sheens.json", buffer, strlen(buffer));
-
     free(buffer);
 }
 
-void test_negative_zone_trigger(void** state)
+void test_negative_sensor_trigger(void** state)
 {
     const char* xml;
 
@@ -803,28 +788,24 @@ void test_negative_zone_trigger(void** state)
 
     /*
      * Trigger: Not Open/Close During Time
-     * Contraint: System
      * Action: Email
      */
     xml = XML_HEADER
           "<rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" "
           "xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"32316\">\n"
           "    <triggerList isNegative=\"true\">\n"
-          "        <zoneTrigger>\n"
-          "            <description>Zone Trigger</description>\n"
+          "        <sensorTrigger>\n"
+          "            <description>Sensor Trigger</description>\n"
           "            <category>sensor</category>\n"
-          "            <zoneState>openOrClose</zoneState>\n"
-          "            <zoneID>1</zoneID>\n"
-          "        </zoneTrigger>\n"
+          "            <sensorState>openOrClose</sensorState>\n"
+          "            <sensorID>1</sensorID>\n"
+          "        </sensorTrigger>\n"
           "    </triggerList>\n"
           "    <action>\n"
           "        <actionID>2</actionID>\n"
           "    </action>\n"
           "    <constraints>\n"
           "        <and-expression>\n"
-          "            <systemConstraint>\n"
-          "                <sceneStatus>home,night,vacation</sceneStatus>\n"
-          "            </systemConstraint>\n"
           "            <timeConstraint>\n"
           "                <start>\n"
           "                    <exactTime>SUN,MON,TUE,WED,THU,FRI,SAT 16:38</exactTime>\n"
@@ -843,7 +824,7 @@ void test_negative_zone_trigger(void** state)
     assert_int_not_equal(ret, -1);
     assert_non_null(buffer);
 
-//    save_file("/tmp/negative_zone_with_constraints_email_sheens.json", buffer, strlen(buffer));
+//    save_file("/tmp/negative_sensor_with_constraints_email_sheens.json", buffer, strlen(buffer));
 
     free(buffer);
 
@@ -856,12 +837,12 @@ void test_negative_zone_trigger(void** state)
           "<rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" "
           "xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"32316\">\n"
           "    <triggerList isNegative=\"true\">\n"
-          "        <zoneTrigger>\n"
-          "            <description>Zone Trigger</description>\n"
+          "        <sensorTrigger>\n"
+          "            <description>Sensor Trigger</description>\n"
           "            <category>sensor</category>\n"
-          "            <zoneState>openOrClose</zoneState>\n"
-          "            <zoneID>1</zoneID>\n"
-          "        </zoneTrigger>\n"
+          "            <sensorState>openOrClose</sensorState>\n"
+          "            <sensorID>1</sensorID>\n"
+          "        </sensorTrigger>\n"
           "    </triggerList>\n"
           "    <action>\n"
           "        <actionID>2</actionID>\n"
@@ -885,68 +866,10 @@ void test_negative_zone_trigger(void** state)
     assert_int_not_equal(ret, -1);
     assert_non_null(buffer);
 
-    //    save_file("/tmp/negative_zone_without_constraints_email_sheens.json", buffer, strlen(buffer));
+    //    save_file("/tmp/negative_sensor_without_constraints_email_sheens.json", buffer, strlen(buffer));
 
     free(buffer);
 
-}
-
-void test_light_action(void** state)
-{
-    static const char* rule = XML_HEADER
-                              "<rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" "
-                              "xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"32398\">\n"
-                              "    <triggerList isNegative=\"true\">\n"
-                              "        <systemSceneTrigger>\n"
-                              "            <description>Scene Trigger</description>\n"
-                              "            <category>scene</category>\n"
-                              "            <sceneName>home</sceneName>\n"
-                              "        </systemSceneTrigger>\n"
-                              "    </triggerList>\n"
-                              "    <action>\n"
-                              "        <actionID>70</actionID>\n"
-                              "        <parameter>\n"
-                              "            <key>lightID</key>\n"
-                              "            <value>6251.b0ce181403060cd4</value>\n"
-                              "        </parameter>\n"
-                              "        <parameter>\n"
-                              "            <key>level</key>\n"
-                              "            <value>20</value>\n"
-                              "        </parameter>\n"
-                              "        <parameter>\n"
-                              "            <key>duration</key>\n"
-                              "            <value>10</value>\n"
-                              "        </parameter>\n"
-                              "    </action>\n"
-                              "    <constraints>\n"
-                              "        <timeConstraint>\n"
-                              "            <start>\n"
-                              "                <exactTime>FRI 18:10</exactTime>\n"
-                              "            </start>\n"
-                              "            <end>\n"
-                              "                <exactTime>FRI 18:12</exactTime>\n"
-                              "            </end>\n"
-                              "        </timeConstraint>\n"
-                              "    </constraints>\n"
-                              "    <description>When Hub Does Not Change to Home, Turn On Light 2</description>\n"
-                              "</rule>";
-
-    const cslt_transcoder_t* transcoder;
-    char* buffer = NULL;
-    int ret;
-
-    unused(state);
-
-    transcoder = cslt_get_transcoder_by_name(TRANSCODER_NAME_ICRULES, TRANSCODER_NAME_SHEENS);
-    assert_non_null(transcoder);
-
-    ret = cslt_transcode(transcoder, rule, &buffer);
-    assert_int_not_equal(ret, -1);
-    assert_non_null(buffer);
-
-    save_file("/tmp/negative_scene_light_dimmer_duration_sheens.json", buffer, strlen(buffer));
-
-    free(buffer);
 }
 
 static void test_multiaction(void** state)
@@ -955,12 +878,12 @@ static void test_multiaction(void** state)
                               "<rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" "
                               "xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"1051632\">\n"
                               "    <triggerList>\n"
-                              "        <zoneTrigger>\n"
-                              "            <description>Zone Trigger</description>\n"
+                              "        <sensorTrigger>\n"
+                              "            <description>Sensor Trigger</description>\n"
                               "            <category>sensor</category>\n"
-                              "            <zoneState>open</zoneState>\n"
-                              "            <zoneID>42</zoneID>\n"
-                              "        </zoneTrigger>\n"
+                              "            <sensorState>open</sensorState>\n"
+                              "            <sensorID>42</sensorID>\n"
+                              "        </sensorTrigger>\n"
                               "    </triggerList>\n"
                               "    <action>\n"
                               "        <actionID>70</actionID>\n"
@@ -1035,69 +958,6 @@ static void test_time_trigger(void** state)
     free(buffer);
 }
 
-static void test_scene_trigger(void** state)
-{
-    static const char* rule = XML_HEADER
-                              "<ns2:rule xmlns:ns2=\"http://ucontrol.com/rules/v1.0\" xmlns:ns3=\"http://icontrol.com/statreports/v1.0\" ruleID=\"32429\">\n"
-                              "    <ns2:triggerList>\n"
-                              "        <ns2:systemSceneTrigger>\n"
-                              "            <ns2:description>Scene Trigger</ns2:description>\n"
-                              "            <ns2:category>scene</ns2:category>\n"
-                              "            <ns2:sceneName>home</ns2:sceneName>\n"
-                              "        </ns2:systemSceneTrigger>\n"
-                              "        <ns2:systemSceneTrigger>\n"
-                              "            <ns2:description>Scene Trigger</ns2:description>\n"
-                              "            <ns2:category>scene</ns2:category>\n"
-                              "            <ns2:sceneName>away</ns2:sceneName>\n"
-                              "        </ns2:systemSceneTrigger>\n"
-                              "        <ns2:systemSceneTrigger>\n"
-                              "            <ns2:description>Scene Trigger</ns2:description>\n"
-                              "            <ns2:category>scene</ns2:category>\n"
-                              "            <ns2:sceneName>night</ns2:sceneName>\n"
-                              "        </ns2:systemSceneTrigger>\n"
-                              "        <ns2:systemSceneTrigger>\n"
-                              "            <ns2:description>Scene Trigger</ns2:description>\n"
-                              "            <ns2:category>scene</ns2:category>\n"
-                              "            <ns2:sceneName>vacation</ns2:sceneName>\n"
-                              "        </ns2:systemSceneTrigger>\n"
-                              "    </ns2:triggerList>\n"
-                              "    <ns2:action>\n"
-                              "        <ns2:actionID>1</ns2:actionID>\n"
-                              "    </ns2:action>\n"
-                              "    <ns2:description>When Hub Vacation, Send Email to TomVeeOne Harwood</ns2:description>\n"
-                              "</ns2:rule>";
-
-    const cslt_transcoder_t* transcoder;
-    char* buffer = NULL;
-    char* str;
-    int ret;
-
-    unused(state);
-
-    transcoder = cslt_get_transcoder_by_name(TRANSCODER_NAME_ICRULES, TRANSCODER_NAME_SHEENS);
-    assert_non_null(transcoder);
-
-    ret = cslt_transcode(transcoder, rule, &buffer);
-    assert_int_not_equal(ret, -1);
-    assert_non_null(buffer);
-
-    str = strstr(buffer, "home");
-    assert_non_null(str);
-
-    str = strstr(buffer, "away");
-    assert_non_null(str);
-
-    str = strstr(buffer, "night");
-    assert_non_null(str);
-
-    str = strstr(buffer, "vacation");
-    assert_non_null(str);
-
-//    save_file("/tmp/test_scene_trigger_sheens.json", buffer, strlen(buffer));
-
-    free(buffer);
-}
-
 static void test_doorlock_trigger(void** state)
 {
     static const char* rule = XML_HEADER
@@ -1144,54 +1004,14 @@ static void test_doorlock_trigger(void** state)
     free(buffer);
 }
 
-static void test_unexpected_send_message_parameters(void** state)
-{
-    static const char* rule = XML_HEADER
-                              "<rule ruleID=\"1053384\">\n"
-                              "    <triggerList>\n"
-                              "        <touchscreenTrigger>\n"
-                              "            <description>Touch Screen Trigger</description>\n"
-                              "            <category>touchscreen</category>\n"
-                              "           <touchscreenState>arming</touchscreenState>\n"
-                              "        </touchscreenTrigger>\n"
-                              "    </triggerList>\n"
-                              "    <action>\n"
-                              "        <actionID>2</actionID>\n"
-                              "        <parameter>\n"
-                              "            <key>phone</key>\n"
-                              "            <value>1007131</value>\n"
-                              "        </parameter>\n"
-                              "    </action>\n"
-                              "    <description>When Security System Arming Send Text Message to Ramesh Nagammanavara</description>\n"
-                              "</rule>";
-
-    const cslt_transcoder_t* transcoder;
-    char* buffer = NULL;
-    int ret;
-
-    unused(state);
-
-    transcoder = cslt_get_transcoder_by_name(TRANSCODER_NAME_ICRULES, TRANSCODER_NAME_SHEENS);
-    assert_non_null(transcoder);
-
-    ret = cslt_transcode(transcoder, rule, &buffer);
-    assert_int_not_equal(ret, -1);
-    assert_non_null(buffer);
-
-    free(buffer);
-}
-
 int sheens_test(void)
 {
     const struct CMUnitTest tests[] = {
-            cmocka_unit_test(test_zone_trigger),
-            cmocka_unit_test(test_negative_zone_trigger),
-            cmocka_unit_test(test_light_action),
+            cmocka_unit_test(test_sensor_trigger),
+            cmocka_unit_test(test_negative_sensor_trigger),
             cmocka_unit_test(test_multiaction),
             cmocka_unit_test(test_time_trigger),
-            cmocka_unit_test(test_scene_trigger),
             cmocka_unit_test(test_doorlock_trigger),
-            cmocka_unit_test(test_unexpected_send_message_parameters),
     };
 
     return cmocka_run_group_tests_name("sheens", tests, NULL, NULL);

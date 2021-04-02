@@ -63,7 +63,6 @@
 #include <propsMgr/propsService_event.h>
 #include <propsMgr/propsService_eventAdapter.h>
 #include <propsMgr/propsHelper.h>
-#include <securityService/securityService_eventAdapter.h>
 #include "channelManager.h"
 #include "channel.h"
 #include "commServiceEventBroadcaster.h"
@@ -97,14 +96,6 @@ static uint8_t   primaryChannelId = SAMPLE_CHANNEL_ID;  // FIXME: populate with 
  */
 void initChannelManager()
 {
-    // We want to process events from security service in a serial fashion for all channels
-    icThreadPool *securityServiceTP = threadPoolCreate("commSecEventTP", 1, 1, MAX_QUEUE_SIZE);
-    if (register_securityService_eventHandlerThreadPool(securityServiceTP) == false)
-    {
-        icLogError(COMM_LOG, "Failed to register security service event handler thread pool");
-        threadPoolDestroy(securityServiceTP);
-    }
-
     // create the hashtable to hold our channel objects.  since each
     // has a uniqueue identifier, we'll use that as the index into the hash
     //
@@ -172,9 +163,6 @@ void shutdownChannelManager()
         hashMapDestroy(channelMap, NULL);
     }
     channelMap = NULL;
-
-    // Cleanup the thread pool we setup
-    unregister_securityService_eventHandlerThreadPool();
 }
 
 /*

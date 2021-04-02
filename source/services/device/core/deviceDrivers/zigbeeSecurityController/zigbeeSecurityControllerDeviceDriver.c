@@ -29,12 +29,12 @@
 #include <string.h>
 #include <icUtil/stringUtils.h>
 #include <zigbeeClusters/iasZoneCluster.h>
-#include <zigbeeClusters/iasACECluster.h>
 #include <deviceModelHelper.h>
 #include <resourceTypes.h>
 #include <icTime/timeUtils.h>
 #include <zigbeeClusters/pollControlCluster.h>
 #include <subsystems/zigbee/zigbeeIO.h>
+#include <deviceService/zoneChanged.h>
 #include <zigbeeClusters/helpers/comcastBatterySavingHelper.h>
 #include "zigbeeSecurityControllerDeviceDriver.h"
 #include "zigbeeDriverCommon.h"
@@ -82,8 +82,6 @@ void onZoneStatusChanged(uint64_t eui64,
                          const IASZoneStatusChangedNotification *status,
                          const ComcastBatterySavingData *batterySavingData,
                          const void *ctx);
-static ArmDisarmNotification requestArmDisarm(uint64_t eui64, uint8_t endpointId, const IASACEArmRequest *request, const void *ctx);
-static void requestPanic(uint64_t eui64, uint8_t endpointId, PanelStatus panicStatus, const void *ctx);
 
 static void onGetPanelStatusReceived(uint64_t eui64,
                                      uint8_t endpointId,
@@ -134,14 +132,7 @@ static DeviceDriver *zigbeeSecurityControllerDeviceDriverCreate(DeviceServiceCal
             .onZoneStatusChanged = onZoneStatusChanged
     };
 
-    static const IASACEClusterCallbacks iasACEClusterCallbacks = {
-            .onArmRequestReceived = requestArmDisarm,
-            .onGetPanelStatusReceived = onGetPanelStatusReceived,
-            .onPanicRequestReceived = requestPanic
-    };
-
     zigbeeDriverCommonAddCluster(myDriver, iasZoneClusterCreate(&iasZoneClusterCallbacks, myDriver));
-    zigbeeDriverCommonAddCluster(myDriver, iasACEClusterCreate(&iasACEClusterCallbacks, myDriver));
 
     return myDriver;
 }
@@ -365,15 +356,7 @@ registerResources(ZigbeeDriverCommon *ctx, icDevice *device, IcDiscoveredDeviceD
             /*
              * res is only used to check for a failure; it is saved in endpoint->resources by createEndpointResource.
              */
-            icDeviceResource *res = createEndpointResource(endpoint,
-                                                           SECURITY_CONTROLLER_PROFILE_RESOURCE_SECURITY_STATE,
-                                                           NULL,
-                                                           RESOURCE_TYPE_SECURITY_STATE,
-                                                           RESOURCE_MODE_WRITEABLE,
-                                                           CACHING_POLICY_NEVER);
-
-            ok &= res != NULL;
-
+            icDeviceResource *res = NULL;
             if (ok)
             {
                 res = createEndpointResource(endpoint,
@@ -457,77 +440,6 @@ static void updateLastInteractionDate(const uint64_t eui64, const DeviceDriver *
                                            NULL);
 }
 
-static ArmDisarmNotification requestArmDisarm(const uint64_t eui64,
-                                              const uint8_t endpointId,
-                                              const IASACEArmRequest *request,
-                                              const void *ctx)
-{
-    DeviceDriver *_this = (DeviceDriver *) ctx;
-    const DeviceServiceCallbacks *deviceServiceCallbacks = zigbeeDriverCommonGetDeviceService((ZigbeeDriverCommon *) ctx);
-    ArmDisarmNotification result = ARM_NOTIF_INVALID;
-    RequestSource source = getRequestSource((ZigbeeDriverCommon *) ctx);
-
-    if (source != REQUEST_SOURCE_INVALID)
-    {
-        if (!zigbeeDriverCommonIsDiscoveryActive((ZigbeeDriverCommon *) _this))
-        {
-            result = deviceServiceCallbacks->requestPanelStateChange(request->requestedStatus,
-                                                                     request->accessCode,
-                                                                     source);
-        }
-        else
-        {
-            icLogInfo(_this->driverName, "Ignoring arm/disarm/panic while device discovery is active");
-        }
-
-        updateLastInteractionDate(eui64, _this);
-    }
-    else
-    {
-        icLogError(_this->driverName, "Driver does not support arm/disarm");
-    }
-
-    return result;
-}
-
-static void requestPanic(uint64_t eui64, uint8_t endpointId, PanelStatus panicStatus, const void *ctx)
-{
-    DeviceDriver *_this = (DeviceDriver *) ctx;
-    const DeviceServiceCallbacks *deviceServiceCallbacks = zigbeeDriverCommonGetDeviceService((ZigbeeDriverCommon *) ctx);
-    RequestSource source = getRequestSource((ZigbeeDriverCommon *) ctx);
-
-    if (source != REQUEST_SOURCE_INVALID)
-    {
-        if (!zigbeeDriverCommonIsDiscoveryActive((ZigbeeDriverCommon *) _this))
-        {
-            deviceServiceCallbacks->requestPanelStateChange(panicStatus, NULL, source);
-        }
-        else
-        {
-            icLogInfo(_this->driverName, "Ignoring arm/disarm/panic while device discovery is active");
-        }
-
-        updateLastInteractionDate(eui64, _this);
-    }
-    else
-    {
-        icLogError(_this->driverName, "Driver does not support panic");
-    }
-}
-
-static void onGetPanelStatusReceived(const uint64_t eui64,
-                                     const uint8_t endpointId,
-                                     const void *ctx)
-{
-    const DeviceServiceCallbacks *deviceServiceCallbacks = zigbeeDriverCommonGetDeviceService((ZigbeeDriverCommon *) ctx);
-    AUTO_CLEAN(securityStateDestroy__auto) SecurityState *state = deviceServiceCallbacks->getSecurityState();
-    DeviceDriver *_this = (DeviceDriver *) ctx;
-
-    icLogDebug(_this->driverName, "%s", __FUNCTION__);
-
-    iasACEClusterSendPanelStatus(eui64, endpointId, state, true);
-}
-
 static bool writeEndpointResource(ZigbeeDriverCommon *ctx,
                                   uint32_t endpointNumber,
                                   icDeviceResource *resource,
@@ -552,64 +464,7 @@ static bool writeEndpointResource(ZigbeeDriverCommon *ctx,
                previousValue,
                newValue);
 
-    if (strcmp(resource->id, SECURITY_CONTROLLER_PROFILE_RESOURCE_SECURITY_STATE) == 0)
-    {
-        AUTO_CLEAN(securityStateDestroy__auto) SecurityState *state = securityStateFromJSON(newValue);
-        if (state)
-        {
-            switch (state->panelStatus)
-            {
-                case PANEL_STATUS_EXIT_DELAY:
-                case PANEL_STATUS_ENTRY_DELAY:
-                    mdName = ACE_DEVICE_METADATA_SEND_EXIT_ENTRY_DELAY;
-                    break;
-
-                case PANEL_STATUS_ENTRY_DELAY_ONESHOT:
-                default:
-                    mdName = ACE_DEVICE_METADATA_SEND_PANEL_STATUS;
-                    break;
-            }
-
-            sendStatus = deviceServiceCallbacks->getMetadata(resource->deviceUuid,
-                                                             NULL,
-                                                             mdName);
-
-            if (sendStatus != NULL && strcmp(sendStatus, "true") == 0)
-            {
-                const uint8_t endpointId = (uint8_t) endpointNumber;
-                const uint64_t eui64 = zigbeeSubsystemIdToEui64(resource->deviceUuid);
-
-                /*
-                 * Some devices, e.g., the Comcast XH keypad URC4450BC0-X-R and equivalents, do not mute when disarming
-                 * to unready. timeLeft is nonzero when this was caused by a disarm event; send a fake disarmed state to
-                 * mute the keypad.
-                 */
-                if (state->panelStatus == PANEL_STATUS_UNREADY && state->timeLeft != 0)
-                {
-                    const char *deviceClass = zigbeeDriverCommonGetDeviceClass(ctx);
-                    if (strcmp(deviceClass, KEYPAD_DC) == 0)
-                    {
-                        AUTO_CLEAN(securityStateDestroy__auto) SecurityState *fakeState =
-                                securityStateCreate(PANEL_STATUS_DISARMED,
-                                                    state->timeLeft,
-                                                    state->indication,
-                                                    state->bypassActive);
-
-                        icLogDebug(_this->driverName, "%s: sending fake disarmed state to mute keypad", __func__);
-                        iasACEClusterSendPanelStatus(eui64, endpointId, fakeState, false);
-                    }
-                }
-
-                iasACEClusterSendPanelStatus(eui64, endpointId, state, false);
-            }
-            else
-            {
-                icLogDebug(driverName, "Not sending panel status: suppressed by metadata %s", mdName);
-            }
-        }
-        /* Any errors are reported by securityStateFromJSON */
-    }
-    else if (stringCompare(resource->id, SECURITY_CONTROLLER_PROFILE_RESOURCE_ZONE_CHANGED, false) == 0)
+    if (stringCompare(resource->id, SECURITY_CONTROLLER_PROFILE_RESOURCE_ZONE_CHANGED, false) == 0)
     {
         sendStatus = deviceServiceCallbacks->getMetadata(resource->deviceUuid,
                                                          NULL,
@@ -625,25 +480,6 @@ static bool writeEndpointResource(ZigbeeDriverCommon *ctx,
             {
                 /* Parse errors will be reported by zoneChangedFromJSON */
                 return false;
-            }
-
-            switch (zoneChanged->indication)
-            {
-                case SECURITY_INDICATION_BOTH:
-                case SECURITY_INDICATION_AUDIBLE:
-                case SECURITY_INDICATION_VISUAL:
-                {
-                    const uint64_t eui64 = zigbeeSubsystemIdToEui64(resource->deviceUuid);
-                    iasACEClusterSendZoneStatus(eui64, endpointNumber, zoneChanged);
-                    break;
-                }
-
-                case SECURITY_INDICATION_NONE:
-                    break;
-
-                default:
-                    icLogWarn(_this->driverName, "SecurityIndication %d not supported!", zoneChanged->indication);
-                    break;
             }
         }
     }

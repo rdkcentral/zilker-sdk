@@ -103,8 +103,7 @@ stimuli:
   "_evCode": <number>,
   "_evTime": <number>,
   "_sunrise": <number>,
-  "_sunset": <number>,
-  "_systemStatus": <string>
+  "_sunset": <number>
 }
 ```
 
@@ -115,21 +114,6 @@ since Epoch".
 not "time". Thusan ``_evId`` may be relied upon within a single device
 while the device is actively operating, but will not survive
 power cycles.
-
-``_systemStatus`` represents the current operation "mode" of the
-device. Due to the mix of security, non-security, devices the
-value ``home`` is equivalent to the value ``disarmed``.
-
-Valid values currently are:  
-```text
-alarm
-arming
-home
-stay
-away
-night
-vacation
-``` 
 
 All other JSON entries in the stimuli are specific to an
 individual stimuli and thus are not *currently* definitively

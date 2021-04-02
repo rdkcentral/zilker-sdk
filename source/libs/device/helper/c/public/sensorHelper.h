@@ -22,7 +22,7 @@
  * set of helper functions to aid with the "business logic" needs
  * that many services require when interacting with sensor endpoints.
  * allows the lower layers of deviceService to remain generic and
- * not have to be concerned with specifics of sensors vs zones.
+ * not have to be concerned with specifics of sensors.
  *
  * Author: jelderton - 7/19/16
  *-----------------------------------------------*/
@@ -35,15 +35,7 @@
 #include <deviceService/deviceService_event.h>
 
 /*
- * examine the DSEndpoint to see if it's applicable to be a
- * security zone or not (ex: door/window sensor).
- */
-bool isEndpointPossibleSecurityZone(DSEndpoint *endpoint);
-
-/*
  * examine the DSEndpoint 'status' attribute to see if faulted or restored.
- * note that this works on endpoints regardless if they can be
- * 'security zones' or not (i.e. works on window as well as camera-motion)
  */
 bool isEndpointFaulted(DSEndpoint *endpoint);
 
@@ -57,8 +49,6 @@ bool isEndpointFaultedViaEvent(DeviceServiceResourceUpdatedEvent *event);
 
 /*
  * extract the DSEndpoint 'bypassed' attribute.
- * note that this works on endpoints regardless if they can be
- * 'security zones' or not (i.e. works on window as well as camera-motion)
  */
 bool isEndpointBypassed(DSEndpoint *endpoint);
 
@@ -69,6 +59,64 @@ bool isEndpointBypassed(DSEndpoint *endpoint);
  * event->resource->id == SENSOR_PROFILE_RESOURCE_BYPASSED
  */
 bool isEndpointBypassedViaEvent(DeviceServiceResourceUpdatedEvent *event);
+
+
+// overall type/class of a Sensor
+typedef enum {
+    SENSOR_TYPE_FIRST_AND_INVALID  = -1,  // For bounds checking and iteration
+    SENSOR_TYPE_UNKNOWN            = 0,
+    SENSOR_TYPE_DOOR               = 1,
+    SENSOR_TYPE_WINDOW             = 2,
+    SENSOR_TYPE_MOTION             = 3,
+    SENSOR_TYPE_GLASS_BREAK        = 4,
+    SENSOR_TYPE_SMOKE              = 5,
+    SENSOR_TYPE_CO                 = 6,
+    SENSOR_TYPE_ENVIRONMENTAL      = 7,
+    SENSOR_TYPE_WATER              = 8,
+    SENSOR_TYPE_MEDICAL            = 9,
+    SENSOR_TYPE_LAST_AND_INVALID   = 10   // For bounds checking and iteration
+} SensorType;
+
+// NULL terminated array that should correlate to the SensorType enum
+static const char *sensorTypeLabels[] = {
+        "SENSOR_TYPE_UNKNOWN",       // SENSOR_TYPE_UNKNOWN
+        "SENSOR_TYPE_DOOR",          // SENSOR_TYPE_DOOR
+        "SENSOR_TYPE_WINDOW",        // SENSOR_TYPE_WINDOW
+        "SENSOR_TYPE_MOTION",        // SENSOR_TYPE_MOTION
+        "SENSOR_TYPE_GLASS_BREAK",   // SENSOR_TYPE_GLASS_BREAK
+        "SENSOR_TYPE_SMOKE",         // SENSOR_TYPE_SMOKE
+        "SENSOR_TYPE_CO",            // SENSOR_TYPE_CO
+        "SENSOR_TYPE_ENVIRONMENTAL", // SENSOR_TYPE_ENVIRONMENTAL
+        "SENSOR_TYPE_WATER",         // SENSOR_TYPE_WATER
+        "SENSOR_TYPE_MEDICAL",       // SENSOR_TYPE_MEDICAL
+        NULL
+};
+
+// define a 'sensor'
+typedef struct {
+    char       *label;                 // friendly label/name of the Sensor (what is displayed to the user)
+    char       *deviceId;              // deviceId of the sensor
+    char       *endpointId;            // endpointId of the device
+    bool       isFaulted;              // if the sensor is faulted (open) or not
+    bool       isTroubled;             // if the sensor reported a trouble (ex: low battery)
+    SensorType type;                   // kind of sensor
+} Sensor;
+
+/*
+ * Create a basic Sensor object
+ */
+Sensor *createSensor(void);
+
+/*
+ * Create a Sensor using 'endpoint resources' from deviceService.
+ * Caller should check if 'label' is empty, and assign one as needed.
+ */
+Sensor *createSensorFromEndpoint(DSEndpoint *endpoint);
+
+/*
+ * Destroy a Sensor object
+ */
+void destroySensor(Sensor *sensor);
 
 
 #endif // ZILKER_SENSORHELPER_H
