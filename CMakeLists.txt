@@ -387,8 +387,6 @@ add_subdirectory(source/libs/reset/c)
 add_subdirectory(source/libs/system/c)
 add_subdirectory(source/libs/device)
 
-add_subdirectory(source/services/security/api/c)
-
 if (CONFIG_DEBUG_BREAKPAD)
     add_subdirectory(source/libs/breakpad/c)
 endif()
@@ -445,16 +443,6 @@ if (CONFIG_SERVICE_PROPERTY)
     add_subdirectory(source/services/props/core)
     add_subdirectory(source/utils/properties)
 endif()
-
-if (CONFIG_SERVICE_SECURITY)
-    # security service
-    add_subdirectory(source/services/security/core)
-    add_subdirectory(source/utils/troubleLister)
-
-    if (CONFIG_SERVICE_SECURITY_SCENE)
-        add_subdirectory(source/utils/systemMode)
-    endif ()
-endif ()
 
 if (CONFIG_SERVICE_WATCHDOG)
 # watchdog service

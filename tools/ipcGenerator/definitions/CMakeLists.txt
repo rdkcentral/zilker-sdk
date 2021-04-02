@@ -22,7 +22,6 @@ set(IPCDEF_XML
         commService.xml
         deviceService.xml
         propsService.xml
-        securityService.xml
         watchdogService.xml
         cronEvent.xml
         pkiService.xml)

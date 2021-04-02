@@ -61,10 +61,7 @@
 //
 #define SSL_CERT_VALIDATE_FOR_HTTPS_TO_SERVER                 "cpe.sslCert.validateForHttpsToServer"
 #define SSL_CERT_VALIDATE_FOR_HTTPS_TO_DEVICE                 "cpe.sslCert.validateForHttpsToDevice"
-#define SSL_CERT_VALIDATE_FOR_XMPP                            "cpe.sslCert.validateForXmpp"
 #define DEVICE_DESC_BLACKLIST                                 "deviceDescriptor.blacklist"
-#define TOUCHSCREEN_SENSOR_COMMFAIL_TROUBLE_DELAY             "touchscreen.sensor.commFail.troubleDelay"
-#define TOUCHSCREEN_SENSOR_COMMFAIL_ALARM_DELAY               "touchscreen.sensor.commFail.alarmDelay"
 #define CPE_CAMERA_PING_INTERVAL_SEC                          "cpe.camera.pingIntervalSeconds"
 #define CPE_CAMERA_ONLINE_DETECTION_THRESHOLD_CNT             "cpe.camera.onlineDetectionThreshold"
 #define CPE_CAMERA_OFFLINE_DETECTION_THRESHOLD_CNT            "cpe.camera.offlineDetectionThreshold"

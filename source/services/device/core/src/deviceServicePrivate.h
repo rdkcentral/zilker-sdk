@@ -24,9 +24,7 @@
 #define ZILKER_DEVICESERVICEPRIVATE_H
 
 #include <stdbool.h>
-#include <deviceService/securityState.h>
 #include <icIpc/baseEvent.h>
-#include <securityService/securityService_pojo.h>
 #include "deviceDriver.h"
 
 bool deviceServiceInitialize(bool block);
@@ -101,28 +99,6 @@ char* getMetadataUri(const char* deviceUuid, const char* endpointId, const char*
  * @return the exit delay setting, in seconds
  */
 uint32_t deviceServiceGetSecurityExitDelay(void);
-
-/**
- * Ask the security service to arm or disarm the system to match a desired state
- */
-ArmDisarmNotification deviceServiceRequestPanelStatusChange(PanelStatus desiredState, const char *accessCode, RequestSource source);
-
- /**
-  * Ask the security service to toggle bypass a zone.
-  * @param zoneNumber The zone number to bypass
-  * @param code The user access code
-  * @return true when the bypass was toggled.
-  */
-bool deviceServiceRequestBypassZoneToggle(uint32_t zoneNumber, const char *code, RequestSource source);
-
-PanelStatus deviceServiceConvertSystemPanelStatus(systemPanelStatus *sysPanelStatus, alarmReasonType alarmReason, alarmPanicType panicReason);
-SecurityIndication deviceServiceConvertSystemIndication(indicationType securityServiceIndication);
-
-/**
- * Get the system security state
- * @return a pointer to a heap allocated SecurityState object.
- */
-SecurityState *deviceServiceGetSecurityState(void);
 
 /**
  * Set devices' OTA firmware upgrade delay

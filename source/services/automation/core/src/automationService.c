@@ -32,7 +32,6 @@
 #include <icConcurrent/icBlockingQueue.h>
 #include <icConfig/storage.h>
 #include <icConcurrent/threadPool.h>
-#include <securityService/securityService_event.h>
 #include <cslt/sheens.h>
 #include <cslt/cslt.h>
 #include <jsonHelper/jsonHelper.h>
@@ -46,7 +45,6 @@
 #include "automationService.h"
 #include "automationTimerTick.h"
 #include "automationSunTime.h"
-#include "automationSystemStatus.h"
 #include "automationEngine.h"
 #include "automationAction.h"
 #include "automationBroadcastEvent.h"
@@ -316,19 +314,6 @@ static void minuteTimerTickHandler(void)
  */
 static void allSystemEventsListener(int32_t eventCode, int32_t eventValue, cJSON* jsonPayload)
 {
-    // not optimal, but ignore certain events.  right now that is limited to troubles
-    // that are being re-broadcasted to update the UI/Audio with repeating notifications
-    //
-    if ((eventValue == TROUBLE_EVENT_REPLAY_VALUE) &&
-        (eventCode == TROUBLE_OCCURED_EVENT ||
-         eventCode == TROUBLE_CLEARED_EVENT  ||
-         eventCode == TROUBLE_ACKNOWLEDGED_EVENT ||
-         eventCode == TROUBLE_UNACKNOWLEDGED_EVENT ||
-         eventCode == TROUBLE_ALARM_SESSION_CODE))
-    {
-        return;
-    }
-
     dbg(VERBOSITY_LEVEL_1, "Process code=%d, value=%d", eventCode, eventValue);
     automationEnginePost(jsonPayload);
 }
@@ -418,7 +403,6 @@ void automationServiceInitPhase2(void)
 
     /* Start up everything! Woooohooooo! */
     automationStartSunMonitor(60); // 60 minutes of randomness
-    automationRegisterSystemStatus();
     automationStartTimerTick(60, minuteTimerTickHandler); // 1-minute timer tick
     automationEngineStart();
 
@@ -434,7 +418,6 @@ void automationServiceCleanup(void)
     stopAutomationEventProducer();
 
     // Holding the lock while we unregister can cause a deadlock if we are currently handling an event
-    automationUnregisterSystemStatus();
     stopEventListener(EVENTCONSUMER_SUBSCRIBE_ALL);
 
     pthread_mutex_lock(&automationMtx);

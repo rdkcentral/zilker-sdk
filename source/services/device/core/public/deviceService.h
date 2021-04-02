@@ -380,11 +380,6 @@ icLinkedList* deviceServiceGetResourcesByUriPattern(char* uriPattern);
 bool deviceServiceIsReadyForDevices();
 
 /*
- * Check to see if its ok to upgrade firmware on devices.  If we are armed or arming, we do not allow it.
- */
-bool deviceServiceFirmwareUpgradesAllowed();
-
-/*
  * Notify the device service of system power state changes
  */
 void deviceServiceNotifySystemPowerEvent(DeviceServiceSystemPowerEventType powerEvent);

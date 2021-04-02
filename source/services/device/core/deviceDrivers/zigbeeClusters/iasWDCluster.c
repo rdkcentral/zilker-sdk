@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <subsystems/zigbee/zigbeeCommonIds.h>
 #include <icLog/logging.h>
+#include <icUtil/array.h>
 #include <memory.h>
 #include <subsystems/zigbee/zigbeeAttributeTypes.h>
 #include <subsystems/zigbee/zigbeeIO.h>

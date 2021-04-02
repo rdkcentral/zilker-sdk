@@ -156,28 +156,5 @@ message *createMessage(uint64_t id);
  */
 void destroyMessage(message *msg);
 
-/*
- * crappy spot for this. Needed to throw it here to make compiler happy.
- * Allows for each message to have some kinda of type field.
- *
- * Can be used by all channels but not being used in AS2.0 just yet.
- */
-typedef enum {
-    SERVER_MSG_DEFAULT_CATEGORY = 0,
-    SERVER_MSG_ALARM_CATEGORY,
-    SERVER_MSG_TROUBLE_CATEGORY,
-    SERVER_MSG_ZONE_FAULT_RESTORE_CATEGORY,
-    SERVER_MSG_CELL_IP_UPDATED_CATEGORY
-} messageCategory;
-
-static const char *messageCategoryLabels[] = {
-    "SERVER_MSG_DEFAULT_CATEGORY",
-    "SERVER_MSG_ALARM_CATEGORY",
-    "SERVER_MSG_TROUBLE_CATEGORY",
-    "SERVER_MSG_ZONE_FAULT_RESTORE_CATEGORY",
-    "SERVER_MSG_CELL_IP_UPDATED_CATEGORY",
-    NULL
-};
-
 #endif // ZILKER_MESSAGE_H
 

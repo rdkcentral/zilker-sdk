@@ -32,7 +32,6 @@
 #include <commMgr/commService_ipc.h>
 #include <deviceHelper.h>
 #include <commonDeviceDefs.h>
-#include <userverDeviceHelper.h>
 #include <icTime/timeUtils.h>
 
 #include "automationService_ipc_handler.h"

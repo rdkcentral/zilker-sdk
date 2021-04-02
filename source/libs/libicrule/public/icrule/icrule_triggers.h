@@ -27,70 +27,48 @@
 
 // Triggers - Zone
 typedef enum {
-    TRIGGER_ZONE_STATE_OPEN = 0,
-    TRIGGER_ZONE_STATE_CLOSED,
-    TRIGGER_ZONE_STATE_EITHER,
-    TRIGGER_ZONE_STATE_TROUBLE
-} icrule_trigger_zone_state_t;
+    TRIGGER_SENSOR_STATE_OPEN = 0,
+    TRIGGER_SENSOR_STATE_CLOSED,
+    TRIGGER_SENSOR_STATE_EITHER,
+    TRIGGER_SENSOR_STATE_TROUBLE
+} icrule_trigger_sensor_state_t;
 
 typedef enum {
-    TRIGGER_ZONE_TYPE_INVALID = -1,
-    TRIGGER_ZONE_TYPE_ALL_ZONES = 0,
-    TRIGGER_ZONE_TYPE_NONMOTION_ZONES,
-    TRIGGER_ZONE_TYPE_DOOR,
-    TRIGGER_ZONE_TYPE_WINDOW,
-    TRIGGER_ZONE_TYPE_MOTION,
-    TRIGGER_ZONE_TYPE_GLASS_BREAK,
-    TRIGGER_ZONE_TYPE_SMOKE,
-    TRIGGER_ZONE_TYPE_CO,
-    TRIGGER_ZONE_TYPE_WATER,
-    TRIGGER_ZONE_TYPE_DRY_CONTACT,
-    TRIGGER_ZONE_TYPE_INERTIA,
-    TRIGGER_ZONE_TYPE_LIGHTING,
-    TRIGGER_ZONE_TYPE_TEMPERATURE,
-    TRIGGER_ZONE_TYPE_DOOR_LOCK
-} icrule_trigger_zone_type_t;
+    TRIGGER_SENSOR_TYPE_INVALID = -1,
+    TRIGGER_SENSOR_TYPE_ALL_SENSORS = 0,
+    TRIGGER_SENSOR_TYPE_NONMOTION_SENSORS,
+    TRIGGER_SENSOR_TYPE_DOOR,
+    TRIGGER_SENSOR_TYPE_WINDOW,
+    TRIGGER_SENSOR_TYPE_MOTION,
+    TRIGGER_SENSOR_TYPE_GLASS_BREAK,
+    TRIGGER_SENSOR_TYPE_SMOKE,
+    TRIGGER_SENSOR_TYPE_CO,
+    TRIGGER_SENSOR_TYPE_WATER,
+    TRIGGER_SENSOR_TYPE_DRY_CONTACT,
+    TRIGGER_SENSOR_TYPE_INERTIA,
+    TRIGGER_SENSOR_TYPE_LIGHTING,
+    TRIGGER_SENSOR_TYPE_TEMPERATURE,
+    TRIGGER_SENSOR_TYPE_DOOR_LOCK
+} icrule_trigger_sensor_type_t;
 
-typedef struct icrule_trigger_zone {
-    // This can refer to an a zone id, or a camera id for camera motion.  camera ids are not numeric
+typedef struct icrule_trigger_sensor {
+    // This can refer to an a sensor id, or a camera id for camera motion.  camera ids are not numeric
     const char* id;
 
-    icrule_trigger_zone_state_t state;
-    icrule_trigger_zone_type_t type;
-} icrule_trigger_zone_t;
+    icrule_trigger_sensor_state_t state;
+    icrule_trigger_sensor_type_t type;
+} icrule_trigger_sensor_t;
 
 // Trigger - Touchscreen
 typedef enum {
     TRIGGER_TOUCHSCREEN_STATE_INVALID = -1,
-    TRIGGER_TOUCHSCREEN_STATE_ARMED = 0,
-    TRIGGER_TOUCHSCREEN_STATE_ARMED_AWAY,
-    TRIGGER_TOUCHSCREEN_STATE_ARMED_STAY,
-    TRIGGER_TOUCHSCREEN_STATE_ARMED_NIGHT,
-    TRIGGER_TOUCHSCREEN_STATE_ARMING,
-    TRIGGER_TOUCHSCREEN_STATE_DISARMED,
-    TRIGGER_TOUCHSCREEN_STATE_ALARM,
     TRIGGER_TOUCHSCREEN_STATE_TROUBLE,
     TRIGGER_TOUCHSCREEN_STATE_POWER_LOST,
-    TRIGGER_TOUCHSCREEN_STATE_ENTRY_DELAY   //Needed for default rule
 } icrule_trigger_touchscreen_state_t;
 
 typedef struct icrule_trigger_touchscreen {
     icrule_trigger_touchscreen_state_t state;
 } icrule_trigger_touchscreen_t;
-
-// Trigger - System Scene
-typedef enum {
-    TRIGGER_SYSTEMSCENE_STATE_INVALID = -1,
-    TRIGGER_SYSTEMSCENE_STATE_HOME = 0,
-    TRIGGER_SYSTEMSCENE_STATE_STAY,
-    TRIGGER_SYSTEMSCENE_STATE_AWAY,
-    TRIGGER_SYSTEMSCENE_STATE_NIGHT,
-    TRIGGER_SYSTEMSCENE_STATE_VACATION
-} icrule_trigger_systemscene_state_t;
-
-typedef struct icrule_trigger_systemscene {
-    icrule_trigger_systemscene_state_t state;
-} icrule_trigger_systemscene_t;
 
 // Trigger - Lighting
 typedef struct icrule_trigger_light {
@@ -157,6 +135,7 @@ typedef struct icrule_trigger_time {
      * interval between 'when' and 'end'.
      *
      * Note: This means the trigger may not fire at 'when'
+     * but at any time from 'when' to 'end'.
      * but at any time from 'when' to 'end'.
      */
     bool randomize;

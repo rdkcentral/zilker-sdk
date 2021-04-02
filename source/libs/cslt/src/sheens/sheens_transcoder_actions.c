@@ -450,25 +450,6 @@ static int action_picture_handler(const uint64_t ruleId,
     return 0;
 }
 
-//Similar to action_picture_handler, and will invoke the same API but without a camera id arg.
-static int action_alarm_picture_handler(const uint64_t ruleId,
-                                        const icrule_action_t* action,
-                                        cJSON* output_objects,
-                                        cJSON* nodes_object,
-                                        cJSON* start_branches)
-{
-    cJSON* params;
-
-    unused(nodes_object);
-    unused(start_branches);
-
-    params = create_picture_handler_base_params(ruleId, action);
-
-    cJSON_AddItemToArray(output_objects, jsonrpc_create_notification("takePictureAction", params));
-
-    return 0;
-}
-
 static int action_video_handler(const uint64_t ruleId,
                                 const icrule_action_t* action,
                                 cJSON* output_objects,
@@ -575,110 +556,6 @@ static int action_playsound_handler(const uint64_t ruleId,
     return 0;
 }
 
-static int action_scene_handler(const uint64_t ruleId,
-                                const icrule_action_t* action,
-                                cJSON* output_objects,
-                                cJSON* nodes_object,
-                                cJSON* start_branches)
-{
-    cJSON* params;
-    const char* scene;
-
-    unused(ruleId);
-    unused(nodes_object);
-    unused(start_branches);
-
-    switch (action->target[strlen(action->target) - 1]) {
-        case 'e': // Home
-            scene = "home";
-            break;
-        case 'y': // Away
-            scene = "away";
-            break;
-        case 't': // Night
-            scene = "night";
-            break;
-        case 'n': // Vacation
-            scene = "vacation";
-            break;
-        default:
-            errno = EINVAL;
-            return -1;
-    }
-
-    params = cJSON_CreateObject();
-    cJSON_AddItemToObjectCS(params, "eventId", cJSON_CreateRaw("_.bindings['" sheens_event_id_bound_key "']"));
-    cJSON_AddItemToObjectCS(params, "time", cJSON_CreateRaw("_.bindings['" sheens_event_time_bound_key "']"));
-    cJSON_AddItemToObjectCS(params, "name", cJSON_CreateStringReference(scene));
-
-    cJSON_AddItemToArray(output_objects, jsonrpc_create_notification("sceneChangeAction", params));
-
-    return 0;
-}
-
-static int action_security_handler(const uint64_t ruleId,
-                                   const icrule_action_t* action,
-                                   cJSON* output_objects,
-                                   cJSON* nodes_object,
-                                   cJSON* start_branches)
-{
-    cJSON* params;
-    icrule_action_parameter_t* parameter;
-
-    const char *act;
-
-    unused(ruleId);
-    unused(nodes_object);
-    unused(start_branches);
-
-    if (strcmp(action->target, "ruleAction_armSystem") == 0) {
-        parameter = hashMapGet(action->parameters,
-                               "armType",
-                               FACTORY_HASHMAP_KEYLEN("armType"));
-        if ((parameter == NULL) ||
-            (parameter->value == NULL) ||
-            (strlen(parameter->value) == 0)) {
-            errno = EINVAL;
-            return -1;
-        }
-
-        if (strcmp(parameter->value, "arm_away") == 0) {
-            act = "away";
-        } else if (strcmp(parameter->value, "arm_stay") == 0) {
-            act = "stay";
-        } else if (strcmp(parameter->value, "arm_night") == 0) {
-            act = "night";
-        } else {
-            errno = EINVAL;
-            return -1;
-        }
-    } else if (strcmp(action->target, "ruleAction_disarmSystem") == 0) {
-        act = "disarm";
-    } else {
-        errno = EINVAL;
-        return -1;
-    }
-
-    params = cJSON_CreateObject();
-    cJSON_AddItemToObjectCS(params, "eventId", cJSON_CreateRaw("_.bindings['" sheens_event_id_bound_key "']"));
-    cJSON_AddItemToObjectCS(params, "time", cJSON_CreateRaw("_.bindings['" sheens_event_time_bound_key "']"));
-    cJSON_AddItemToObjectCS(params, "action", cJSON_CreateStringReference(act));
-
-    //Generate a token
-    //For now, using the rule ID
-    //
-    char *token = create_token(ruleId);
-
-
-    cJSON_AddStringToObject(params, "token", token);
-
-    free(token);
-
-    cJSON_AddItemToArray(output_objects, jsonrpc_create_notification("securityChangeAction", params));
-
-    return 0;
-}
-
 static const struct icrule_target icrule2sheen[] = {
     { "ruleAction_turnLightOn",  action_light_handler },
     { "ruleAction_turnLightOff", action_light_handler },
@@ -691,15 +568,8 @@ static const struct icrule_target icrule2sheen[] = {
     { "ruleAction_sendSms", action_notification_handler },
     { "ruleAction_sendPushNotif", action_notification_handler},
     { "ruleAction_takePicture", action_picture_handler },
-    { "ruleAction_sendPicsOnAlarm", action_alarm_picture_handler },
     { "ruleAction_recordVideo", action_video_handler },
     { "ruleAction_playSound", action_playsound_handler },
-    { "ruleAction_changeSceneHome", action_scene_handler },
-    { "ruleAction_changeSceneAway", action_scene_handler },
-    { "ruleAction_changeSceneNight", action_scene_handler },
-    { "ruleAction_changeSceneVacation", action_scene_handler },
-    { "ruleAction_armSystem", action_security_handler },
-    { "ruleAction_disarmSystem", action_security_handler },
 //    { "ruleAction_", action__handler },
 };
 

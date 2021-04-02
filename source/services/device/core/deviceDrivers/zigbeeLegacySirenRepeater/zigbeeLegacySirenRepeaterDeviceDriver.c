@@ -26,6 +26,7 @@
 #include <icLog/logging.h>
 #include <subsystems/zigbee/zigbeeCommonIds.h>
 #include <string.h>
+#include <icUtil/array.h>
 #include <icUtil/stringUtils.h>
 #include <zigbeeClusters/iasZoneCluster.h>
 #include <deviceModelHelper.h>
@@ -101,7 +102,6 @@ void deviceInfoReceived(uint64_t eui64,
                         const void *ctx);
 
 /* Private functions */
-static bool sendPanelStatus(uint64_t eui64, const SecurityState *state);
 
 DeviceDriver *zigbeeLegacySirenRepeaterDriverInitialize(DeviceServiceCallbacks *deviceService)
 {
@@ -200,12 +200,6 @@ static bool configureDevice(ZigbeeDriverCommon *ctx,
 
     uint64_t eui64 = zigbeeSubsystemIdToEui64(device->uuid);
     bool ok = legacySecurityClusterConfigureDevice(legacySecurityCluster, eui64, device, descriptor);
-    if (ok)
-    {
-        AUTO_CLEAN(securityStateDestroy__auto) SecurityState *state = deviceService->getSecurityState();
-        sendPanelStatus(eui64, state);
-    }
-
     return ok;
 }
 
@@ -363,21 +357,6 @@ void deviceInfoReceived(uint64_t eui64,
                         const void *ctx)
 {
     const DeviceServiceCallbacks *deviceService = zigbeeDriverCommonGetDeviceService((ZigbeeDriverCommon *) ctx);
-
-    AUTO_CLEAN(securityStateDestroy__auto) SecurityState *state = deviceService->getSecurityState();
-    sendPanelStatus(eui64, state);
-}
-
-static bool sendPanelStatus(const uint64_t eui64, const SecurityState *state)
-{
-    bool ok = false;
-    if (state)
-    {
-        uCPanelStateMessage panelState;
-        ok = legacySecurityClusterConvertSecurityState(state, &panelState);
-    }
-
-    return ok;
 }
 
 static bool writeEndpointResource(ZigbeeDriverCommon *ctx,
@@ -394,21 +373,7 @@ static bool writeEndpointResource(ZigbeeDriverCommon *ctx,
 
     *baseDriverUpdatesResource = false;
 
-    if (strcmp(resource->id, WARNING_DEVICE_RESOURCE_SECURITY_STATE) == 0)
-    {
-        AUTO_CLEAN(securityStateDestroy__auto) SecurityState *state = securityStateFromJSON(newValue);
-
-        if (state)
-        {
-            ok = sendPanelStatus(eui64, state);
-        }
-        else
-        {
-            /* Parse errors are logged by securityStateFromJSON */
-            ok = false;
-        }
-    }
-    else if (strcmp(resource->id, WARNING_DEVICE_RESOURCE_TONE) == 0)
+    if (strcmp(resource->id, WARNING_DEVICE_RESOURCE_TONE) == 0)
     {
         ucTakeoverSirenSound sound = sirenSoundOff;
         uCSetWhiteLedMessage strobeMode = {

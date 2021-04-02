@@ -33,63 +33,6 @@
 #include <icSystem/softwareCapabilities.h>
 
 /*
- * return true if "systemMode" (ie: scenes) are supported
- * at this time systems either support "alarms" or
- * "systemMode", but not both
- */
-bool supportSystemMode()
-{
-    // touchstone should utilize systemMode vs alarm
-    //
-#ifdef CONFIG_SERVICE_SECURITY_SCENE
-    return true;
-#else
-    return false;
-#endif
-}
-
-/*
- * return true if "alarms" are supported.  at this
- * time systems either support "alarm" or "systemMode",
- * but not both
- */
-bool supportAlarms()
-{
-#ifdef CONFIG_SERVICE_SECURITY_ALARM
-    return true;
-#else
-    return false;
-#endif
-}
-
-/*
- * If this environment supports the full breadth
- * of zone functions and sensors (i.e. motion will
- * allow '24 Monitor Alarm Night' mode)
- */
-bool supportSecurityZones()
-{
-#ifdef CONFIG_SERVICE_SECURITY_ALARM
-    return true;
-#else
-    return false;
-#endif
-}
-
-/*
- * return true if this environment supports PIMs
- * and Takeover Zones
- */
-bool supportTakeoverZones()
-{
-#ifdef CONFIG_SERVICE_SECURITY_ALARM
-    return true;
-#else
-    return false;
-#endif
-}
-
-/*
  * return if this platform supports add-on local
  * applications to be installed and ran.
  */

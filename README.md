@@ -1,7 +1,7 @@
 # Overview
 
 This project is an SDK that can compile and run, however requires cloud connectivity 
-and actual device integrations (Zigbee, BLE, Z-Wave, etc).  **TODO** add more here
+and actual device integrations (Zigbee, BLE, Z-Wave, etc).  
 
 To create a working solution, the SDK consumer would:
 
@@ -51,9 +51,6 @@ Most services consume and produce events (generated code) that any process can l
 - `rdkIntegration`
      : Listen for events from the RDK dbus
 
-- [security](source/services/security/README.md)
-     : Zone, Trouble, and "a stubbed" Alarm State Machine.
-     
 - [watchdog](source/services/watchdog/README.md)
      : Launch processes, restart them on failure
      

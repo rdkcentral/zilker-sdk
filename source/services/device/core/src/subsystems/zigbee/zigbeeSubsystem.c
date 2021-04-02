@@ -3004,18 +3004,10 @@ ChannelChangeResponse zigbeeSubsystemChangeChannel(uint8_t channel, bool dryRun)
 
     pthread_mutex_lock(&channelChangeMutex);
 
-    AUTO_CLEAN(securityStateDestroy__auto) SecurityState *state = deviceServiceGetSecurityState();
-
     if(getPropertyAsBool(CPE_ZIGBEE_CHANNEL_CHANGE_ENABLED_KEY, true) == false)
     {
         icLogWarn(LOG_TAG, "%s: attempt to change to channel while %s=false.  Denied", __FUNCTION__,
                  CPE_ZIGBEE_CHANNEL_CHANGE_ENABLED_KEY);
-        result.responseCode = channelChangeNotAllowed;
-    }
-    else if(state->panelStatus != PANEL_STATUS_DISARMED && state->panelStatus != PANEL_STATUS_UNREADY)
-    {
-        icLogWarn(LOG_TAG, "%s: attempt to change to channel while panel status %s denied", __FUNCTION__,
-                PanelStatusLabels[state->panelStatus]);
         result.responseCode = channelChangeNotAllowed;
     }
     else if (isChannelChangeInProgress)
@@ -3497,7 +3489,7 @@ static bool isLPMMonitoredDevice(const char* deviceUUID)
  *
  * returns - the message handling type for device
  */
-static zhalMessageHandlingType determineLPMDeviceMessage(const char* deviceUUID, PanelStatus panelStatus)
+static zhalMessageHandlingType determineLPMDeviceMessage(const char* deviceUUID)
 {
     zhalMessageHandlingType retVal = MESSAGE_HANDLING_IGNORE_ALL;
 
@@ -3516,18 +3508,11 @@ static zhalMessageHandlingType determineLPMDeviceMessage(const char* deviceUUID,
         }
         else if (stringCompare(deviceMetadataValue, lpmPolicyPriorityLabels[LPM_POLICY_ARMED_NIGHT], false) == 0)
         {
-            if (panelStatus == PANEL_STATUS_ARMING_NIGHT || panelStatus == PANEL_STATUS_ARMED_NIGHT ||
-                panelStatus == PANEL_STATUS_ARMING_AWAY || panelStatus == PANEL_STATUS_ARMED_AWAY)
-            {
-                retVal = MESSAGE_HANDLING_NORMAL;
-            }
+            retVal = MESSAGE_HANDLING_NORMAL;
         }
         else if (stringCompare(deviceMetadataValue, lpmPolicyPriorityLabels[LPM_POLICY_ARMED_AWAY], false) == 0)
         {
-            if (panelStatus == PANEL_STATUS_ARMING_AWAY || panelStatus == PANEL_STATUS_ARMED_AWAY)
-            {
-                retVal = MESSAGE_HANDLING_NORMAL;
-            }
+            retVal = MESSAGE_HANDLING_NORMAL;
         }
 
         // cleanup
@@ -3566,32 +3551,12 @@ void zigbeeSubsystemEnterLPM()
     //
     zigbeeHealthCheckStop();
 
-    // get the current state of the system
+    // get the comm fail trouble delay in seconds.
+    // use default time if received a value less than what is expected
+    // default time should be 56 minutes... Security service does the same thing.
+    // it only matters if we are disarmed.
     //
-    AUTO_CLEAN(securityStateDestroy__auto) SecurityState *state = deviceServiceGetSecurityState();
-
-    // consider anything other than disarmed and unready as 'armed'
-    bool isArmed = (state->panelStatus != PANEL_STATUS_DISARMED && state->panelStatus != PANEL_STATUS_UNREADY);
-
-    uint32_t commFailDelaySeconds = 0;
-    if (isArmed == true)
-    {
-        // get the comm fail alarm delay in seconds.
-        // use default time if received a value less than what is expected
-        // default time should be 60 minutes... Security service does the same thing.
-        // it only matters if we are armed.
-        //
-        commFailDelaySeconds = getCommFailTimeoutAlarmValueInSeconds();
-    }
-    else
-    {
-        // get the comm fail trouble delay in seconds.
-        // use default time if received a value less than what is expected
-        // default time should be 56 minutes... Security service does the same thing.
-        // it only matters if we are disarmed.
-        //
-        commFailDelaySeconds = getCommFailTimeoutTroubleValueInSeconds();
-    }
+    uint32_t commFailDelaySeconds = getCommFailTimeoutTroubleValueInSeconds();
 
     // get all zigbee devices
     //
@@ -3618,8 +3583,8 @@ void zigbeeSubsystemEnterLPM()
                 // if message handling is IGNORE; then zigbeeCore will ignore all messages
                 // if the commFail time remaining is less then 0; then zigbeeCore will ignore monitoring for commFail
                 //
-                zhalMessageHandlingType messageHandlingType = determineLPMDeviceMessage(device->uuid,
-                                                                                        state->panelStatus);
+                zhalMessageHandlingType messageHandlingType = determineLPMDeviceMessage(device->uuid);
+
                 // if the device is in already comm fail then send -1 as secRemaining
                 // xNCP will not start timer of the already comm failed devices
                 //
@@ -3784,24 +3749,12 @@ static void checkAllDevicesInCommFail(void)
 
 static uint32_t getCommFailTimeoutAlarmValueInSeconds()
 {
-    uint32_t retVal = getPropertyAsUInt32(TOUCHSCREEN_SENSOR_COMMFAIL_ALARM_DELAY, MIN_COMM_FAIL_ALARM_DELAY_MINUTES);
-    if (retVal < MIN_COMM_FAIL_ALARM_DELAY_MINUTES)
-    {
-        retVal = MIN_COMM_FAIL_ALARM_DELAY_MINUTES;
-    }
-
-    return retVal * 60;
+    return MIN_COMM_FAIL_ALARM_DELAY_MINUTES * 60;
 }
 
 static uint32_t getCommFailTimeoutTroubleValueInSeconds()
 {
-    uint32_t retVal = getPropertyAsUInt32(TOUCHSCREEN_SENSOR_COMMFAIL_TROUBLE_DELAY, MIN_COMM_FAIL_TROUBLE_DELAY_MINUTES);
-    if (retVal < MIN_COMM_FAIL_TROUBLE_DELAY_MINUTES)
-    {
-        retVal = MIN_COMM_FAIL_TROUBLE_DELAY_MINUTES;
-    }
-
-    return retVal * 60;
+    return MIN_COMM_FAIL_TROUBLE_DELAY_MINUTES * 60;
 }
 
 static void *createDeviceCallbacks()

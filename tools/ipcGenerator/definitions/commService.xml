@@ -439,7 +439,7 @@
         </p:message>
 
         <p:message id="137" name="UPLOAD_FILES_TO_SERVER" generate="C" readTimeout="600">
-            <p:description>Upload local files to the uServer.  Generally includes a diag, zigbee telemetry files and optional core files.</p:description>
+            <p:description>Upload local files to the Server.  Generally includes a diag, zigbee telemetry files and optional core files.</p:description>
             <p:input>
                 <p:customRef>uploadMessage</p:customRef>
             </p:input>

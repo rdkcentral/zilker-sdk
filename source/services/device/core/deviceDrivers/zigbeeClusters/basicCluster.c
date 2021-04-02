@@ -21,6 +21,7 @@
 #include <subsystems/zigbee/zigbeeCommonIds.h>
 #include <icLog/logging.h>
 #include <memory.h>
+#include <icUtil/array.h>
 #include <icUtil/stringUtils.h>
 #include <icTime/timeUtils.h>
 #include <subsystems/zigbee/zigbeeAttributeTypes.h>

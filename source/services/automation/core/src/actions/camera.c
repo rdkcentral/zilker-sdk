@@ -27,7 +27,6 @@
 #include <commMgr/commService_pojo.h>
 #include <errno.h>
 #include <commMgr/commService_ipc.h>
-#include <securityService/securityService_event.h>
 
 #include "camera.h"
 

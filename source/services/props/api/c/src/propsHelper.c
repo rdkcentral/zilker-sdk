@@ -76,8 +76,7 @@ bool canServerSetProperty(const char *propName, const char *propsValue)
     // to "none", which would allow for a "man in the middle" style attack
     //
     if (stringCompare(SSL_CERT_VALIDATE_FOR_HTTPS_TO_SERVER, propName, true) == 0 ||
-        stringCompare(SSL_CERT_VALIDATE_FOR_HTTPS_TO_DEVICE, propName, true) == 0 ||
-        stringCompare(SSL_CERT_VALIDATE_FOR_XMPP, propName, true) == 0)
+        stringCompare(SSL_CERT_VALIDATE_FOR_HTTPS_TO_DEVICE, propName, true) == 0)
     {
         // found a 'ssl verify' key, now make sure the value isn't being set to 'none'
         //

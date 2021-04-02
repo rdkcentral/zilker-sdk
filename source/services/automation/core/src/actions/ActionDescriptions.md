@@ -73,12 +73,6 @@ overall system itself should belong with the system action handler.
 }
 ```
 
-For `scene` and `security` the `"name"` entry specifies which
-state the system should transition to. An example would be
-`"name": "home"`. For *scene* this would transition the current
-scene state to *home*. For *security* this would transition the
-alarm state machine to *disarmed*.
-
 For `audio` entries the name represents the audio clip to be
 played.
 

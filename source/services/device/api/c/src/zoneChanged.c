@@ -39,11 +39,10 @@ ZoneChanged *zoneChangedCreate(uint8_t displayIndex,
                                bool faulted,
                                bool bypassed,
                                bool bypassActive,
-                               SecurityIndication indication,
                                uint64_t eventId,
                                ZoneChangedReason reason)
 {
-    if (indication == SECURITY_INDICATION_INVALID || label == NULL)
+    if (label == NULL)
     {
         icLogError(LOG_TAG, "%s: invalid arguments", __FUNCTION__);
         return NULL;
@@ -55,7 +54,6 @@ ZoneChanged *zoneChangedCreate(uint8_t displayIndex,
     retVal->faulted = faulted;
     retVal->bypassed = bypassed;
     retVal->bypassActive = bypassActive;
-    retVal->indication = indication;
     retVal->eventId = eventId;
     retVal->reason = reason;
 
@@ -134,12 +132,6 @@ char *zoneChangedToJSON(ZoneChanged *zoneChanged)
     if (!cJSON_AddBoolToObject(json, ZONE_CHANGED_BYPASS_ACTIVE, zoneChanged->bypassActive))
     {
         icLogError(LOG_TAG, "%s: failed to add %s", __FUNCTION__, ZONE_CHANGED_BYPASS_ACTIVE);
-        return NULL;
-    }
-
-    if (!cJSON_AddStringToObject(json, ZONE_CHANGED_INDICATION, SecurityIndicationLabels[zoneChanged->indication]))
-    {
-        icLogError(LOG_TAG, "%s: failed to add %s", __FUNCTION__, ZONE_CHANGED_INDICATION);
         return NULL;
     }
 
@@ -236,7 +228,6 @@ ZoneChanged *zoneChangedFromJSON(const char *json)
                                             faulted,
                                             bypassed,
                                             bypassActive,
-                                            securityIndicationValueOf(indicationLabel),
                                             (uint64_t) eventId,
                                             reason);
         }

@@ -47,13 +47,9 @@
 #include <propsMgr/propsHelper.h>
 #include <icTime/timeUtils.h>
 
-// copied from commService userver/configuration.c
-#define USERVER_CHANNEL_NAME        "userver channel"
-
 typedef enum
 {
     NO_ACTION,
-    OVERALL_ACTION,
     LIST_ACTION,
     SUMMARY_LIST_ACTION,
     START_ACTION,       // cliTarget required
@@ -80,7 +76,6 @@ typedef enum
  * private function declarations
  */
 static void printUsage();
-static void printOverallStatus();
 static void printList(cliTarget filter, char *serviceName, outputFormat format);
 static void printService(processInfo *info, outputFormat format);
 static void printBool(short flag);
@@ -108,15 +103,10 @@ int main(int argc, char *argv[])
 
     // parse CLI args
     //
-    while ((c = getopt(argc,argv,"olmkrbs:g:awhv")) != -1)
+    while ((c = getopt(argc,argv,"lmkrbs:g:awhv")) != -1)
     {
         switch (c)
         {
-            case 'o':       // display overall status
-            {
-                action = OVERALL_ACTION;
-                break;
-            }
             case 'l':       // list processes
             {
                 action = LIST_ACTION;
@@ -214,7 +204,7 @@ int main(int argc, char *argv[])
 
     // most modes require a service or group name
     //
-    if (action == LIST_ACTION || action == OVERALL_ACTION || action == SUMMARY_LIST_ACTION)
+    if (action == LIST_ACTION || action == SUMMARY_LIST_ACTION)
     {
         // good to go
     }
@@ -240,12 +230,6 @@ int main(int argc, char *argv[])
     bool rc = false;
     switch (action)
     {
-        case OVERALL_ACTION:
-        {
-            printOverallStatus();
-            rc = true;
-            break;
-        }
         case LIST_ACTION:
         case SUMMARY_LIST_ACTION:
         {
@@ -465,8 +449,7 @@ static void printUsage()
 {
     fprintf(stderr, "iControl Service Utility (via watchdog)\n");
     fprintf(stderr, "Usage:\n");
-    fprintf(stderr, "  serviceUtil <-o|-l|-k|-r|-b> <-s name|-g name> [-w]\n");
-    fprintf(stderr, "    -o : display 'overall' status\n");
+    fprintf(stderr, "  serviceUtil <-l|-k|-r|-b> <-s name|-g name> [-w]\n");
     fprintf(stderr, "    -l : list all known services\n");
     fprintf(stderr, "    -m : summary of known services (name, pid, deaths)\n");
     fprintf(stderr, "    -k : kill a service, group, or all\n");
@@ -489,96 +472,6 @@ static void printUsage()
     fprintf(stderr, "  serviceUtil -k -a\n\n");
     fprintf(stderr, "  # bounce (restart) group 'zigbee'\n");
     fprintf(stderr, "  serviceUtil -b -g commService\n\n");
-}
-
-/*
- * show overall status in 'human readable' format
- */
-static void printOverallStatus()
-{
-    // set logging to ERROR in case Zilker isn't running
-    //
-    setIcLogPriorityFilter(IC_LOG_ERROR);
-    char onlineState[512];
-    char activationState[512];
-    char targetServer[512];
-
-
-    // see if commService is running, so we can ask it about the destination server
-    //
-    if (isServiceAvailable(COMMSERVICE_IPC_PORT_NUM) == true)
-    {
-        // online state
-        //
-        strcpy(onlineState, "Running");
-        strcpy(targetServer, "Unknown");
-
-        // ask commService for the XMPP server hostname
-        //
-        commHostConfigList *configList = create_commHostConfigList();
-        if (commService_request_GET_HOSTNAME_CONFIG_LIST(configList) == IPC_SUCCESS)
-        {
-            // got the list, find our server in question
-            //
-            commHostConfig *primary = linkedListFind(configList->hostConfigList, NULL, findPrimaryCommHostConfig);
-            if (primary != NULL && primary->hostname != NULL)
-            {
-                // copy the hostname
-                //
-                safeStringCopy(targetServer, 512, primary->hostname);
-            }
-        }
-        destroy_commHostConfigList(configList);
-    }
-    else
-    {
-        // not running, unable to obtain any information
-        //
-        strcpy(onlineState, "Not Running");
-        strcpy(targetServer, "Unknown");
-    }
-
-    // see if activated
-    //
-    if (isServiceAvailable(PROPSSERVICE_IPC_PORT_NUM) == true)
-    {
-        int currentActivationState = getPropertyAsInt32(PERSIST_CPE_SETUPWIZARD_STATE, ACTIVATION_NOT_STARTED);
-        switch (currentActivationState)
-        {
-            case ACTIVATION_NOT_STARTED:
-                strcpy(activationState, "Activation Not started");
-                break;
-
-            case ACTIVATION_STARTED:
-                strcpy(activationState, "In Activation");
-                break;
-
-            case CLOUD_ASSOCIATION_COMPLETE:
-            case ACTIVATION_COMPLETE:
-            case ACTIVATION_FLOW_FINISHED:
-                strcpy(activationState, "Activation Finished");
-                break;
-
-            default:
-                strcpy(activationState, "Unknown");
-                break;
-        }
-    }
-    else
-    {
-        // possible that propsService is not running, so unable
-        // to get the location of the config dir.
-        // TODO: look for the IC_CONF environment variable?
-        //
-        strcpy(activationState, "Unknown, Service Not Responding");
-    }
-
-    // print the results
-    //
-    printf("-- Overall Status --\n");
-    printf("Online:      %s\n", onlineState);
-    printf("Activation:  %s\n", activationState);
-    printf("Server Host: %s\n", targetServer);
 }
 
 /*
@@ -830,25 +723,4 @@ static void printDate(uint64_t time)
     strftime(buff, 31, "%Y-%m-%d %H:%M:%S", &ptr);
     printf("%s", buff);
 //    printf("%ld", time);
-}
-
-/*
- * linkedList compare function to locate a particular hostname object
- * (adheres to linkedListCompareFunc signature)
- */
-static bool findPrimaryCommHostConfig(void *searchVal, void *item)
-{
-    // search is null.  looking for a hard-coded host
-    //
-    commHostConfig *curr = (commHostConfig *)item;
-
-    if ((curr->channelId != NULL && strcmp(curr->channelId, USERVER_CHANNEL_NAME) == 0) &&
-        (curr->purpose == CHANNEL_HOST_PURPOSE_BBAND) && (curr->primary == true))
-    {
-        // found our userver primary bband host
-        //
-        return true;
-    }
-
-    return false;
 }

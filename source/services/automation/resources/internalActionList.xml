@@ -22,7 +22,7 @@
 <!-- 
   - Define the "internal" list of available "actions" that can be used by the Rule Engine
   - These are private to the Rules Engine and are NOT visible (or known) to the UI (i.e. Subscriber Portal).   
-  - This file will be static in nature and reside on the touchscreen.  
+  - This file will be static in nature and reside on the device.
   - It can only be updated as part of a firmware build/update.
   -
   - Resides on the device in /opt/ucontrol/etc/internalActionList.xml
@@ -34,52 +34,8 @@
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 		xsi:schemaLocation="http://ucontrol.com/rules/v1.0 rules.xsd ">
 		
-	<!-- 
-	  - Gather pictures from all cameras in an alarm situation
-	  -->
-	<a:action actionID="1000">
-		<a:description>Take Pics from all Cameras when Alarming</a:description>
-
-		<!-- only valid if we have one or more cameras -->
-		<a:dependency>
-			<a:type>camera</a:type>
-		</a:dependency>	
-
-		<!-- optional parameter of picture size (defaults to medium) -->
-		<a:parameterDef>
-			<a:key>size</a:key>
-			<a:type>message</a:type>	<!-- small, medium, large -->
-			<a:required>false</a:required>
-		</a:parameterDef>
-
-		<!-- optional parameter of picture count (defaults to 5) -->
-		<a:parameterDef>
-			<a:key>count</a:key>
-			<a:type>message</a:type>	<!-- 1 - 5 -->
-			<a:required>false</a:required>
-		</a:parameterDef>
-
-		<a:type>workflow</a:type>
-		<a:target>ruleAction_sendPicsOnAlarm</a:target>
-	</a:action>
-	
-	<!-- 
-	  - Clear pictures gathered from action 1000 
-	  -->
-	<a:action actionID="1001">
-		<a:description>Clear/Submit Pics from Alarm</a:description>
-
-		<!-- only valid if we have one or more cameras -->
-		<a:dependency>
-			<a:type>camera</a:type>
-		</a:dependency>	
-
-		<a:type>workflow</a:type>
-		<a:target>ruleAction_clearPicsOnAlarm</a:target>
-	</a:action>
-
-    <!-- 
-      - set thermostat COOL setpoint if in Cool mode 
+    <!--
+      - set thermostat COOL setpoint if in Cool mode
       = used by thermostat schedule and compliments action 100 (set thermostat cool)
       - NOTE: if masterActionList changes, those alterations need to be reflected here
       --> 

@@ -39,7 +39,6 @@
 #include "automationEngine.h"
 #include "automationService.h"
 #include "automationSunTime.h"
-#include "automationSystemStatus.h"
 
 static icBlockingQueue* messageQueue;
 static icLinkedList* engineList;
@@ -121,7 +120,6 @@ static void injectRequiredJSON(cJSON* json)
     // Make sure nothing changes the settings underneath us.
     cJSON_AddItemToObjectCS(json, "_sunrise", cJSON_CreateNumber(sunriseMillis));
     cJSON_AddItemToObjectCS(json, "_sunset", cJSON_CreateNumber(sunsetMillis));
-    cJSON_AddItemToObjectCS(json, "_systemStatus", cJSON_CreateString(automationGetSystemStatusLabel()));
 
     if (!cJSON_HasObjectItem(json, EVENT_TIME_JSON_KEY)) {
         uint64_t now = getCurrentUnixTimeMillis();

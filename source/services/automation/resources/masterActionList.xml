@@ -22,9 +22,13 @@
 <!-- 
   - Define the master list of all available "actions" available to the Rule Engine
   - and the supporting UI (i.e. Subscriber Portal).   This file will be static in nature and
-  - will reside on the touchscreen.  It can only be updated as part of a firmware build/update.
+  - will reside on the device.  It can only be updated as part of a firmware build/update.
   -
   - Resides on the device in /opt/ucontrol/etc/masterActionList.xml
+  -
+  - NOTE: this is a copy of the masterActionList.xml specific to Aware/Insight
+  - NOTE: the only difference is this file does not have the "play sound" action
+  - NOTE: be sure to keep these 2 files in sync
   -->
 <a:actionList 
 		xmlns:a="http://ucontrol.com/rules/v1.0" 
@@ -57,99 +61,6 @@
 	  - Local Actions (executed on CPE)
 	  -->
 
-	<!-- Arm the system (if not already) -->
-	<a:action actionID="10">
-		<a:description>Arm System</a:description>
-        <a:dependency>
-            <a:type>alarm</a:type>
-        </a:dependency>
-		
-		<!-- need input paramater of the arm type (away, stay, night) -->
-		<a:parameterDef>
-			<a:key>armType</a:key>
-			<a:type>armTypeEnum</a:type>
-			<a:required>true</a:required>
-		</a:parameterDef>
-		
-		<a:type>workflow</a:type>
-		<a:target>ruleAction_armSystem</a:target>
-	</a:action>
-	
-	<!-- Disarm the system (if not already AND did not have an Alarm while armed)  -->
-	<a:action actionID="11">
-		<a:description>Disarm System</a:description>
-        <a:dependency>
-            <a:type>alarm</a:type>
-        </a:dependency>
-  
-		<a:type>workflow</a:type>
-		<a:target>ruleAction_disarmSystem</a:target>
-	</a:action>
- 
-    <!-- Change the current Scene of the System to Away (if supported)  -->
-    <a:action actionID="15">
-        <a:description>Set Away</a:description>
-        <a:dependency>
-            <a:type>scene</a:type>
-        </a:dependency>
-        
-        <a:type>workflow</a:type>
-        <a:target>ruleAction_changeSceneAway</a:target>
-    </a:action>
- 
-    <!-- Change the current Scene of the System to Home (if supported)  -->
-    <a:action actionID="16">
-        <a:description>Set Home</a:description>
-        <a:dependency>
-            <a:type>scene</a:type>
-        </a:dependency>
-        
-        <a:type>workflow</a:type>
-        <a:target>ruleAction_changeSceneHome</a:target>
-    </a:action>
-
-    <!-- Change the current Scene of the System to Night (if supported)  -->
-    <a:action actionID="17">
-        <a:description>Set Night</a:description>
-        <a:dependency>
-            <a:type>scene</a:type>
-        </a:dependency>
-  
-        <a:type>workflow</a:type>
-        <a:target>ruleAction_changeSceneNight</a:target>
-    </a:action>
-	
-    <!-- Change the current Scene of the System to Vacation(if supported)  -->
-    <a:action actionID="18">
-        <a:description>Set Vacation</a:description>
-        <a:dependency>
-            <a:type>scene</a:type>
-        </a:dependency>
-  
-        <a:type>workflow</a:type>
-        <a:target>ruleAction_changeSceneVacation</a:target>
-    </a:action>
-	
-    <!-- Change the current Scene of the System (if supported)  -->
-    <!-- NOTE: currently not supported, here for future use
-    <a:action actionID="19">
-        <a:description>Set Scene (Custom)</a:description>
-        <a:dependency>
-            <a:type>scene</a:type>
-        </a:dependency>
-        
-        - the parameter to change the scene:  sceneName = new-scene-name-string -
-        <a:parameterDef>
-            <a:key>sceneName</a:key>
-            <a:type>message</a:type>
-            <a:required>true</a:required>
-        </a:parameterDef>
-  
-        <a:type>workflow</a:type>
-        <a:target>ruleAction_changeSceneCustom</a:target>
-    </a:action>
-     -->
- 
 	<!-- take a picture and send to server using eventId of the Trigger -->
 	<a:action actionID="21">
 		<a:description>Take Picture</a:description>
@@ -205,42 +116,6 @@
 		
 		<a:type>workflow</a:type>
 		<a:target>ruleAction_recordVideo</a:target>
-	</a:action>
-	
-	<!-- play a sound on the touchscreen -->
-	<a:action actionID="50">
-		<a:description>Play Sound</a:description>
-		<a:dependency>
-			<a:type>audio</a:type>
-		</a:dependency>
-
-		<!-- optional paramter of which sound to play.  If not set, used default sound -->
-		<a:parameterDef>
-			<a:key>sound</a:key>
-			<a:type>message</a:type>	<!-- name of sound -->
-			<a:required>false</a:required>
-		</a:parameterDef>
-		
-		<a:type>workflow</a:type>
-		<a:target>ruleAction_playSound</a:target>
-	</a:action>
-	
-	<!-- display a specific Widget on the touchscreen (NOT YET IMPLEMENTED)-->
-	<a:action actionID="51">
-		<a:description>Display Widget</a:description>
-		<a:dependency>
-			<a:type>display</a:type>
-		</a:dependency>
-	
-		<!-- defines which widget to display -->
-		<a:parameterDef>
-			<a:key>widget</a:key>
-			<a:type>message</a:type>	<!-- name of widget (camera, news, etc) -->
-			<a:required>true</a:required>
-		</a:parameterDef>
-		
-		<a:type>workflow</a:type>
-		<a:target>ruleAction_displayWidget</a:target>
 	</a:action>
 	
 	<!-- turn 1 or more lights on -->
@@ -375,39 +250,6 @@
 		<a:target>ruleAction_setTemperatureHeat</a:target>
 	</a:action>
 	
-	<!-- set thermostat to BOTH mode 
-	<a:action actionID="102">
-		<a:description>Set Thermostat Cool and Heat Temperatures</a:description>
-		<a:dependency>
-			<a:type>temperature</a:type>
-		</a:dependency>	
-		
-		- define which thermostat(s) to adjust -
-		<a:parameterDef>
-			<a:key>thermostatID</a:key>
-			<a:type>thermostatID</a:type>	- 1 or more thermostats to adjust -
-			<a:required>true</a:required>
-		</a:parameterDef>
-		
-		- setpoint (target temperature) -
-		<a:parameterDef>
-			<a:key>setpoint</a:key>
-			<a:type>message</a:type>		- degrees in celcius -
-			<a:required>true</a:required>
-		</a:parameterDef>
-		
-		- hold (optional) -
-		<a:parameterDef>
-			<a:key>hold</a:key>
-			<a:type>message</a:type>		- "true" or "false" (defaults to false) -
-			<a:required>false</a:required>
-		</a:parameterDef>
-		
-		<a:type>workflow</a:type>
-		<a:target>ruleAction_setTemperatureBoth</a:target>
-	</a:action>
-	-->
-
 	<!-- turn thermostat off -->
 	<a:action actionID="103">
 		<a:description>Turn Thermostat Off</a:description>
@@ -543,30 +385,8 @@
         <a:type>workflow</a:type>
         <a:target>ruleAction_unlockDoorLock</a:target>
     </a:action>
-
-    <a:action actionID="137">
-        <a:description>Invoke a Cloud Action</a:description>
-        <a:dependency>
-            <a:type>cloud</a:type>
-        </a:dependency>
-        <a:parameterDef>
-            <a:key>cloudObjectID</a:key>
-            <a:type>string</a:type>
-        </a:parameterDef>
-        <a:parameterDef>
-            <a:key>cloudActionID</a:key>
-            <a:type>string</a:type>
-        </a:parameterDef>
-        <a:parameterDef>
-            <a:key>parameters</a:key>
-            <a:type>string</a:type> <!-- a JSONArray of name/value/type JSONObjects (type is optional) -->
-        </a:parameterDef>
-        <!-- does this type make sense? -->
-        <a:type>workflow</a:type>
-        <a:target>ruleAction_invokeCloud</a:target>
-
-    </a:action>
-		<a:action actionID="138">
+ 
+	<a:action actionID="138">
 		<a:description>Send a multicast packet</a:description>
 		<a:parameterDef>
 			<a:key>address</a:key>
@@ -584,5 +404,4 @@
 		<a:type>workflow</a:type>
 		<a:target>ruleAction_sendMulticast</a:target>
 	</a:action>
-
 </a:actionList>

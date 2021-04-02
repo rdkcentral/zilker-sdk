@@ -206,12 +206,6 @@ bool hasDisplayScreen()
  */
 bool supportClockAlteration()
 {
-    // totally dependent on the runtime.
-    //
-#ifdef CONFIG_SERVICE_COMM_CHANNEL_USERVER_ALLOW_TIME
-    return true;
-#else
     return false;
-#endif
 }
 

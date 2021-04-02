@@ -285,8 +285,6 @@ static bool deviceDriverManagerLoadDrivers()
     deviceServiceInterface.removeDevice = deviceServiceRemoveDevice;
     deviceServiceInterface.discoverStart = deviceServiceDiscoverStart;
     deviceServiceInterface.discoverStop = deviceServiceDiscoverStop;
-    deviceServiceInterface.getSecurityState = deviceServiceGetSecurityState;
-    deviceServiceInterface.requestPanelStateChange = deviceServiceRequestPanelStatusChange;
     deviceServiceInterface.addEndpoint = deviceServiceAddEndpoint;
     deviceServiceInterface.enableEndpoint = deviceServiceUpdateEndpoint;
 

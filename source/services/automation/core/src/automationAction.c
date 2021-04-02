@@ -31,7 +31,6 @@
 #include "automationAction.h"
 
 #include "actions/camera.h"
-#include "actions/systemState.h"
 #include "actions/test.h"
 #include "actions/devices.h"
 #include "actions/internalIpc.h"
@@ -156,7 +155,6 @@ bool automationActionInit(void)
     timersMessageTargetInit();
     notificationMessageTargetInit();
     cameraMessageTargetInit();
-    systemMessageTargetInit();
 
     return true;
 }

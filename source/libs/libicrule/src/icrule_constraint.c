@@ -28,89 +28,6 @@
 #define ELEMENT_CONSTRAINT_AND "and-expression"
 #define ELEMENT_CONSTRAINT_OR "or-expression"
 #define ELEMENT_CONSTRAINT_TIME "timeConstraint"
-#define ELEMENT_CONSTRAINT_SYSTEM "systemConstraint"
-
-static const char* constraint_system_enum2str[] = {
-    "disarmed",
-    "alarm",
-    "arming",
-    "armed",
-    "arm_away",
-    "arm_stay",
-    "arm_night",
-    "away",
-    "home",
-    "night",
-    "vacation"
-};
-
-static int parse_system_constraint(xmlNodePtr parent, icLinkedList* system_constraints)
-{
-    xmlNodePtr node;
-
-    for (node = parent->children; node != NULL; node = node->next) {
-        if (node->type == XML_ELEMENT_NODE) {
-            icrule_constraint_system_t* constraint_system;
-            if (strcmp((const char*) node->name, "panelStatus") == 0) {
-                xmlChar* value = xmlNodeGetContent(node);
-
-                if (value) {
-                    constraint_system = malloc(sizeof(icrule_constraint_system_t));
-
-                    if (strcmp((const char*) value, constraint_system_enum2str[CONSTRAINT_PANEL_ALARM]) == 0) {
-                        *constraint_system = CONSTRAINT_PANEL_ALARM;
-                    } else if (strcmp((const char*) value, constraint_system_enum2str[CONSTRAINT_PANEL_ARMING]) == 0) {
-                        *constraint_system = CONSTRAINT_PANEL_ARMING;
-                    } else if (strcmp((const char*) value, constraint_system_enum2str[CONSTRAINT_PANEL_ARMED]) == 0) {
-                        *constraint_system = CONSTRAINT_PANEL_ARMED;
-                    } else if (strcmp((const char*) value, constraint_system_enum2str[CONSTRAINT_PANEL_ARM_AWAY]) == 0) {
-                        *constraint_system = CONSTRAINT_PANEL_ARM_AWAY;
-                    } else if (strcmp((const char*) value, constraint_system_enum2str[CONSTRAINT_PANEL_ARM_STAY]) == 0) {
-                        *constraint_system = CONSTRAINT_PANEL_ARM_STAY;
-                    } else if (strcmp((const char*) value, constraint_system_enum2str[CONSTRAINT_PANEL_ARM_NIGHT]) == 0) {
-                        *constraint_system = CONSTRAINT_PANEL_ARM_NIGHT;
-                    } else {
-                        *constraint_system = CONSTRAINT_PANEL_DISARMED;
-                    }
-
-                    linkedListAppend(system_constraints, constraint_system);
-
-                    xmlFree(value);
-                }
-            } else if (strcmp((const char*) node->name, "sceneStatus") == 0) {
-                xmlChar* value = xmlNodeGetContent(node);
-
-                if (value) {
-                    char *token, *saveptr;
-
-                    token = strtok_r((char*) value, ",", &saveptr);
-                    while (token != NULL) {
-                        constraint_system = malloc(sizeof(icrule_constraint_system_t));
-                        if (constraint_system == NULL) return -1;
-
-                        if (strcmp(token, constraint_system_enum2str[CONSTRAINT_SCENE_AWAY]) == 0) {
-                            *constraint_system = CONSTRAINT_SCENE_AWAY;
-                        } else if (strcmp(token, constraint_system_enum2str[CONSTRAINT_SCENE_NIGHT]) == 0) {
-                            *constraint_system = CONSTRAINT_SCENE_NIGHT;
-                        } else if (strcmp(token, constraint_system_enum2str[CONSTRAINT_SCENE_VACATION]) == 0) {
-                            *constraint_system = CONSTRAINT_SCENE_VACATION;
-                        } else {
-                            *constraint_system = CONSTRAINT_SCENE_HOME;
-                        }
-
-                        linkedListAppend(system_constraints, constraint_system);
-
-                        token = strtok_r(NULL, ",", &saveptr);
-                    }
-
-                    xmlFree(value);
-                }
-            }
-        }
-    }
-
-    return 0;
-}
 
 static int parse_time_constraint(xmlNodePtr parent, icLinkedList* time_constraints)
 {
@@ -158,7 +75,6 @@ void icrule_free_constraint(void* alloc)
 
         linkedListDestroy(constraint->child_constraints, icrule_free_constraint);
         linkedListDestroy(constraint->time_constraints, NULL);
-        linkedListDestroy(constraint->system_constraints, NULL);
 
         free(constraint);
     }
@@ -178,7 +94,6 @@ int icrule_parse_constraint(xmlNodePtr parent, icLinkedList* constraints, icrule
 
     constraint->logic = logic;
     constraint->child_constraints = linkedListCreate();
-    constraint->system_constraints = linkedListCreate();
     constraint->time_constraints = linkedListCreate();
 
     for (node = parent->children; node != NULL; node = node->next) {
@@ -198,17 +113,11 @@ int icrule_parse_constraint(xmlNodePtr parent, icLinkedList* constraints, icrule
                     icrule_free_constraint(constraint);
                     return -1;
                 }
-            } else if (strcmp((const char*) node->name, ELEMENT_CONSTRAINT_SYSTEM) == 0) {
-                if (parse_system_constraint(node, constraint->system_constraints) < 0) {
-                    icrule_free_constraint(constraint);
-                    return -1;
-                }
             }
         }
     }
 
     if ((linkedListCount(constraint->child_constraints) == 0) &&
-        (linkedListCount(constraint->system_constraints) == 0) &&
         (linkedListCount(constraint->time_constraints) == 0)) {
         icrule_free_constraint(constraint);
         return -1;

@@ -40,7 +40,6 @@ set(SERVICE_LIBS
         xhPropsServiceAPI
         xhAutomationServiceAPI
         xhCommServiceAPI
-        xhSecurityServiceAPI
         xhWatchdogServiceAPI
         xhDeviceServiceAPI
         xhDeviceHelper
@@ -69,17 +68,9 @@ add_zilker_executable(NAME xhAutomationService
 # install actions into 'stock/actions'
 # Right now this is an either/or sort of thing
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../resources/internalActionList.xml DESTINATION stock/actions)
-if (CONFIG_SERVICE_SECURITY_ALARM)
-    # Master action list that includes alarm functionality
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../resources/masterActionList-alarm.xml
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../resources/masterActionList.xml
             DESTINATION stock/actions
             RENAME masterActionList.xml)
-else()
-    # Master action list that includes scene functionality
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../resources/masterActionList-scene.xml
-            DESTINATION stock/actions
-            RENAME masterActionList.xml)
-endif()
 
 # add our test to be part of the "make manualTest"
 add_zilker_test(

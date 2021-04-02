@@ -58,7 +58,6 @@ int backup_service_main(int argc, char *argv[]);
 #endif
 int comm_service_main(int argc, char *argv[]);
 int props_service_main(int argc, char **argv);
-int securityService_main(int argc, char *argv[]);
 int deviceService_main(int argc, char *argv[]);
 #ifdef CONFIG_SERVICE_AUTOMATIONS
 int automationService_main(int argc, char *argv[]);
@@ -254,10 +253,6 @@ void startProcess(serviceDefinition *procDef, bool restartAfterCrash)
     else if(strcmp(procDef->serviceName, "commService") == 0)
     {
         svc_main = comm_service_main;
-    }
-    else if(strcmp(procDef->serviceName, "securityService") == 0)
-    {
-        svc_main = securityService_main;
     }
     else if(strcmp(procDef->serviceName, "deviceService") == 0)
     {

@@ -30,7 +30,7 @@
 #include "icrule_trigger.h"
 #include "icrule_xml.h"
 
-#define TRIGGER_ZONE_NODE "zoneTrigger"
+#define TRIGGER_SENSOR_NODE "sensorTrigger"
 #define TRIGGER_TOUCHSCREEN_NODE "touchscreenTrigger"
 #define TRIGGER_PANIC_NODE "panicTrigger"
 #define TRIGGER_SYSTEMSCENE_NODE "systemSceneTrigger"
@@ -49,9 +49,9 @@
 #define ELEMENT_CATEGORY "category"
 #define ELEMENT_DESCRIPTION "description"
 
-#define ELEMENT_ZONE_STATE "zoneState"
-#define ELEMENT_ZONE_ID "zoneID"
-#define ELEMENT_ZONE_TYPE "zoneType"
+#define ELEMENT_SENSOR_STATE "sensorState"
+#define ELEMENT_SENSOR_ID "sensorID"
+#define ELEMENT_SENSOR_TYPE "sensorType"
 
 typedef int (*parse_trigger_handler_t)(xmlNodePtr parent, icLinkedList* triggers);
 typedef void(*trigger_free_t)(icrule_trigger_t* trigger);
@@ -78,7 +78,7 @@ static const char* trigger_category_enum2str[] = {
     "resource"
 };
 
-static const char* trigger_zone_state_enum2str[] = {
+static const char* trigger_sensor_state_enum2str[] = {
     "open",
     "close",
     "openOrClose",
@@ -152,75 +152,75 @@ static void free_multitrigger_map(void* key, void* value)
     }
 }
 
-static int parse_zone_trigger(xmlNodePtr parent, icLinkedList* triggers)
+static int parse_sensor_trigger(xmlNodePtr parent, icLinkedList* triggers)
 {
     xmlNodePtr node;
     icrule_trigger_t* trigger;
 
-    trigger = icrule_alloc_trigger(parent, TRIGGER_TYPE_ZONE);
+    trigger = icrule_alloc_trigger(parent, TRIGGER_TYPE_SENSOR);
     if (trigger == NULL) return -1;
 
-    // Init the conditional zone variables to defaults.
-    trigger->trigger.zone.id = NULL;
-    trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_INVALID;
+    // Init the conditional sensor variables to defaults.
+    trigger->trigger.sensor.id = NULL;
+    trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_INVALID;
 
     for (node = parent->children; node != NULL; node = node->next) {
         if (node->type == XML_ELEMENT_NODE) {
-            if (strcmp((const char*) node->name, ELEMENT_ZONE_STATE) == 0) {
+            if (strcmp((const char*) node->name, ELEMENT_SENSOR_STATE) == 0) {
                 xmlChar* value = xmlNodeGetContent(node);
 
                 if (value) {
-                    if (strcmp((const char*) value, trigger_zone_state_enum2str[TRIGGER_ZONE_STATE_EITHER]) == 0) {
-                        trigger->trigger.zone.state = TRIGGER_ZONE_STATE_EITHER;
-                    } else if (strcmp((const char*) value, trigger_zone_state_enum2str[TRIGGER_ZONE_STATE_OPEN]) == 0) {
-                        trigger->trigger.zone.state = TRIGGER_ZONE_STATE_OPEN;
-                    } else if (strcmp((const char*) value, trigger_zone_state_enum2str[TRIGGER_ZONE_STATE_CLOSED]) == 0) {
-                        trigger->trigger.zone.state = TRIGGER_ZONE_STATE_CLOSED;
-                    } else if (strcmp((const char*) value, trigger_zone_state_enum2str[TRIGGER_ZONE_STATE_TROUBLE]) == 0) {
-                        trigger->trigger.zone.state = TRIGGER_ZONE_STATE_TROUBLE;
+                    if (strcmp((const char*) value, trigger_sensor_state_enum2str[TRIGGER_SENSOR_STATE_EITHER]) == 0) {
+                        trigger->trigger.sensor.state = TRIGGER_SENSOR_STATE_EITHER;
+                    } else if (strcmp((const char*) value, trigger_sensor_state_enum2str[TRIGGER_SENSOR_STATE_OPEN]) == 0) {
+                        trigger->trigger.sensor.state = TRIGGER_SENSOR_STATE_OPEN;
+                    } else if (strcmp((const char*) value, trigger_sensor_state_enum2str[TRIGGER_SENSOR_STATE_CLOSED]) == 0) {
+                        trigger->trigger.sensor.state = TRIGGER_SENSOR_STATE_CLOSED;
+                    } else if (strcmp((const char*) value, trigger_sensor_state_enum2str[TRIGGER_SENSOR_STATE_TROUBLE]) == 0) {
+                        trigger->trigger.sensor.state = TRIGGER_SENSOR_STATE_TROUBLE;
                     }
 
                     xmlFree(value);
                 }
-            } else if (strcmp((const char*) node->name, ELEMENT_ZONE_ID) == 0) {
+            } else if (strcmp((const char*) node->name, ELEMENT_SENSOR_ID) == 0) {
                 xmlChar* value = xmlNodeGetContent(node);
                 if (value != NULL)
                 {
-                    trigger->trigger.zone.id = strdup((const char*)value);
+                    trigger->trigger.sensor.id = strdup((const char*)value);
                     xmlFree(value);
                 }
-            } else if (strcmp((const char*) node->name, ELEMENT_ZONE_TYPE) == 0) {
+            } else if (strcmp((const char*) node->name, ELEMENT_SENSOR_TYPE) == 0) {
                 xmlChar* value = xmlNodeGetContent(node);
 
                 if (value) {
-                    if (strcmp((const char*) value, "allZones") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_ALL_ZONES;
-                    } else if (strcmp((const char*) value, "allNonMotionZones") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_NONMOTION_ZONES;
+                    if (strcmp((const char*) value, "allSensors") == 0) {
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_ALL_SENSORS;
+                    } else if (strcmp((const char*) value, "allNonMotionSensors") == 0) {
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_NONMOTION_SENSORS;
                     } else if (strcmp((const char*) value, "door") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_DOOR;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_DOOR;
                     } else if (strcmp((const char*) value, "window") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_WINDOW;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_WINDOW;
                     } else if (strcmp((const char*) value, "motion") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_MOTION;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_MOTION;
                     } else if (strcmp((const char*) value, "glassBreak") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_GLASS_BREAK;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_GLASS_BREAK;
                     } else if (strcmp((const char*) value, "smoke") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_SMOKE;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_SMOKE;
                     } else if (strcmp((const char*) value, "carbonMonoxide") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_CO;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_CO;
                     } else if (strcmp((const char*) value, "water") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_WATER;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_WATER;
                     } else if (strcmp((const char*) value, "dryContact") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_DRY_CONTACT;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_DRY_CONTACT;
                     } else if (strcmp((const char*) value, "inertia") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_INERTIA;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_INERTIA;
                     } else if (strcmp((const char*) value, "lighting") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_LIGHTING;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_LIGHTING;
                     } else if (strcmp((const char*) value, "temperature") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_TEMPERATURE;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_TEMPERATURE;
                     } else if (strcmp((const char*) value, "doorLock") == 0) {
-                        trigger->trigger.zone.type = TRIGGER_ZONE_TYPE_DOOR_LOCK;
+                        trigger->trigger.sensor.type = TRIGGER_SENSOR_TYPE_DOOR_LOCK;
                     }
 
                     xmlFree(value);
@@ -250,27 +250,10 @@ static int parse_touchscreen_trigger(xmlNodePtr parent, icLinkedList* triggers)
                 xmlChar* value = xmlNodeGetContent(node);
 
                 if (value) {
-                    if (strcmp((const char*) value, "armed") == 0) {
-                        trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_ARMED;
-                    } else if (strcmp((const char*) value, "armed_away") == 0) {
-                        trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_ARMED_AWAY;
-                    } else if (strcmp((const char*) value, "armed_stay") == 0) {
-                        trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_ARMED_STAY;
-                    } else if (strcmp((const char*) value, "armed_night") == 0) {
-                        trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_ARMED_NIGHT;
-                    } else if (strcmp((const char*) value, "arming") == 0) {
-                        trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_ARMING;
-                    } else if (strcmp((const char*) value, "disarmed") == 0 ||
-                                strcmp((const char*) value, "alarm_clear") == 0) {
-                        trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_DISARMED;
-                    } else if (strcmp((const char*) value, "alarm") == 0) {
-                        trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_ALARM;
-                    } else if (strcmp((const char*) value, "trouble") == 0) {
+                    if (strcmp((const char*) value, "trouble") == 0) {
                         trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_TROUBLE;
                     } else if (strcmp((const char*) value, "power_lost") == 0) {
                         trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_POWER_LOST;
-                    } else if (strcmp((const char*) value, "entry_delay") == 0) {
-                        trigger->trigger.touchscreen.state = TRIGGER_TOUCHSCREEN_STATE_ENTRY_DELAY;
                     }
 
                     xmlFree(value);
@@ -287,71 +270,6 @@ static int parse_touchscreen_trigger(xmlNodePtr parent, icLinkedList* triggers)
     }
 
     linkedListAppend(triggers, trigger);
-
-    return 0;
-}
-
-static int parse_systemscene_trigger(xmlNodePtr parent, icLinkedList* triggers)
-{
-    xmlNodePtr node;
-
-    for (node = parent->children; node != NULL; node = node->next) {
-        if (node->type == XML_ELEMENT_NODE) {
-            if (strcmp((const char*) node->name, "sceneName") == 0) {
-                xmlChar* value = xmlNodeGetContent(node);
-
-                if (value) {
-                    icLinkedList* list;
-                    uint32_t i, size;
-
-                    list = strtok2list((const char*) value, ",");
-                    size = linkedListCount(list);
-
-                    xmlFree(value);
-
-                    for (i = 0; i < size; i++) {
-                        icrule_trigger_t* trigger;
-                        const char* item;
-
-                        trigger = icrule_alloc_trigger(parent, TRIGGER_TYPE_SYSTEM_SCENE);
-                        if (trigger == NULL) {
-                            linkedListDestroy(list, NULL);
-
-                            return -1;
-                        }
-
-                        trigger->trigger.systemscene.state = TRIGGER_SYSTEMSCENE_STATE_INVALID;
-
-                        item = linkedListGetElementAt(list, i);
-
-                        if (strcmp(item, "home") == 0) {
-                            trigger->trigger.systemscene.state = TRIGGER_SYSTEMSCENE_STATE_HOME;
-                        } else if (strcmp(item, "away") == 0) {
-                            trigger->trigger.systemscene.state = TRIGGER_SYSTEMSCENE_STATE_AWAY;
-                        } else if (strcmp(item, "stay") == 0) {
-                            trigger->trigger.systemscene.state = TRIGGER_SYSTEMSCENE_STATE_STAY;
-                        } else if (strcmp(item, "night") == 0) {
-                            trigger->trigger.systemscene.state = TRIGGER_SYSTEMSCENE_STATE_NIGHT;
-                        } else if (strcmp(item, "vacation") == 0) {
-                            trigger->trigger.systemscene.state = TRIGGER_SYSTEMSCENE_STATE_VACATION;
-                        }
-
-                        if (trigger->trigger.systemscene.state == TRIGGER_SYSTEMSCENE_STATE_INVALID) {
-                            icrule_free_trigger(trigger);
-                            linkedListDestroy(list, NULL);
-
-                            errno = EBADMSG;
-                            return -1;
-                        }
-
-                        linkedListAppend(triggers, trigger);
-                    }
-
-                    linkedListDestroy(list, NULL);
-                }
-            }
-        }
-    }
 
     return 0;
 }
@@ -1083,24 +1001,23 @@ static void trigger_cloud_free(icrule_trigger_t* trigger)
     }
 }
 
-static void trigger_zone_free(icrule_trigger_t* trigger)
+static void trigger_sensor_free(icrule_trigger_t* trigger)
 {
-    if (trigger->trigger.zone.id) {
-        free((void*) trigger->trigger.zone.id);
+    if (trigger->trigger.sensor.id) {
+        free((void*) trigger->trigger.sensor.id);
     }
 }
 
 static void trigger_zigbee_comm_free(icrule_trigger_t* trigger)
 {
-    if (trigger->trigger.zone.id) {
-        free((void*) trigger->trigger.zone.id);
+    if (trigger->trigger.sensor.id) {
+        free((void*) trigger->trigger.sensor.id);
     }
 }
 
 static trigger_descriptor_t trigger_descriptors[] = {
-    { TRIGGER_ZONE_NODE, parse_zone_trigger, trigger_zone_free },
+    { TRIGGER_SENSOR_NODE, parse_sensor_trigger, trigger_sensor_free },
     { TRIGGER_TOUCHSCREEN_NODE, parse_touchscreen_trigger, NULL },
-    { TRIGGER_SYSTEMSCENE_NODE, parse_systemscene_trigger, NULL },
     { TRIGGER_LIGHTING_NODE, parse_lighting_trigger, trigger_lighting_free },
     { TRIGGER_DOORLOCK_NODE, parse_doorlock_trigger, trigger_doorlock_free },
     { TRIGGER_TSTAT_NODE, parse_thermostat_trigger, trigger_thermostat_free },

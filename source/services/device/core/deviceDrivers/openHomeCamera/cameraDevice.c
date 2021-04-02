@@ -71,7 +71,7 @@
 // stream identifiers
 #define VIDEO_UPLOAD_STREAM_ID          0       // video clips
 #define VIDEO_REMOTE_H264_STREAM_ID     0       // mobile/SP high quality video
-#define VIDEO_LOCAL_STREAM_ID           1       // touchscreen video
+#define VIDEO_LOCAL_STREAM_ID           1       // local video
 #define VIDEO_REMOTE_MJPEG_STREAM_ID    2       // mjpeg for some mobile
 
 #define REMOTE_STREAM_FRAME_RATE        15
@@ -374,7 +374,7 @@ static void loadCameraStreamingSettings(ohcmCameraInfo *camInfo, cameraDevice *t
         // NOTE: the set of streams we just read is a linked list, which should have
         //       2 or 3 channels (depending on what the camera supports).
         //   Touchstone only uses channel #0
-        //   Converge also sets #1 for local streaming to the Touchscreen.
+        //   Converge also sets #1 for local streaming to the local screen.
         //
         char streamId[16];
         sprintf(streamId, "%d", VIDEO_REMOTE_H264_STREAM_ID);
@@ -696,8 +696,8 @@ static void applyRemoteStreamSettings(ohcmStreamChannel *remoteStream, ohcmStrea
     }
 }
 
-/*
- * set "local" stream settings.  only applicable for Touchscreens
+/*j
+ * set "local" stream settings.  only applicable for devices with a screen
  */
 static void applyLocalStreamSettings(ohcmStreamChannel *localStream, ohcmStreamCapabilities *streamCaps)
 {
@@ -756,7 +756,7 @@ static ohcmResultCode applyDefaultCameraStreamingSettings(ohcmCameraInfo *camInf
         // NOTE: the set of streams we just read is a linked list, which should have
         //       2 or 3 channels (depending on what the camera supports).
         //   Touchstone only uses channel #0
-        //   Converge also sets #1 for local streaming to the Touchscreen.
+        //   Converge also sets #1 for local streaming to the local display.
         //
         bool applyChanges = false;
         char streamId[16];
@@ -806,7 +806,7 @@ static ohcmResultCode applyDefaultCameraStreamingSettings(ohcmCameraInfo *camInf
 
         if (applyChanges == true && hasDisplayScreen() == true)
         {
-            // Touchscreen, so set the second stream
+            // local display, so set the second stream
             //
             sprintf(streamId, "%d", VIDEO_LOCAL_STREAM_ID);
             ohcmStreamChannel *localStream = (ohcmStreamChannel *) linkedListFind(streamList, streamId, findStreamChannelById);

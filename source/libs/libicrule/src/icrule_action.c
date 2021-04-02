@@ -92,8 +92,8 @@ static int parse_action_parameter_definition(xmlNodePtr parent, icrule_action_pa
                 if (value) {
                     if (strcmp((const char*) value, action_type_enum2str[ACTION_TYPE_CAMERAID]) == 0) {
                         parameter->type = ACTION_TYPE_CAMERAID;
-                    } else if (strcmp((const char*) value, action_type_enum2str[ACTION_TYPE_ZONEID]) == 0) {
-                        parameter->type = ACTION_TYPE_ZONEID;
+                    } else if (strcmp((const char*) value, action_type_enum2str[ACTION_TYPE_SENSORID]) == 0) {
+                        parameter->type = ACTION_TYPE_SENSORID;
                     } else if (strcmp((const char*) value, action_type_enum2str[ACTION_TYPE_LIGHTID]) == 0) {
                         parameter->type = ACTION_TYPE_LIGHTID;
                     } else if (strcmp((const char*) value, action_type_enum2str[ACTION_TYPE_DOOR_LOCKID]) == 0) {
@@ -565,7 +565,7 @@ static int action_parse_multivalue(icrule_action_t* action, icLinkedList* action
         if (hashMapIteratorGetNext(iterator, &id, &keyLen, (void**) &parameter)) {
             switch (parameter->type) {
                 case ACTION_TYPE_CAMERAID:
-                case ACTION_TYPE_ZONEID:
+                case ACTION_TYPE_SENSORID:
                 case ACTION_TYPE_LIGHTID:
                 case ACTION_TYPE_DOOR_LOCKID:
                 case ACTION_TYPE_THERMOSTATID:

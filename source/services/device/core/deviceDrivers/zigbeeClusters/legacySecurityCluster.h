@@ -229,14 +229,6 @@ uint8_t *legacySecurityClusterStringToCode(const char *code);
 bool legacySecurityClusterRepeaterSetWarning(ZigbeeCluster *cluster, uint64_t eui64, const uCWarningMessage *message);
 
 /**
- * Convert a security state to a legacy panel state message
- * @param state The deviceService security state
- * @param panelState the legacy panel state message to fill in
- * @return false when the security state is unsupported
- */
-bool legacySecurityClusterConvertSecurityState(const SecurityState *state, uCPanelStateMessage *panelState);
-
-/**
  * Send the DEVICE_REMOVE command which will default the device (PIM only?) and it will leave the network.
  *
  * @param eui64 the EUI64 of the device to send the message to

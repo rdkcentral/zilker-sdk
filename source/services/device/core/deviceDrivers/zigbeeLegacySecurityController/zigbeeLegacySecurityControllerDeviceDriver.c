@@ -26,6 +26,7 @@
 #include <icLog/logging.h>
 #include <subsystems/zigbee/zigbeeCommonIds.h>
 #include <string.h>
+#include <icUtil/array.h>
 #include <icUtil/stringUtils.h>
 #include <zigbeeClusters/iasZoneCluster.h>
 #include <deviceModelHelper.h>
@@ -127,23 +128,12 @@ static void handleLegacySecurityControllerAction(ZigbeeDriverCommon *ctx,
 static bool isGodparentPingSupported(const LegacyDeviceDetails *details, const void *ctx);
 
 /* Private functions */
-static ArmDisarmNotification requestArmDisarm(ZigbeeDriverCommon *ctx,
-                                              uint64_t eui64,
-                                              uint8_t endpointId,
-                                              LegacyActionButton request,
-                                              const char *accessCode);
-
 static void sendLEDCommand(const ZigbeeDriverCommon *ctx,
                            uint64_t eui64,
                            uint8_t endpointId,
                            LEDMode ledMode,
                            LEDColor color,
                            uint8_t duration);
-
-static void sendPanelStatus(const ZigbeeDriverCommon *ctx,
-                            uint64_t eui64,
-                            uint8_t endpointId,
-                            const SecurityState *state);
 
 /**
  * Create an IAS ACE driver with a particular driver name and class. Keypads and keyfobs are really both IAS ACE
@@ -367,11 +357,6 @@ static bool fetchInitialResourceValues(ZigbeeDriverCommon *ctx,
                                                             initialResourceValues) == true)
         {
 
-            ok = initialResourceValuesPutEndpointValue(initialResourceValues,
-                                                       LEGACY_SECURITY_CONTROLLER_ENDPOINT_ID,
-                                                       SECURITY_CONTROLLER_PROFILE_RESOURCE_SECURITY_STATE,
-                                                       NULL);
-
             ok &= initialResourceValuesPutEndpointValue(initialResourceValues,
                                                         LEGACY_SECURITY_CONTROLLER_ENDPOINT_ID,
                                                         SECURITY_CONTROLLER_PROFILE_RESOURCE_TYPE,
@@ -420,20 +405,6 @@ static bool registerResources(ZigbeeDriverCommon *ctx,
         if (endpoint == NULL)
         {
             icLogError(_this->driverName, "%s: unable to create endpoint on device %s", __FUNCTION__, device->uuid);
-            ok = false;
-        }
-
-        if (ok && createEndpointResourceIfAvailable(endpoint,
-                                                    SECURITY_CONTROLLER_PROFILE_RESOURCE_SECURITY_STATE,
-                                                    initialResourceValues,
-                                                    RESOURCE_TYPE_SECURITY_STATE,
-                                                    RESOURCE_MODE_WRITEABLE,
-                                                    CACHING_POLICY_NEVER) == NULL)
-        {
-            icLogError(_this->driverName,
-                       "Unable to register resource %s on endpoint %s",
-                       SECURITY_CONTROLLER_PROFILE_RESOURCE_SECURITY_STATE,
-                       LEGACY_SECURITY_CONTROLLER_ENDPOINT_ID);
             ok = false;
         }
 
@@ -533,20 +504,12 @@ static void handleLegacySecurityControllerAction(ZigbeeDriverCommon *ctx,
                         break;
                     }
                 }
-                requestArmDisarm(ctx, eui64, endpointId, action, accessCode);
             }
             else
             {
                 icLogInfo(_this->driverName, "ignoring arm/disarm/panic while discovery is active");
             }
             break;
-        case LEGACY_ACTION_PANEL_STATUS:
-        {
-            AUTO_CLEAN(securityStateDestroy__auto) SecurityState *state = deviceServiceCallbacks->getSecurityState();
-
-            sendPanelStatus(ctx, eui64, endpointId, state);
-            break;
-        }
         case LEGACY_ACTION_NONE:
             break;
         default:
@@ -566,180 +529,6 @@ static void handleLegacySecurityControllerAction(ZigbeeDriverCommon *ctx,
                                                dateStr,
                                                NULL);
     }
-}
-
-static ArmDisarmNotification requestArmDisarm(ZigbeeDriverCommon *ctx,
-                                              const uint64_t eui64,
-                                              const uint8_t endpointId,
-                                              const LegacyActionButton request,
-                                              const char *accessCode)
-{
-    const DeviceDriver *_this = (DeviceDriver *) ctx;
-    const DeviceServiceCallbacks *deviceServiceCallbacks = zigbeeDriverCommonGetDeviceService(ctx);
-    const PrivateData *myData = zigbeeDriverCommonGetDriverPrivateData(ctx);
-
-    ArmDisarmNotification result = ARM_NOTIF_INVALID;
-
-    RequestSource source = REQUEST_SOURCE_INVALID;
-
-    LegacyDeviceDetails *details = legacySecurityClusterAcquireDetails(myData->legacySecurityCluster, eui64);
-
-    if (details)
-    {
-        switch (details->devType)
-        {
-            case KEYPAD_1:
-                source = REQUEST_SOURCE_WIRELESS_KEYPAD;
-                break;
-            case KEYFOB_1:
-                source = REQUEST_SOURCE_WIRELESS_KEYFOB;
-                break;
-            default:
-                icLogWarn(_this->driverName, "Unsupported device type [%d]", details->devType);
-                break;
-        }
-        legacySecurityClusterReleaseDetails(myData->legacySecurityCluster);
-    }
-    else
-    {
-        icLogError(_this->driverName, "%s: Can't get details from legacy cluster on %" PRIx64, __FUNCTION__, eui64);
-    }
-
-    if (source != REQUEST_SOURCE_INVALID)
-    {
-        PanelStatus requestedStatus = PANEL_STATUS_INVALID;
-        switch (request)
-        {
-            case LEGACY_ACTION_ARM_STAY:
-                requestedStatus = PANEL_STATUS_ARMED_STAY;
-                break;
-            case LEGACY_ACTION_PANIC:
-                requestedStatus = PANEL_STATUS_PANIC_POLICE;
-                break;
-            case LEGACY_ACTION_ARM_AWAY:
-                requestedStatus = PANEL_STATUS_ARMED_AWAY;
-                break;
-            case LEGACY_ACTION_DISARM:
-                requestedStatus = PANEL_STATUS_DISARMED;
-                break;
-            default:
-                icLogWarn(_this->driverName, "Invalid button for arm/disarm: [%d]", request);
-                break;
-        }
-
-        if (requestedStatus != PANEL_STATUS_INVALID)
-        {
-            result = deviceServiceCallbacks->requestPanelStateChange(requestedStatus,
-                                                                     accessCode,
-                                                                     source);
-
-            switch (result)
-            {
-                case ARM_NOTIF_BAD_ACCESS_CODE:
-                case ARM_NOTIF_TROUBLE:
-                case ARM_NOTIF_NOT_READY:
-                case ARM_NOTIF_ALREADY_ARMED:
-                    sendLEDCommand(ctx, eui64, endpointId, LED_MODE_FAST, LED_COLOR_AMBER, LED_DURATION_DEFAULT_S);
-                    break;
-                case ARM_NOTIF_DISARMED:
-                case ARM_NOTIF_ALREADY_DISARMED:
-                    sendLEDCommand(ctx, eui64, endpointId, LED_MODE_SOLID, LED_COLOR_GREEN, LED_DURATION_DEFAULT_S);
-                    break;
-                case ARM_NOTIF_ARMED_ALL:
-                case ARM_NOTIF_ARMED_HOME:
-                case ARM_NOTIF_ARMED_NIGHT:
-                    sendLEDCommand(ctx,
-                                   eui64,
-                                   endpointId,
-                                   request == LEGACY_ACTION_PANIC ? LED_MODE_FAST : LED_MODE_SOLID,
-                                   LED_COLOR_RED,
-                                   LED_DURATION_DEFAULT_S);
-                    break;
-                default:
-                    icLogWarn(_this->driverName, "%s: Arm notification [%d] not supported", __FUNCTION__, result);
-                    break;
-            }
-        }
-    }
-
-    return result;
-}
-
-static void sendPanelStatus(const ZigbeeDriverCommon *ctx,
-                            const uint64_t eui64,
-                            const uint8_t endpointId,
-                            const SecurityState *state)
-{
-    DeviceDriver *_this = (DeviceDriver *) ctx;
-    uint8_t duration = LED_DURATION_DEFAULT_S;
-    LEDColor color = LED_COLOR_RED;
-    LEDMode ledState = LED_MODE_OFF;
-
-    icLogDebug(_this->driverName, "%s", __FUNCTION__);
-
-    if (!state)
-    {
-        icLogError(_this->driverName, "%s: state is NULL", __FUNCTION__);
-        return;
-    }
-
-    switch (state->panelStatus)
-    {
-        case PANEL_STATUS_DISARMED:
-        {
-            color = LED_COLOR_GREEN;
-            ledState = LED_MODE_SOLID;
-            break;
-        }
-        case PANEL_STATUS_ARMED_AWAY:
-        case PANEL_STATUS_ARMED_STAY:
-        case PANEL_STATUS_ARMED_NIGHT:
-        case PANEL_STATUS_ARMING_AWAY:
-        case PANEL_STATUS_ARMING_NIGHT:
-        case PANEL_STATUS_ARMING_STAY:
-        case PANEL_STATUS_ENTRY_DELAY_ONESHOT:
-            color = LED_COLOR_RED;
-            ledState = LED_MODE_SOLID;
-            break;
-        case PANEL_STATUS_EXIT_DELAY:
-        case PANEL_STATUS_ENTRY_DELAY:
-            /* Don't spam the device with countdowns - only deal with initial change events */
-            break;
-        case PANEL_STATUS_ALARM_AUDIBLE:
-        case PANEL_STATUS_ALARM_BURG:
-        case PANEL_STATUS_ALARM_POLICE:
-        case PANEL_STATUS_ALARM_FIRE:
-        case PANEL_STATUS_ALARM_CO:
-        case PANEL_STATUS_ALARM_MEDICAL:
-        case PANEL_STATUS_PANIC_POLICE:
-        case PANEL_STATUS_PANIC_FIRE:
-        case PANEL_STATUS_PANIC_MEDICAL:
-        {
-            if (state->indication == SECURITY_INDICATION_VISUAL || state->indication == SECURITY_INDICATION_BOTH)
-            {
-                color = LED_COLOR_RED;
-                ledState = LED_MODE_FAST;
-            }
-            else
-            {
-                ledState = LED_MODE_OFF;
-            }
-        }
-            break;
-        case PANEL_STATUS_UNREADY:
-        {
-            color = LED_COLOR_AMBER;
-            ledState = LED_MODE_SOLID;
-            break;
-        }
-        case PANEL_STATUS_ALARM_NONE:
-            break;
-        default:
-            icLogWarn(_this->driverName, "%s: panel status %s not supported", __FUNCTION__, PanelStatusLabels[state->panelStatus]);
-            break;
-    }
-
-    sendLEDCommand(ctx, eui64, endpointId, ledState, color, duration);
 }
 
 static void sendLEDCommand(const ZigbeeDriverCommon *ctx,
