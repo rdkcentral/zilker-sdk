@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!-- 
+  -
+  - Define the IPC/Events for "Backup Restore Orchestrator" 
+  -
+  -->
+<p:service 
+    xmlns:p="http://icontrol.com/service/v1.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://icontrol.com/service/v1.0 ../src/main/xsd/service.xsd "
+    eventPort="19045" ipcPort="1480" name="backupRestoreService" >
+
+    <p:pragma>
+        <p:native>
+            <p:apiHeaderDir>source/services/backupRestore/api/c/public/backup</p:apiHeaderDir>
+            <p:apiSrcDir>source/services/backupRestore/api/c/src</p:apiSrcDir>
+            <p:ipcHandlerSrcDir>source/services/backupRestore/core/src</p:ipcHandlerSrcDir>
+            <p:configFlag>CONFIG_SERVICE_BACKUP_RESTORE</p:configFlag>
+            <p:freeform>#define BACKUP_RESTORE_SERVICE_NAME "backupRestoreService"  // matches this service name as defined in watchdog.conf.  primarily used for name comparison on watchdogEvent notifications.</p:freeform>
+        </p:native>
+    </p:pragma>
+
+    <!-- 
+      - define message input/output POJOs
+      -->
+
+    <p:typedef enumTypeName="restoreCallbackStatus">
+        <p:value value="RESTORED_CALLBACK_COMPLETE"/>
+        <p:value value="RESTORED_CALLBACK_RESTART"/>
+        <p:value value="RESTORED_CALLBACK_FAILED"/>
+    </p:typedef>
+
+    <!-- define events during the restore -->
+    <p:pojo varName="restoreStepResults">
+        <p:boolVariable varName="success" varDescription="if true, restore was started successfully"/>
+        <p:arrayVariable varName="results" varDescription="strings that correspond to the 'restoreStep' events caller should expect">
+            <p:stringVariable varName="step"/>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="restoreCallbackInfo">
+        <p:stringVariable varName="serviceName"/>
+        <p:enumVariable varName="status" enumTypeName="restoreCallbackStatus"/>
+    </p:pojo>
+    <!-- 
+      - define the events
+      -->
+    <p:eventList generate="C">
+
+        <!-- define the 'restore steps'; set as the 'value' in the event -->
+        <p:define name="RESTORE_STEP_BEGIN"    value="0"/>
+        <p:define name="RESTORE_STEP_DOWNLOAD" value="1"/>
+        <p:define name="RESTORE_STEP_NETWORK"  value="2"/>
+        <p:define name="RESTORE_STEP_CONFIG"   value="3"/>
+        <p:define name="RESTORE_STEP_COMPLETE" value="4"/>
+
+        <!-- events sent during System Restore (RMA) -->
+        <p:event varName="restoreStepEvent" varDescription="event sent as RMA restore progresses.  event 'values' should match RESTORE_STEP_* codes">
+            <p:stringVariable varName="restoreStepKey"/>
+            <p:boolVariable varName="restoreStepWorked"/>
+            
+            <p:eventCode>RESTORE_STEP_CODE</p:eventCode>
+        </p:event>
+      
+        <!-- the event codes sent -->
+        <p:code name="RESTORE_STEP_CODE"    value="210"/>
+    
+    </p:eventList>
+  
+    <!-- 
+      - define IPC request messages
+      -->
+    
+    <p:ipc>
+    
+        <!-- IPC notification that a config file has changed.  Not implemented as an event for backward compatibility -->
+        <p:message id="10" name="CONFIG_UPDATED" generate="C">
+            <p:description>Notification that a configuration file has been altered, meaning a new backup to the server is required</p:description>
+        </p:message>
+        
+        <p:message id="20" name="FORCE_BACKUP" generate="C">
+            <p:description>Same as CONFIG_UPDATED, however force it to occur now instead of waiting</p:description>
+        </p:message>
+    
+        <!-- called by Activation when it's time to restore (via RMA) -->
+        <p:message id="30" name="START_RESTORE_PROCESS" generate="C">
+            <p:description>
+                Start the restore process (during RMA).  returns a list of strings, representing the steps this will go through.
+                Each step will be part of the 'restoreStep' event, signaling when each is complete (or failed).
+            </p:description>
+            <p:output>
+                <p:customRef>restoreStepResults</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="40" name="RESTORE_CALLBACK" generate="C">
+            <p:description>words</p:description>
+            <p:input>
+                <p:customRef>restoreCallbackInfo</p:customRef>
+            </p:input>
+        </p:message>
+    </p:ipc>
+    
+</p:service>

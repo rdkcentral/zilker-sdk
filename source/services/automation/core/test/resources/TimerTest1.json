@@ -1,0 +1,44 @@
+{
+  "doc": "start up and set a timer for a simple test",
+  "name": "LightTest4",
+  "nodes": {
+    "listen": {
+      "branching": {
+        "branches": [
+          {
+            "pattern": "{ \"DeviceServiceResourceUpdatedEvent\": { \"resource\": { \"DSResource\": { \"uri\": \"/000d6f00023dc83d/ep/1/r/isOn\", \"value\": \"true\" } } } }\n",
+            "target": "turnOffLight"
+          }
+        ],
+        "type": "message"
+      }
+    },
+    "start": {
+      "action": {
+        "interpreter": "goja",
+        "source": "_.out({to: \"timers\", requestType : \"makeTimer\", in : \"5s\", id : \"timer1\", message: \"{}\" } );\nreturn _.bindings;"
+      },
+      "branching": {
+        "branches": [
+          {
+            "target": "listen"
+          }
+        ]
+      }
+    },
+    "turnOffLight": {
+      "action": {
+        "interpreter": "goja",
+        "source": "_.out({to: \"ipc\", requestType : \"sendIpc\", port : 1400, msgCode : 90 } );\nreturn _.bindings;"
+      },
+      "branching": {
+        "branches": [
+          {
+            "target": "listen"
+          }
+        ]
+      }
+    }
+  },
+  "parsepatterns": true
+}

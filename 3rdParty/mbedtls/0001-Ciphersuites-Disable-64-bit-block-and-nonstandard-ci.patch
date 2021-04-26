@@ -1,0 +1,87 @@
+From 8a4723392b1b5f2291183b2608a338ffd2d3c051 Mon Sep 17 00:00:00 2001
+From: Jesse Crews <jesse_crews@comcast.com>
+Date: Thu, 15 Nov 2018 07:35:35 -0600
+Subject: [PATCH] Ciphersuites: Disable 64-bit block and nonstandard ciphers
+
+This change prevents mbedTLS from advertising support for 64-bit block
+ciphers, which are vulnerable to the 'sweet32' birthday attack. It also
+disables a few CHACHA20 suites from 0xccab..0xccae which are deemed
+nonstandard by https://www.howsmytls.com.
+---
+ library/ssl_ciphersuites.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/library/ssl_ciphersuites.c b/library/ssl_ciphersuites.c
+index 745474eff..3710f4ca6 100644
+--- a/library/ssl_ciphersuites.c
++++ b/library/ssl_ciphersuites.c
+@@ -127,13 +127,15 @@ static const int ciphersuite_preference[] =
+     MBEDTLS_TLS_DHE_RSA_WITH_ARIA_128_CBC_SHA256,
+ 
+     /* All remaining >= 128-bit ephemeral suites */
++    /*
+     MBEDTLS_TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
+     MBEDTLS_TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+     MBEDTLS_TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
++    */
+ 
+     /* The PSK ephemeral suites */
+-    MBEDTLS_TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256,
+-    MBEDTLS_TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256,
++    /* MBEDTLS_TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256, */
++    /* MBEDTLS_TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256, */
+     MBEDTLS_TLS_DHE_PSK_WITH_AES_256_GCM_SHA384,
+     MBEDTLS_TLS_DHE_PSK_WITH_AES_256_CCM,
+     MBEDTLS_TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384,
+@@ -162,8 +164,10 @@ static const int ciphersuite_preference[] =
+     MBEDTLS_TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256,
+     MBEDTLS_TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256,
+ 
++    /*
+     MBEDTLS_TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA,
+     MBEDTLS_TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
++    */
+ 
+     /* The ECJPAKE suite */
+     MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8,
+@@ -229,12 +233,14 @@ static const int ciphersuite_preference[] =
+     MBEDTLS_TLS_RSA_WITH_ARIA_128_CBC_SHA256,
+ 
+     /* All remaining >= 128-bit suites */
++    /*
+     MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+     MBEDTLS_TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
+     MBEDTLS_TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
++    */
+ 
+     /* The RSA PSK suites */
+-    MBEDTLS_TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256,
++    /* MBEDTLS_TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256, */
+     MBEDTLS_TLS_RSA_PSK_WITH_AES_256_GCM_SHA384,
+     MBEDTLS_TLS_RSA_PSK_WITH_AES_256_CBC_SHA384,
+     MBEDTLS_TLS_RSA_PSK_WITH_AES_256_CBC_SHA,
+@@ -251,10 +257,10 @@ static const int ciphersuite_preference[] =
+     MBEDTLS_TLS_RSA_PSK_WITH_ARIA_128_GCM_SHA256,
+     MBEDTLS_TLS_RSA_PSK_WITH_ARIA_128_CBC_SHA256,
+ 
+-    MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
++    /* MBEDTLS_TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA, */
+ 
+     /* The PSK suites */
+-    MBEDTLS_TLS_PSK_WITH_CHACHA20_POLY1305_SHA256,
++    /* MBEDTLS_TLS_PSK_WITH_CHACHA20_POLY1305_SHA256, */
+     MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384,
+     MBEDTLS_TLS_PSK_WITH_AES_256_CCM,
+     MBEDTLS_TLS_PSK_WITH_AES_256_CBC_SHA384,
+@@ -275,7 +281,7 @@ static const int ciphersuite_preference[] =
+     MBEDTLS_TLS_PSK_WITH_ARIA_128_GCM_SHA256,
+     MBEDTLS_TLS_PSK_WITH_ARIA_128_CBC_SHA256,
+ 
+-    MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA,
++    /* MBEDTLS_TLS_PSK_WITH_3DES_EDE_CBC_SHA, */
+ 
+     /* RC4 suites */
+     MBEDTLS_TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+-- 
+2.17.1
+

@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# Copyright 2021 Comcast Cable Communications Management, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+#---------------------------------------------------------
+#
+# template script to be generated and executed via CMake.
+# necessary because 'configure' on 'openssl' needs enviroment
+# variables set, which isn't supported by CMake's ExternalProjcet_add()
+#
+#---------------------------------------------------------
+
+# need 1 args:
+#   openssl-src-dir
+#
+
+# fill in variables with values from CMake
+#
+CROSS_OUTPUT=@CROSS_OUTPUT@
+#CROSS_HOST=@OPENSSL_HOST@   -- should already be set in environment
+#LDFLAGS=@OPENSSL_LDFLAGS@
+
+# openssl is a pain because it does it's own variation of "autoconf".
+# the general rule is to use 'config' for building local, and 'Configure'
+# for cross-compile or misbehaving platforms such as OS X
+#
+if [ "${BUILD_TCHAIN}" = "linux" ]; then
+    $1/config -DOPENSSL_NO_HEARTBEATS shared --prefix=${CROSS_OUTPUT} --openssldir=${CROSS_OUTPUT};
+
+elif [ "${BUILD_TCHAIN}" = "darwin" ]; then
+    $1/Configure -DOPENSSL_NO_HEARTBEATS shared --prefix=${CROSS_OUTPUT} --openssldir=${CROSS_OUTPUT} darwin64-x86_64-cc;
+
+elif [[ "${BUILD_TCHAIN}" = "android_ndk"* ]]; then
+    # for Android, need to ensure our NDK and API are set and "force" the SYSROOT
+    # also need to clear our CC, LD, AR, RANLIB commands since openssl will re-define them
+    #
+    # NOTE: we install this into lib-private.
+    #       this is to prevent collisions with the Android openssl libraries
+    #
+    export ANDROID_NDK=$ANDROID_NDK_HOME;
+    export CROSS_SYSROOT=$ANDROID_NDK/platforms/android-${ANDROID_API}/arch-arm
+    export CROSS_COMPILE=arm-linux-androideabi-
+    TOOLCHAIN_PATH=$(dirname @CMAKE_C_ANDROID_TOOLCHAIN_PREFIX@)
+    export PATH=${TOOLCHAIN_PATH}:$PATH
+    unset CC;
+    unset LD;
+    unset AR;
+    unset RANLIB;
+	$1/Configure -DOPENSSL_NO_HEARTBEATS no-shared --prefix=${CROSS_OUTPUT}/local --openssldir=${CROSS_OUTPUT}/local --sysroot=${CROSS_SYSROOT} android-armeabi;
+
+else
+    # use 'CROSS_HOST2' value from the environment
+	$1/Configure -DOPENSSL_NO_HEARTBEATS shared --prefix=${CROSS_OUTPUT} --openssldir=${CROSS_OUTPUT} ${CROSS_HOST2};
+
+fi
+

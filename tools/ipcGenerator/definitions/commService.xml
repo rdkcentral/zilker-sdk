@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!-- 
+  -
+  - Define the IPC/Events for "Comm Manager".
+  -
+  -->
+<p:service 
+    xmlns:p="http://icontrol.com/service/v1.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://icontrol.com/service/v1.0 ../src/main/xsd/service.xsd "
+    eventPort="19055" ipcPort="1400" name="commService" >
+
+    <p:pragma>
+        <p:native>
+            <p:apiHeaderDir>source/services/comm/api/c/public/commMgr</p:apiHeaderDir>
+            <p:apiSrcDir>source/services/comm/api/c/src</p:apiSrcDir>
+            <p:ipcHandlerSrcDir>source/services/comm/core/src</p:ipcHandlerSrcDir>
+            <p:configFlag>CONFIG_SERVICE_COMM</p:configFlag>
+            <p:freeform>#define COMM_SERVICE_NAME "commService"  // matches this service name as defined in watchdog.conf.  primarily used for name comparison on watchdogEvent notifications.</p:freeform>
+        </p:native>
+    </p:pragma>
+
+    <!--
+      - define enum types
+      -->
+
+    <p:typedef enumTypeName="channelHostPurpose" description="possible channel hostname purposes">
+        <p:value value="CHANNEL_HOST_PURPOSE_BBAND" description="broadband hostname for communication"/>
+        <p:value value="CHANNEL_HOST_PURPOSE_CELL"  description="cellular hostname for communication"/>
+        <p:value value="CHANNEL_HOST_PURPOSE_CLS"   description="host used as ClusterLocationService"/>
+        <p:value value="CHANNEL_HOST_PURPOSE_RMA"   description="host used to upload/download RMA configuration"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="ruleSendMessageType" description="possible 'send message to user' types">
+        <p:value value="MESSAGE_TEXT"/>
+        <p:value value="MESSAGE_WITH_IMAGE_TYPE"/>
+        <p:value value="MESSAGE_WITH_VIDEO_TYPE"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="cloudAssociationState" description="possible 'cloud association' states">
+        <p:value value="CLOUD_ACCOC_UNKNOWN"           description="association state is unknown"/>
+        <p:value value="CLOUD_ACCOC_NOT_AUTHENTICATED" description="have not associated with the cloud yet"/>
+        <p:value value="CLOUD_ACCOC_AUTHENTICATED"     description="associated and authenticated.  good to go."/>
+        <p:value value="CLOUD_ACCOC_RMA"               description="RMA has been initiated."/>
+        <p:value value="CLOUD_ACCOC_SUSPENDED"         description="account was suspended"/>
+        <p:value value="CLOUD_ACCOC_DISASSOCIATED"     description="account was disassociated"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="cloudAssociationRequestType" description="possible server association types">
+        <p:value value="ASSOC_TYPE_UNKNOWN"             description="unknown association request type"/>
+        <p:value value="ASSOC_TYPE_SERIAL_NUMBER"       description="serial number association request type"/>
+        <p:value value="ASSOC_TYPE_ACTIVATION_CODE"     description="activation code association request type"/>
+        <p:value value="ASSOC_TYPE_AUTO_ASSOCIATION"    description="auto associate request type"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="mediaUploadEventType">
+        <p:value value="MEDIA_VIDEO_UPLOAD_EVENT"/>
+        <p:value value="MEDIA_IMAGE_UPLOAD_EVENT"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="manualUpgradeState">
+        <p:value value="MANUAL_UPGRADE_FAILED"/>
+        <p:value value="MANUAL_UPGRADE_VALID"/>
+        <p:value value="MANUAL_UPGRADE_AVAILABLE"/>
+        <p:value value="MANUAL_UPGRADE_STARTED"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="fileUploadType">
+        <p:value value="SOFTWARE_TROUBLE"/>
+        <p:value value="ZIGBEE_TELEMETRY"/>
+    </p:typedef>
+
+    <p:typedef enumTypeName="commSoftwareTroubleCodes">
+        <p:value value="COMM_SOFTWARE_TROUBLE_SERVER_CONFIG_MISSING"    numeric="17157" description="one or more critical pieces of the server configuration was not obtained from the server"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_CORE_CODE"                numeric="17160" description="core file found, causing a software trouble"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_WHITE_DOWNLD_CODE"        numeric="17163" description="error downloading the 'white list' file, causing a software trouble"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_WHITE_PARSE_CODE"         numeric="17164" description="error parsing the 'white list' file, causing a software trouble"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_BLACK_DOWNLD_CODE"        numeric="17165" description="error downloading the 'black list' file, causing a software trouble"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_BLACK_PARSE_CODE"         numeric="17166" description="error parsing the 'black list' file, causing a software trouble"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_WHITE_PROCESSING_CODE"    numeric="17167" description="error processing the data in the 'white list' file, causing a software trouble"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_BLACK_PROCESSING_CODE"    numeric="17168" description="error processing the data in the 'black list' file, causing a software trouble"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_NATIVE_START_FAIL"        numeric="17171" description="failed to start native service"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_MIGRATION_FAIL"           numeric="17172" description="failed to migrate some data during upgrade/RMA"/>
+        <p:value value="COMM_SOFTWARE_TROUBLE_ZIGBEE_CORE_WATCHDOG"     numeric="17173" description="ZigbeeCore was not responding and required a restart"/>
+    </p:typedef>
+
+    <!--
+      - define message input/output POJOs
+      -->
+
+    <p:pojo varName="sunriseSunsetTimes">
+        <p:dateVariable varName="sunrise"/>
+        <p:dateVariable varName="sunset"/>
+    </p:pojo>
+
+    <p:pojo varName="cloudAssociationValue" varDescription="object wrapper for the cloudAssociationState enumeration">
+        <p:enumVariable varName="cloudAssState" enumTypeName="cloudAssociationState"/>
+        <p:numVariable varName="lastAssociationMillis" kind="long" nativeSigned="false"/>
+    </p:pojo>
+
+    <p:pojo varName="cloudAssociationParms" varDescription="container of input parameters when manually initiating 'cloud association'">
+        <p:enumVariable varName="cloudAssRequestType" enumTypeName="cloudAssociationRequestType"/>
+        <p:mapVariable varName="cloudAssInput" varDescription="hash of string/string to define channel-specific input parameters">
+            <p:stringVariable varName="str"/>
+        </p:mapVariable>
+    </p:pojo>
+
+    <p:pojo varName="cloudAssociationResponse" varDescription="return object when manually initiating 'cloud association'">
+        <p:enumVariable varName="cloudAssState" enumTypeName="cloudAssociationState"/>
+        <p:stringVariable varName="errorString" varDescription="only set on failure"/>
+    </p:pojo>
+
+    <p:pojo varName="commHostConfig" varDescription="container of 'hostname' configuration used by a specific channel within commService">
+        <p:stringVariable varName="channelId"        varDescription="channel identifier that utilizes this hostname"/>
+        <p:stringVariable varName="hostname"         varDescription="host or IP to use"/>
+        <p:numVariable varName="portNum"  kind="short" nativeSigned="false" varDescription="port number"/>
+        <p:stringVariable varName="protocol"         varDescription="description of the protocol used (optional)"/>
+        <p:boolVariable varName="enabled"            varDescription="if this host is enabled"/>
+        <p:boolVariable varName="primary"            varDescription="if this is the primary host (or secondary)"/>
+        <p:enumVariable varName="purpose" enumTypeName="channelHostPurpose" varDescription="designated purpose of this hostname"/>
+    </p:pojo>
+
+    <p:pojo varName="commHostConfigList" varDescription="list of commHostConfig objects">
+        <p:arrayVariable varName="hostConfigList">
+            <p:customRef>commHostConfig</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="commChannelStatus" varDescription="detailed information about the status of an individual communication channel">
+        <p:stringVariable varName="channelId" varDescription="channel identifier (as a string)"/>
+        <p:enumVariable varName="cloudAssState" enumTypeName="cloudAssociationState"/>
+        <p:boolVariable varName="enabled"     varDescription="if this channel is enabled"/>
+        <p:boolVariable varName="bbandOnline" varDescription="if broadband is online for this channel"/>
+        <p:boolVariable varName="cellOnline"  varDescription="if cell is online for this channel"/>
+    </p:pojo>
+
+    <p:pojo varName="commChannelStatusList" varDescription="list of commChannelStatus objects">
+        <p:arrayVariable varName="commStatusList">
+            <p:customRef>commChannelStatus</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <!-- TODO: remove - get info needed to upload RMA backup/archive
+    <p:pojo varName="rmaBackupConfig" varDescription="all information needed to upload the backup archive to the server">
+        <p:stringVariable varName="serverUrl"/>
+        <p:numVariable varName="overallVersion" kind="long" nativeSigned="false" varDescription="cumulative version placed in header of backup upload"/>
+        <p:numVariable varName="premiseId" kind="long" nativeSigned="false" varDescription="premiseId (aka domicileId)"/>
+        <p:stringVariable varName="username" varDescription="user to use when posting this data to the server"/>
+        <p:stringVariable varName="password" varDescription="pass to use when posting this data to the server"/>
+    </p:pojo>
+    -->
+
+    <p:pojo varName="ruleSendMessage" varDescription="send subscriber a notification based on a rule executing">
+        <p:numVariable varName="ruleId" kind="long" nativeSigned="false"/>
+        <p:numVariable varName="eventId" kind="long" nativeSigned="false" varDescription="original event the rule triggered on"/>
+        <p:dateVariable varName="eventTime" varDescription="time eventId occured"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false"/>
+        <p:enumVariable varName="type" enumTypeName="ruleSendMessageType"/>
+        <p:stringVariable varName="subject" varDescription="optional"/>
+        <p:stringVariable varName="message" varDescription="optional"/>
+    </p:pojo>
+    
+    <p:pojo varName="getMediaUploadFilenamesMessage" varDescription="iControl Server specific">
+        <p:numVariable varName="origEventId" kind="long" nativeSigned="false"/>
+        <p:numVariable varName="numPics" kind="int" nativeSigned="false"/>
+        <p:numVariable varName="numThumbs" kind="int" nativeSigned="false"/>
+        <p:numVariable varName="numVideos" kind="int" nativeSigned="false"/>
+    </p:pojo>
+    
+    <p:pojo varName="mediaUploadFilenames" varDescription="iControl Server specific">
+        <p:arrayVariable varName="picFilenames">
+            <p:stringVariable varName="picFilename"/>
+        </p:arrayVariable>
+        <p:arrayVariable varName="thumbFilenames">
+            <p:stringVariable varName="thumbFilename"/>
+        </p:arrayVariable>
+        <p:arrayVariable varName="videoFilenames">
+            <p:stringVariable varName="videoFilename"/>
+        </p:arrayVariable>
+    </p:pojo>
+    
+    <p:pojo varName="imageUploadMessage" varDescription="iControl Server specific">
+        <p:arrayVariable varName="localFilenames">
+            <p:stringVariable varName="localFilename"/>
+        </p:arrayVariable>
+        <p:arrayVariable varName="remoteFilenames">
+            <p:stringVariable varName="remoteFilename"/>
+        </p:arrayVariable>
+        <p:numVariable varName="ruleId" kind="long" nativeSigned="false"/>
+        <p:stringVariable varName="cameraId"/>
+    </p:pojo>
+    
+    <p:pojo varName="associateMediaToRule" varDescription="iControl Server specific">
+        <p:numVariable varName="ruleId" kind="long" nativeSigned="false"/>
+        <p:numVariable varName="eventAssociateId" kind="long" nativeSigned="false"/>
+        <p:stringVariable varName="associateThumbFile"/>
+        <p:stringVariable varName="associateVideoFile"/>
+    </p:pojo>
+
+    <p:pojo varName="uploadPicturesFromCamera" varDescription="combines several IPC requests into a single reqest to execute the sequence of taking a pic and uploading to the server">
+        <p:numVariable varName="eventId" kind="long" nativeSigned="false" varDescription="creates 'onDemand' if 0"/>
+        <p:numVariable varName="eventCode" kind="int" nativeSigned="true" varDescription="event code of source event, or 0"/>
+        <p:numVariable varName="ruleId" kind="long" nativeSigned="false" varDescription="only used if not 0"/>
+        <p:stringVariable varName="cameraUid" varDescription="camera to use for taking the picture"/>
+        <p:numVariable varName="numPics" kind="int" nativeSigned="false"/>
+        <p:boolVariable varName="doAsync" varDescription="if false, blocks until complete or failure"/>
+    </p:pojo>
+
+    <p:pojo varName="uploadVideoFromCamera" varDescription="combines several IPC requests into a single reqest to execute the sequence of taking a video clip and uploading to the server">
+        <p:numVariable varName="eventId" kind="long" nativeSigned="false" varDescription="creates 'onDemand' if 0"/>
+        <p:numVariable varName="eventCode" kind="int" nativeSigned="true" varDescription="event code of source event, or 0"/>
+        <p:numVariable varName="ruleId" kind="long" nativeSigned="false" varDescription="only used if not 0"/>
+        <p:stringVariable varName="cameraUid" varDescription="camera to use for taking the video clip"/>
+        <p:numVariable varName="duration" kind="int" nativeSigned="false"/>
+        <p:boolVariable varName="doAsync" varDescription="if false, blocks until complete or failure"/>
+    </p:pojo>
+
+    <!-- objects for diag/core file upload -->
+    <p:pojo varName="softwareTroubleUploadData" varDescription="create a software trouble, attaching the list of files to it (assume diag + core files)">
+        <p:enumVariable varName="troubleCode" enumTypeName="commSoftwareTroubleCodes" varDescription="code to use for the software trouble"/>
+        <p:stringVariable varName="troubleString" varDescription="more details about the software trouble"/>
+    </p:pojo>
+
+    <p:pojo varName="uploadMessage" varDescription="create a upload message which will upload files to the server">
+        <p:arrayVariable varName="filenames" varDescription="list of filenames upload to server">
+            <p:stringVariable varName="file"/>
+        </p:arrayVariable>
+        <p:enumVariable varName="fileType" enumTypeName="fileUploadType" />
+        <p:customRef customObj="softwareTroubleUploadData" localName="softwareTroubleUploadData"/>
+    </p:pojo>
+
+    <p:pojo varName="connectivityTestOptions" varDescription="options for performing connectivity test">
+        <p:boolVariable varName="useCell" varDescription="whether to use cell or bband"/>
+        <p:boolVariable varName="primaryChannelOnly" varDescription="whether to perform the test for only the primary channel or all channels"/>
+    </p:pojo>
+
+    <p:pojo varName="connectivityTestResult" varDescription="result of a connectivity test for a channel">
+        <p:stringVariable varName="channelId" varDescription="channel identifier"/>
+        <p:boolVariable varName="result" varDescription="result of the channel's connectivity test"/>
+    </p:pojo>
+
+    <p:pojo varName="connectivityTestResultList" varDescription="list of channel connectivity test results">
+        <p:arrayVariable varName="testResultList">
+            <p:customRef>connectivityTestResult</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+
+    <!--
+      - define the events
+      -->
+    <p:eventList generate="C">
+
+        <!-- communication failure/restore event -->
+        <p:event varName="commOnlineChangedEvent" varDescription="event from commService when communication state changes.  has the overall flags for the PRIMARY channel, as well as details for all enabled channels">
+            <p:boolVariable varName="bbandOnline" varDescription="when true, bband communication is online for the PRIMARY channel"/>
+            <p:boolVariable varName="cellOnline"  varDescription="when true, cell communication is online for the PRIMARY channel"/>
+            <p:boolVariable varName="isHidden"  varDescription="when true, the event should not be visible or audible"/>
+            <p:customRef customObj="commChannelStatusList" localName="channelStatusDetailedList"/>
+
+            <p:eventCode>COMM_ONLINE_CHANGED_EVENT</p:eventCode>
+        </p:event>
+        
+        <!-- activation state changed event -->
+        <p:event varName="cloudAssociationStateChangedEvent" varDescription="event from commService when 'cloud assocation' state changes">
+            <p:boolVariable varName="critical"/>
+            <p:boolVariable varName="wasCell"/>
+            <p:enumVariable varName="cloudAssState" enumTypeName="cloudAssociationState" varDescription="current state of cloud association"/>
+            <p:numVariable varName="lastAssociationMillis" kind="long" nativeSigned="false"/>
+            <p:eventCode>CLOUD_ASSOCIATION_STATE_CHANGED_EVENT</p:eventCode>
+        </p:event>
+
+        <!-- timezone changed event -->
+        <p:event varName="timezoneChangedEvent" varDescription="event from commService when the time zone changes">
+            <p:eventCode>TIMEZONE_CHANGED_EVENT</p:eventCode>
+        </p:event>
+    
+        <!-- video uploaded event -->
+        <p:event varName="mediaUploadedEvent" varDescription="event from commService when a video is finished uploading">
+            <p:enumVariable varName="mediaType" enumTypeName="mediaUploadEventType"/>
+            <p:numVariable varName="ruleId" kind="long"/>
+            <p:numVariable varName="requestEventId" kind="long"/>
+            <p:numVariable varName="uploadEventId" kind="long"/>
+            <p:eventCode>MEDIA_UPLOADED_EVENT</p:eventCode>
+        </p:event>
+
+        <!-- the various event codes sent -->
+        <p:code name="COMM_ONLINE_CHANGED_EVENT"             value="120" description="event code for commOnlineChangedEvent"/>
+        <p:code name="CAPABILITIES_CHANGED_EVENT"            value="-1" description="event code for capabilitiesChangedEvent"/>
+        <p:code name="CLOUD_ASSOCIATION_STATE_CHANGED_EVENT" value="-1" description="event code for cloudAssociationStateChangedEvent"/>
+        <p:code name="TIMEZONE_CHANGED_EVENT"                value="-1" description="event code for timezoneChangedEvent"/>
+        <p:code name="MEDIA_UPLOADED_EVENT"                  value="-1" description="event code for mediaUploadedEvent"/>
+
+        <!-- event values for COMM_ONLINE_CHANGED_EVENT -->
+        <p:code name="TOTAL_COMM_CONNECTED_VALUE"    value="5" description="event value for COMM_ONLINE_CHANGED_EVENT when comm working (1 or more channels up) - used for determining TroubleEvent restore"/>
+        <p:code name="TOTAL_COMM_DISCONNECTED_VALUE" value="6" description="event value for COMM_ONLINE_CHANGED_EVENT when comm totally down - used for determining TroubleEvent"/>
+
+        <!-- event values for CLOUD_ASSOCIATION_STATE_CHANGED_EVENT -->
+        <p:code name="WAITING_ON_CLOUD_ASSOC_VALUE"  value="20" description="event value when code is CLOUD_ASSOCIATION_STATE_CHANGED_EVENT"/>
+        <p:code name="CLOUD_ASSOC_STARTED_VALUE"     value="21" description="event value when code is CLOUD_ASSOCIATION_STATE_CHANGED_EVENT"/>
+        <p:code name="CLOUD_ASSOC_FAILED_VALUE"      value="22" description="event value when code is CLOUD_ASSOCIATION_STATE_CHANGED_EVENT"/>
+        <p:code name="CLOUD_ASSOC_COMPLETED_VALUE"   value="23" description="event value when code is CLOUD_ASSOCIATION_STATE_CHANGED_EVENT"/>
+
+    </p:eventList>
+  
+    <!-- 
+      - define IPC request messages that are applicable at this time.  Many
+      - have been commented out so they can be completed at a later time.
+      -->
+    <p:ipc>
+    
+        <!-- get the sunrise/sunset time -->
+        <p:message id="20" name="GET_SUNRISE_SUNSET_TIME" generate="C" readTimeout="60">
+            <p:description>Ask the server for Sunrise/Sunset times</p:description>
+            <p:output>
+                <p:customRef>sunriseSunsetTimes</p:customRef>
+            </p:output>
+        </p:message>
+        
+        <!-- send email/sms via server -->
+        <p:message id="25" name="SEND_MESSAGE_TO_SUBSCRIBER" generate="C" readTimeout="60">
+            <p:description>Forward a message to the server to send, either via e-mail or SMS. Primarily used by RulesEngine to deliver messages</p:description>
+            <p:input>
+                <p:customRef>ruleSendMessage</p:customRef>
+            </p:input>
+        </p:message>
+        
+        <p:message id="40" name="GET_ONLINE_STATUS" generate="C">
+            <p:description>Returns true if ANY channel is online (bband OR cell)</p:description>
+            <p:output>
+                <p:bool varName="online"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="41" name="GET_ONLINE_DETAILED_STATUS" generate="C">
+            <p:description>Returns list of channels and their detailed status</p:description>
+            <p:output>
+                <p:customRef>commChannelStatusList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="45" name="GET_CLOUD_ASSOCIATION_STATE" generate="C">
+            <p:description>query current state of "cloud association" (old code called this ACTIVATION)</p:description>
+            <p:output>
+                <p:customRef>cloudAssociationValue</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="47" name="INITIATE_MANUAL_CLOUD_ASSOCIATION" generate="C" readTimeout="120">
+            <p:description>only applicable when CONFIG_SERVICE_COMM_AUTO_ASSOCIATE option is not set.  input hash requires specific string variables to be defined.  this should be replaced with a different mechanism once AWS IoT is in place!</p:description>
+            <p:input>
+                <p:customRef>cloudAssociationParms</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>cloudAssociationResponse</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="60" name="RESET_COMM_SETTINGS_TO_DEFAULT" generate="C">
+            <p:description>reset many of the settings to default values - for reset to factory situations</p:description>
+            <p:output>
+                <!-- Give it an output so this blocks to ensure its done before we continue -->
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <!-- TODO: remove
+        <p:message id="68" name="GET_RMA_BACKUP_INFO" generate="C">
+            <p:description>Specific to iControl Server.  Gather information needed to upload an RMA backup archive</p:description>
+            <p:output>
+                <p:customRef>rmaBackupConfig</p:customRef>
+            </p:output>
+        </p:message>
+         -->
+
+        <p:message id="70" name="GET_HOSTNAME_CONFIG_LIST" generate="C">
+            <p:description>return a list of commHostConfig objects; describing all exposed hostnames within commService</p:description>
+            <p:output>
+                <p:customRef>commHostConfigList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="71" name="SET_HOSTNAME_CONFIG_LIST" generate="C">
+            <p:description>update each commHostConfig objects within the list.  NOTE: has to be a defined object via GET_HOSTNAME_CONFIG_LIST</p:description>
+            <p:input>
+                <p:customRef>commHostConfigList</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="125" name="UPLOAD_IMAGES_TO_SERVER" generate="C" readTimeout="60">
+            <p:description>Specific to iControl Server.  Uploads a set of images to the server</p:description>
+            <p:input>
+                <p:customRef>imageUploadMessage</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="worked"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="131" name="ASSOCIATE_MEDIA_TO_RULE" generate="C">
+            <p:description>Specific to iControl Server.  Tells server to associate a previous event containing media to a rule execution</p:description>
+            <p:input>
+                <p:customRef>associateMediaToRule</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="134" name="UPLOAD_PICTURES_FROM_CAMERA" generate="C" readTimeout="60">
+            <p:description>Specific to iControl Server.  Initiate captures and upload of a set of pictures from a camera to the server</p:description>
+            <p:input>
+                <p:customRef>uploadPicturesFromCamera</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="135" name="UPLOAD_VIDEO_FROM_CAMERA" generate="C" readTimeout="60">
+            <p:description>Specific to iControl Server.  Initiate capture and upload of video plus a thumbnail from a camera to the server</p:description>
+            <p:input>
+                <p:customRef>uploadVideoFromCamera</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="137" name="UPLOAD_FILES_TO_SERVER" generate="C" readTimeout="600">
+            <p:description>Upload local files to the Server.  Generally includes a diag, zigbee telemetry files and optional core files.</p:description>
+            <p:input>
+                <p:customRef>uploadMessage</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="worked"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="138" name="PERFORM_CONNECTIVITY_TEST" generate="C" readTimeout="600">
+            <p:description>Perform a connectivity test to core services</p:description>
+            <p:input>
+                <p:customRef>connectivityTestOptions</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>connectivityTestResultList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="140" name="NOTIFY_CPE_SETUP_COMPLETE" generate="C">
+            <p:description>Send a notification to the cloud that CPE setup has completed</p:description>
+        </p:message>
+
+    </p:ipc>
+    
+</p:service>

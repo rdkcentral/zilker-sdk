@@ -1,0 +1,34 @@
+##
+## template file for EventAdapter source
+## used to generate the internal function source
+##
+
+static void ${event_classname}_listIterateFunc(const void *item, const void *context)
+{
+    icLinkedList *list = (icLinkedList *)item;
+    linkedListIterate(list, ${event_classname}_iterator, (void *)context);
+}
+
+/*
+ * internal function to notify listeners of ${event_classname}  events
+ */
+void notifyListeners_${event_classname}(${event_classname} *event)
+{
+    // Call our read function to iterate over the items
+    threadSafeWrapperReadItem(&${event_classname}_listWrapper, ${event_classname}_listIterateFunc, event);
+}
+
+/*
+ * callback function to supply to the LinkedList when iterating
+ * used by the "notifyListeners" counterpart so we can call
+ * each registered listener
+ */
+bool ${event_classname}_iterator(void *item, void *arg)
+{
+    // 'item' should be a function to call for this event
+    // we use 'arg' as the event itself
+    //
+    ((handleEvent_${event_classname})item)((${event_classname} *)arg);
+    return true;
+}
+

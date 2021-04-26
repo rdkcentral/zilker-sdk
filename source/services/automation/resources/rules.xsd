@@ -1,0 +1,741 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!--
+  -
+  - Decribe the format of rule XML definition files.  Many constructs are
+  - loose on purpose to allow for flexability in what a rule can do.
+  -
+  - Note that a rule can be in one of two formats:
+  -  regular rule with triggers & actions
+  -  thermostat schedule rule (list of scheduled entries)
+  -
+  -->
+<xsd:schema targetNamespace="http://ucontrol.com/rules/v1.0" 
+	elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	xmlns="http://ucontrol.com/rules/v1.0">
+	
+	<!-- ***************************************
+	  -
+	  -  Trigger Elements & Types
+	  -
+	  -  *************************************** -->
+	  
+	<!-- 
+	  - Represent a single event used by a Rule 
+	  -->
+	<xsd:complexType name="trigger" abstract="true" >
+		<xsd:sequence>
+			<!-- A description of the trigger. -->
+			<xsd:element name="description" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+			
+			<!-- The category this trigger belongs to.  Can be used to filter down based on devices installed -->
+			<xsd:element name="category" type="categoryEnum" minOccurs="1" maxOccurs="1"/>
+			
+		</xsd:sequence>
+	</xsd:complexType>	
+	<xsd:element name="trigger" type="trigger" abstract="true"/>
+	
+	<!--
+	  - Subclass of trigger for "Network"
+	  -->
+	<xsd:complexType name="networkTrigger">
+		<xsd:complexContent>
+			<xsd:extension base="trigger">
+				<xsd:sequence>
+			
+					<!-- 
+					  - the particular network event to cause this to trigger 
+					  - NOTE: ppp states are not implemented yet 
+					  -->
+					<xsd:element name="networkState" type="networkStateEnum" minOccurs="1" maxOccurs="1"/>
+			
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>	
+	<xsd:element name="networkTrigger" type="networkTrigger" substitutionGroup="trigger"/>
+	
+	<!--
+	  - Subclass of trigger for "sensors".  Can be for a sensor 'type' or particular sensorID (or set of sensorIDs)
+	  -->
+	<xsd:complexType name="sensorTrigger">
+		<xsd:complexContent>
+			<xsd:extension base="trigger">
+				<xsd:sequence>
+
+					<!-- the state of the sensor to cause this trigger (open, closed, etc) -->
+					<xsd:element name="sensortate" type="sensorStateEnum" minOccurs="1" maxOccurs="1"/>
+
+					<xsd:choice>
+
+						<!-- the particular sensor type to cause this to trigger (i.e. any door) -->
+						<xsd:element name="sensorType" type="sensorTypeEnum" minOccurs="1" maxOccurs="1"/>
+
+						<!--
+						  - OR the specific sensorID(s) (i.e. front door)
+						  - this can be a comma separated list of sensorID integers
+						  -->
+						<xsd:element name="sensorID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+
+					</xsd:choice>
+
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="sensorTrigger" type="sensorTrigger" substitutionGroup="trigger"/>
+
+	<!--
+	  - Subclass of trigger for "Lighting Devices".
+	  -->
+	<xsd:complexType name="lightingTrigger">
+		<xsd:complexContent>
+			<xsd:extension base="trigger">
+				<xsd:sequence>
+			
+					<!-- the state of the light to cause this trigger (on or off) -->
+					<xsd:element name="lightState" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+					
+					<!-- 
+					  - The specific lightID.  Like other Triggers, this parameter 
+					  - can be a comma separated list of lightID values
+					  -->
+					<xsd:element name="lightID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+						
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>	
+	<xsd:element name="lightingTrigger" type="lightingTrigger" substitutionGroup="trigger"/>
+	
+    <!-- 
+      - Subclass of trigger for "DoorLock Devices".
+      -->
+    <xsd:complexType name="doorLockTrigger">
+        <xsd:complexContent>
+            <xsd:extension base="trigger">
+                <xsd:sequence>
+            
+                    <!-- the state of the door-lock to cause this trigger (on or off) -->
+                    <xsd:element name="doorLockState" type="doorLockStateEnum" minOccurs="1" maxOccurs="1"/>
+                    
+                    <!-- 
+                      - The specific device ID.  Like other Triggers, this parameter 
+                      - can be a comma separated list of identifiers values
+                      -->
+                    <xsd:element name="doorLockID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                        
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>  
+    <xsd:element name="doorLockTrigger" type="doorLockTrigger" substitutionGroup="trigger"/>
+
+	<!-- 
+	  - Subclass of trigger for "Thermostat Devices".  Used to monitor when temperature gets 
+	  - above or below a defined threshold.
+	  - thermostatThresholdTrigger is now deprecated from Nantucket release.
+	  -->
+	<xsd:complexType name="thermostatThresholdTrigger">
+		<xsd:complexContent>
+			<xsd:extension base="trigger">
+				<xsd:sequence>
+			
+					<!-- 
+					  - The specific thermostatID.  Like other Triggers, this parameter 
+					  - can be a comma separated list of thermostatID values
+					  -->
+					<xsd:element name="thermostatID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+			
+                    <!-- the temperature value for the low threshold. A value of -1000 means don't trigger on low temp. -->
+                    <xsd:element name="lowTemperature" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+                    
+                    <!-- the temperature value for the high threshold. A value of -1000 means don't trigger on high temp. -->
+                    <xsd:element name="highTemperature" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+                    
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>	
+	<xsd:element name="thermostatThresholdTrigger" type="thermostatThresholdTrigger" substitutionGroup="trigger"/>
+
+    <!--
+      - Subclass of trigger for thermostat commands.
+      -->
+    <xsd:complexType name="thermostatTrigger">
+        <xsd:complexContent>
+            <xsd:extension base="trigger">
+                <xsd:sequence>
+                    <!--
+                      - The specific thermostatID.  Like other Triggers, this parameter
+                      - can be a comma separated list of thermostatID values
+                      -->
+                    <xsd:element name="thermostatID" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+
+                    <!-- the evaluation mechanism to apply to this trigger -->
+                    <xsd:choice>
+                        <!--
+                          - The particular thermostat event to cause this to trigger
+                          - (i.e. troubles etc)
+                         -->
+                        <xsd:element name="thermostatStateEval" type="thermostatStateEnum"/>
+                        <xsd:element name="thermostatThresholdEval" type="thermostatThresholdTriggerEvaluation"/>
+                    </xsd:choice>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="thermostatTrigger" type="thermostatTrigger" substitutionGroup="trigger"/>
+
+    <!-- thermostat trigger evaluation that compares a value () -->
+    <xsd:complexType name="thermostatThresholdTriggerEvaluation">
+        <xsd:sequence>
+                    <!-- the temperature value for the low threshold. A value of -1000 means don't trigger on low temp. -->
+                    <xsd:element name="lowTemperature" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+
+                    <!-- the temperature value for the high threshold. A value of -1000 means don't trigger on high temp. -->
+                    <xsd:element name="highTemperature" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+	
+	<!-- 
+	  - Subclass of trigger for "Time".  Requires a specific time with which to fire
+	  -->
+	<xsd:complexType name="timeTrigger">
+		<xsd:complexContent>
+			<xsd:extension base="trigger">
+				<xsd:sequence>
+					
+					<!-- when to fire this time-based trigger -->
+					<xsd:element name="when" type="timeSlot" minOccurs="1" maxOccurs="1"/>
+					
+					<!-- 
+					  - If this has a repeat=true and/or randomize=true, then an 'end' time must be defined 
+					  - The end time will specify how long this trigger is active for the repeat/randomize
+					  -->
+					<xsd:element name="end" type="timeSlot" minOccurs="0" maxOccurs="1"/>
+					
+					<!-- 
+					  - Set if this trigger should repeat and define how often it repeats (in minutes) 
+					  - A value of 0 disables the repeat logic
+					  - A value of -1 causes this value to be randomized (i.e. repeat at random intervals)
+					  -->
+					<xsd:element name="repeat" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+					
+					<!-- 
+					  - If set to true, will make this fire at a random time between 'when' and 'end'  
+					  -->
+					<xsd:element name="randomize" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+					
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>	
+	<xsd:element name="timeTrigger" type="timeTrigger" substitutionGroup="trigger"/>
+
+    <!--
+      - Subclass of trigger for Zigbee comm fail changes.  Used to monitor changes in the communication status
+      - for zigbee devices.
+      -->
+    <xsd:complexType name="zigbeeCommStatusTrigger">
+        <xsd:complexContent>
+            <xsd:extension base="trigger">
+                <xsd:sequence>
+
+                    <!-- - The specific ZigBee device ID. -->
+                    <xsd:element name="zigbeeCommStatusDeviceId" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+
+                    <!-- the new comm fail state change description: "lost" or "restored" -->
+                    <xsd:element name="zigbeeCommStatusState" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="zigbeeCommStatusTrigger" type="zigbeeCommStatusTrigger" substitutionGroup="trigger"/>
+
+    <!--
+      - Subclass of trigger for Switch commands.
+      -->
+    <xsd:complexType name="switchTrigger">
+        <xsd:complexContent>
+            <xsd:extension base="trigger">
+                <xsd:sequence>
+
+                    <!-- - The specific Switch device ID. -->
+                    <xsd:element name="switchDeviceId" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+
+                    <!-- the command received from the switch: on, off, toggle -->
+                    <xsd:element name="switchCommand" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="switchTrigger" type="switchTrigger" substitutionGroup="trigger"/>
+
+	<!--
+      - Subclass of trigger for UDM Resource changes.
+      -->
+	<xsd:complexType name="resourceTrigger">
+		<xsd:complexContent>
+			<xsd:extension base="trigger">
+				<xsd:sequence>
+
+					<!-- - The specific resource URI -->
+					<xsd:element name="resourceUri" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="resourceTrigger" type="resourceTrigger" substitutionGroup="trigger"/>
+
+    <!-- comparison methods -->
+    <xsd:simpleType name="comparisonMethodEnum">
+        <xsd:restriction base="xsd:string">
+
+            <!-- equality -->
+            <xsd:enumeration value="eq"/>
+
+            <!-- less than -->
+            <xsd:enumeration value="lt"/>
+
+            <!-- less than or equal -->
+            <xsd:enumeration value="le"/>
+
+            <!-- greater than -->
+            <xsd:enumeration value="gt"/>
+
+            <!-- greater than or equal -->
+            <xsd:enumeration value="ge"/>
+
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- event category -->
+	<xsd:simpleType name="categoryEnum">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="sensor"/>		<!-- for sensorTrigger -->
+			<xsd:enumeration value="light"/>		<!-- for lightingTrigger -->
+			<xsd:enumeration value="doorLock"/>		<!-- for doorLockTrigger -->
+			<xsd:enumeration value="thermostat"/>	<!-- for thermostatTrigger -->
+			<xsd:enumeration value="network"/>		<!-- for networkTrigger -->
+			<xsd:enumeration value="time"/>			<!-- for timeTrigger -->
+			<xsd:enumeration value="switch"/>		<!-- for switchTrigger -->
+            <xsd:enumeration value="resource"/>     <!-- for UDM style resource change triggers -->
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<!-- sensor event state -->
+	<xsd:simpleType name="sensorStateEnum">
+		<xsd:restriction base="xsd:string">
+            <xsd:enumeration value="openOrClose"/>
+			<xsd:enumeration value="open"/>
+			<xsd:enumeration value="close"/>
+			<xsd:enumeration value="trouble"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<!-- thermostate event state -->
+	<xsd:simpleType name="thermostatStateEnum">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="trouble"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<!-- touchscreen event state -->
+	<xsd:simpleType name="touchscreenStateEnum">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="trouble"/>
+			<xsd:enumeration value="power_lost"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<!-- network event state -->
+	<xsd:simpleType name="networkStateEnum">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="bbandDown"/>
+			<xsd:enumeration value="bbandUp"/>
+			<xsd:enumeration value="pppDown"/>
+			<xsd:enumeration value="pppUp"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+ 
+    <!-- door-lock event state -->
+    <xsd:simpleType name="doorLockStateEnum">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="lock"/>
+            <xsd:enumeration value="unlock"/>
+            <xsd:enumeration value="trouble"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+	<!-- general sensor types -->
+    <xsd:simpleType name="sensorTypeEnum">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="allZones"></xsd:enumeration>
+            <xsd:enumeration value="allNonMotionZones"></xsd:enumeration>
+            <xsd:enumeration value="door"></xsd:enumeration>
+            <xsd:enumeration value="window"></xsd:enumeration>
+            <xsd:enumeration value="dryContact"></xsd:enumeration>
+            <xsd:enumeration value="motion"></xsd:enumeration>
+            <xsd:enumeration value="carbonMonoxide"></xsd:enumeration>
+            <xsd:enumeration value="smoke"></xsd:enumeration>
+            <xsd:enumeration value="glassBreak"></xsd:enumeration>
+            <xsd:enumeration value="water"></xsd:enumeration>
+            <xsd:enumeration value="inertia"></xsd:enumeration>
+            <xsd:enumeration value="lighting"></xsd:enumeration>
+            <xsd:enumeration value="temperature"></xsd:enumeration>
+            <xsd:enumeration value="doorLock"></xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+	<!-- ***************************************
+	  -
+	  -  Action Elements & Types
+	  -
+	  -  *************************************** -->
+	  
+	<!-- 
+	  - Define the master list of possible Actions (for all devices)
+	  - This node is ONLY used for the masterActionList.xml file
+	  -->
+	<xsd:element name="actionList">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="action" type="action" minOccurs="1" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<!-- 
+	  - Definition of a single Action 
+	  -->	
+	<xsd:complexType name="action">
+	
+		<xsd:sequence>
+		
+			<!-- Name of the action.  Probably what will be displayed via the UI -->
+			<xsd:element name="description" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+			
+			<!-- 
+			  - Optionally define a "dependency" that must be met for this Action to execute 
+			  - For example, cameras are required in order to have a "take a picture" Action
+			  -->
+			<xsd:element name="dependency" type="dependency" minOccurs="0" maxOccurs="1"/>
+			
+			<!-- 
+			  - Optionally list the input parameters to use when executing the Action
+			  - For example, which camera to use for taking a picture
+			  -->
+			<xsd:element name="parameterDef" type="parameterDef" minOccurs="0" maxOccurs="unbounded"/>
+			
+			<!-- Internal setting used by the touchscreen to signify a server or workflow implementation . -->
+			<xsd:element name="type" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+			
+			<!-- Internal setting used by the touchscreen (workflow name to execute). -->
+			<xsd:element name="target" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+			
+		</xsd:sequence>
+	
+		<!-- unique ID for this action event.  Referred to by a Rule Action -->
+		<xsd:attribute name="actionID" type="xsd:long" use="required"/>
+	
+	</xsd:complexType>
+
+	<!-- 
+	  - detail out a particular dependency that an Action may have
+	  -->
+	<xsd:complexType name="dependency">
+		<xsd:sequence>
+			<!-- if a dependency node is used, it requires the 'type' -->
+			<xsd:element name="type" type="dependencyTypeEnum" minOccurs="1" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<!-- 
+	  - Define input parameters to send to the Action when it's executed.
+	  -->
+	<xsd:complexType name="parameterDef">
+		<xsd:sequence>
+		
+			<!-- define the 'key' of the input parameter -->
+			<xsd:element name="key" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+			
+			<!-- define the 'type' of data that the parameter value will be  -->
+			<xsd:element name="type" type="parameterTypeEnum" minOccurs="1" maxOccurs="1"/>
+			
+			<!-- define if this particular parameter is required or not.  If not defined, assumed to be FALSE -->
+			<xsd:element name="required" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+			
+		</xsd:sequence>
+	</xsd:complexType>	
+	
+	<!-- enumeration of dependency types  -->
+	<xsd:simpleType name="dependencyTypeEnum">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="camera"/>        <!-- cameras are installed -->
+			<xsd:enumeration value="lighting"/>      <!-- lighting devices are installed -->
+			<xsd:enumeration value="doorLock"/>      <!-- door-lock devices are installed -->
+			<xsd:enumeration value="temperature"/>   <!-- temperature devices are installed -->
+			<xsd:enumeration value="siren"/>         <!-- external sirens are installed -->
+			<xsd:enumeration value="display"/>       <!-- CPE has a screen (supports apps) -->
+			<xsd:enumeration value="alarm"/>         <!-- CPE supports alarms -->
+			<xsd:enumeration value="audio"/>         <!-- CPE supports sounds/audio -->
+            <xsd:enumeration value="scene"/>         <!-- CPE supports scenes -->
+			<xsd:enumeration value="cloud"/>         <!-- CPE supports cloud objects -->
+		</xsd:restriction>
+	</xsd:simpleType>	  
+	
+	<!-- type of parameter the action can accept -->
+	<xsd:simpleType name="parameterTypeEnum">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="cameraID"/>				<!-- single number -->
+			<xsd:enumeration value="sensorID"/>				<!-- supports ALL, a number, or comma separated list of numbers -->
+			<xsd:enumeration value="lightID"/>				<!-- supports ALL, a number, or comma separated list of numbers -->
+			<xsd:enumeration value="doorLockID"/>			<!-- supports ALL, a number, or comma separated list of numbers -->
+			<xsd:enumeration value="thermostatID"/>			<!-- supports ALL, a number, or comma separated list of numbers -->
+			<xsd:enumeration value="time"/>					<!-- single time, formated as DDD HH:MM (ex: MON 14:00) -->
+			<xsd:enumeration value="touchscreenStateEnum"/>	<!-- one of values from this enumeration -->
+			<xsd:enumeration value="armTypeEnum"/>	
+			<xsd:enumeration value="networkStateEnum"/>
+			<xsd:enumeration value="doorLockStateEnum"/>
+			<xsd:enumeration value="sensorStateEnum"/>
+			<xsd:enumeration value="sensorTypeEnum"/>
+			<xsd:enumeration value="message"/>				<!-- generic string value interpreted by implementing Object -->
+			<xsd:enumeration value="string"/>				<!-- string value -->
+		</xsd:restriction>
+	</xsd:simpleType>	  
+	
+	
+	<!-- ***************************************
+	  -
+	  -  Rule Elements & Types
+	  -
+	  -  *************************************** -->
+	  
+	<!-- 
+	  -  a single Rule Definition 
+	  -->
+	<xsd:complexType name="rule">
+        <xsd:sequence>
+            <xsd:choice>
+        
+                <!-- regular rule, triggers and actions -->
+                <xsd:sequence>
+    		
+                    <!-- Trigger definition (1 or more) -->
+                    <xsd:element name="triggerList" type="triggerList" minOccurs="1" maxOccurs="1"/>
+    			
+                    <!-- Action definition (1 or more) -->
+                    <xsd:element name="action" type="ruleAction" minOccurs="1" maxOccurs="unbounded"/>
+    			
+                </xsd:sequence>
+      
+                <!-- thermostat schedule rule -->
+                <xsd:sequence>
+            
+                    <!-- Define the times, temperature & mode (1 or more) -->
+                    <xsd:element name="scheduleEntry" type="scheduleSetpoint" minOccurs="1" maxOccurs="unbounded"/>
+                
+                </xsd:sequence>
+    
+            </xsd:choice>
+
+            <!-- Constraints (optional) -->
+            <xsd:element name="constraints" type="constraints" minOccurs="0" maxOccurs="1"/>
+        
+            <!-- Description of the Rule (optional) -->
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+
+        </xsd:sequence>
+		
+		<!-- the ID of the rule.  Should be a unique value -->
+		<xsd:attribute name="ruleID" type="xsd:long" use="required"/>
+		
+	</xsd:complexType>
+	<xsd:element name="rule" type="rule"/>
+ 
+	<!-- 
+	  - Define a list of triggers for a Rule and specify if ANY trigger or ALL triggers are required
+	  - (as well as if the lack of triggers is what causes the rule to execute)
+	  -->
+	<xsd:complexType name="triggerList">
+		<xsd:sequence>
+			
+			<!-- 
+			  -	definition of trigger 
+			  -->
+			<xsd:element ref="trigger" minOccurs="1" maxOccurs="unbounded"/>
+				
+		</xsd:sequence>
+		
+		<!-- decide if the Triggers are ANDed or ORd to consider the Rule for execution -->
+		<xsd:attribute name="logic" type="logicMechEnum" use="optional"/>
+		<xsd:attribute name="isNegative" type="xsd:boolean" default="false"/>
+		<xsd:attribute name="delay" type="xsd:long" use="optional"/>
+		
+	</xsd:complexType>
+	
+	<xsd:simpleType name="logicMechEnum">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="OR"/>
+			<xsd:enumeration value="AND"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<!-- 
+	  - Reference to an Action listed from the masterActionList.xml file
+	  -->
+	<xsd:complexType name="ruleAction">
+		<xsd:sequence>
+			
+			<!-- correlates to a valid actionID from the masterActionsList.xml file -->
+			<xsd:element name="actionID" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+			
+			<!-- 
+			  - list parameter values to pass to the Action when it's executed.
+			  - each required key should be supplied (as defined in the Action node)
+			  - also make note that the value should be of the correct type
+			  -->
+			<xsd:element name="parameter" type="parameter" minOccurs="0" maxOccurs="unbounded"/>
+	
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<!-- 
+	  - Define single input parameter to send to the Action at execution time
+	  -->
+	<xsd:complexType name="parameter">
+		<xsd:sequence>
+		
+			<!-- 
+			  - define the 'key' of the input parameter.  This should match a 'key' 
+			  - listed in the corresponding Action parameterDef section
+			  -->
+			<xsd:element name="key" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+			
+			<!-- 
+			  - the value to pass for 'key'.  The value's type should correlate 
+			  - to the parameterDef 'type' that is listed in the Action definition
+			  -->
+			<xsd:element name="value" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+			
+		</xsd:sequence>
+	</xsd:complexType>	
+	
+	
+	<!-- 
+	  - Constraints as nested expressions.
+	  -->
+	<xsd:complexType name="constraints">
+		<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+			<xsd:choice>
+			
+				<!-- embed a sub-expression (AND or OR) -->
+				<xsd:element name="and-expression" type="constraints" />
+				<xsd:element name="or-expression" type="constraints" />
+				
+				<!-- base on a time range -->
+				<xsd:element name="timeConstraint" type="timeConstraint"/>
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<!-- 
+	  - Time-based constraint for a range of time or specific time
+	  -->
+	<xsd:complexType name="timeConstraint">
+		<xsd:sequence>
+			<xsd:element name="start" type="timeSlot" minOccurs="1" maxOccurs="1"/>
+			<xsd:element name="end" type="timeSlot" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<!-- specific or calculated time definition -->
+	<xsd:complexType name="timeSlot">
+		<xsd:sequence>
+			<!-- 
+			  - formated as DDD[,DDD,DDD] HH:MM OR DDD[,DDD,DDD] <sunrise|sunset>
+			  - ex: MON 10:30,
+			  - ex: MON,TUE,WED 10:30
+			  - ex: MON sunrise
+			  - ex: MON,TUE,WED sunset
+			  -->
+			<xsd:element name="exactTime" type="xsd:string" minOccurs="1" maxOccurs="1"/>	
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<!-- calculated times 
+	<xsd:simpleType name="calculatedTimeEnum">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="sunrise"/>
+            <xsd:enumeration value="sunset"/>
+        </xsd:restriction>
+	</xsd:simpleType>
+	-->
+	
+	<!-- ***************************************
+	  -
+	  -  Thermostat Scheduling Rule 
+	  -
+	  -  *************************************** -->
+	  
+    <xsd:simpleType name="thermostatScheduleMode">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="heat"/>
+            <xsd:enumeration value="cool"/>
+            <xsd:enumeration value="heatAndCool"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+   
+    <!-- 
+      - Single entry within a Thermostat Schedule.  For example:
+      -   Mon 7:00 AM - cool at 76 degrees
+      -
+      - Has an 'optional' attribute to restrict this to a single thermostat.  
+      - If not present, assumes this gets applied to all thermostats
+      -->
+    <xsd:complexType name="scheduleSetpoint">
+        <xsd:sequence>
+            <!-- when to apply the mode & temperature -->
+            <xsd:element name="timeSlot" type="timeSlot" minOccurs="1" maxOccurs="1"/>
+            
+            <!-- heat, cool, or heatAndCool -->
+            <xsd:element name="mode" type="thermostatScheduleMode" minOccurs="1" maxOccurs="1"/>
+            
+            <!-- temperature to set to.  Like other Thermostat Actions, should be degrees in celcius -->
+            <xsd:element name="temperature" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        
+        <!-- 
+          - The specific thermostatID to apply this for.  If not present, assumed the schedule applies to all thermostats.
+          - The value can be a comma separated list of thermostatID values
+          -->
+        <xsd:attribute name="thermostatID" type="xsd:string" use="optional"/>
+        
+    </xsd:complexType>
+
+</xsd:schema>

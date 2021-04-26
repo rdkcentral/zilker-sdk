@@ -1,0 +1,40 @@
+##
+## template file for generating Event headers
+## created by combining many of the other
+## Event_ templates together
+##
+
+/**
+ * Event definitions for ${service} service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+
+#ifndef ${c_header_ifdef}
+#define ${c_header_ifdef}
+
+#include <time.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <cjson/cJSON.h>
+#include <icTypes/icLinkedList.h>
+#include <icTypes/icHashMap.h>
+#include <icIpc/baseEvent.h>
+${c_include_sec}
+
+// port number of service to listen for event broadcasts on
+//
+#define ${server_port_name}_PORT_NUM ${server_port_num}
+
+## 
+## all type definitions (enum, pojo)
+##
+${c_type_defs}
+
+## 
+## all function prototypes (pojo encode/decode)
+##
+${c_function_decs}
+
+#endif /* ${c_header_ifdef} */ 
+

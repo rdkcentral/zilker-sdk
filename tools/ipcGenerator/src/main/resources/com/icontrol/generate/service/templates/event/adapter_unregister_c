@@ -1,0 +1,34 @@
+##
+## template file for EventAdapter header-file 
+## used to generate the listener function declarations 
+##
+
+static void ${event_classname}_listRemoveFunc(void *item, void *context)
+{
+    icLinkedList *list = (icLinkedList *)item;
+    linkedListDelete(list, context, findListener, standardDoNotFreeFunc);
+#ifdef DEBUG_IPC_DEEP
+    icLogDebug("${service}_event", "removed '${event_classname}' listener, count=%d", linkedListCount(list));
+#endif
+}
+
+/*
+ * cancel receive ${event_classname} events.
+ */
+void unregister_${event_classname}_eventListener(handleEvent_${event_classname} listener)
+{
+    // remove this 'listener' from our notification set
+    //
+    threadSafeWrapperEnqueueModification(&${event_classname}_listWrapper, ${event_classname}_listRemoveFunc, listener, doNotDestroyListenerFunc, NULL);
+
+    // Check if we need to cleanup the overall event listener
+    pthread_mutex_lock(&INIT_MTX);
+    --registeredCount;
+    if (registered && registeredCount == 0)
+    {
+        stopEventListener(${server_port_name}_PORT_NUM);
+        registered = false;
+    }
+    pthread_mutex_unlock(&INIT_MTX);
+}
+

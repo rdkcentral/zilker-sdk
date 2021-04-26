@@ -1,0 +1,24 @@
+Source: Comcast
+
+diff --git a/machines.c b/machines.c
+index 95ac985..2bf4e97 100644
+--- a/machines.c
++++ b/machines.c
+@@ -65,7 +65,7 @@ static duk_ret_t providerer(duk_context *dctx) {
+   return 1;
+ }
+ 
+-char * strdup(const char *s) {
++char * strclone(const char *s) {
+   size_t n;
+   char *acc;
+ 
+@@ -110,7 +110,7 @@ static duk_ret_t sandbox(duk_context *ctx) {
+   duk_ret_t rc = duk_peval(box);
+   /* If we ran into an error, it's on the stack. */
+   const char *result = duk_safe_to_string(box, -1);
+-  result = strdup(result);
++  result = strclone(result);
+   if (rc != DUK_EXEC_SUCCESS) {
+     fprintf(stderr, "warning: sandbox returned non-zero rc=%d result=%s code:\n%s\n", rc, result, src);
+   }

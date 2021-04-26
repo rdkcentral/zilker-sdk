@@ -1,0 +1,11 @@
+##
+## template file for Event header-file function declarations
+##
+
+/*
+ * event encode/decode function declarations
+ */
+
+${c_function_decs}
+
+

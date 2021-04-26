@@ -1,0 +1,23 @@
+##
+## template for a single POJO "clone" function prototype
+##
+
+    //--------------------------------------------
+    /**
+     * create clone of ${java_class}
+     */
+    //--------------------------------------------
+    public ${java_class} deepClone()
+    {
+        try
+        {
+            JSONObject data = toJSON();
+	        ${java_class} copy = new ${java_class}();
+            copy.fromJSON(data);
+            return copy;
+        }
+        catch (JSONException oops)
+        {
+            throw new RuntimeException("Error cloning ${java_class}", oops);
+        }
+    }

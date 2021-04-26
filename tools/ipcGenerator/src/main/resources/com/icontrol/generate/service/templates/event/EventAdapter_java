@@ -1,0 +1,172 @@
+
+package ${java_pkg};
+
+//-----------
+//imports
+//-----------
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import com.icontrol.event.BaseEventListener;
+import com.icontrol.event.JavaEvent;
+import com.icontrol.event.adapter.BaseJavaEventAdapter;
+import com.icontrol.ipc.impl.*;
+import org.json.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+//-----------------------------------------------------------------------------
+// Class definition:    ${java_class}Adapter
+/**
+ *  Singleton Adapter specific to reading ${java_class} Java events
+ *  See BaseEventAdapter for details on using this Class
+ *
+ *  NOTE: This is an auto-generated file.  DO NOT EDIT!!!!
+ **/
+//-----------------------------------------------------------------------------
+public class ${java_class}Adapter extends BaseJavaEventAdapter
+{
+    // only keep one instance of this Adapter
+    //
+    private static ${java_class}Adapter onlyInstance;
+    private static Logger log = LoggerFactory.getLogger("${java_class}Adapter");
+    
+    //--------------------------------------------
+    /**
+     * Return the only instance of this Adapter
+     */
+    //--------------------------------------------
+    public static ${java_class}Adapter getInstance()
+    {
+        synchronized(${java_class}Adapter.class)
+        {
+            if (onlyInstance == null)
+            {
+                try
+                {
+                    onlyInstance = new ${java_class}Adapter();
+                }
+                catch (IOException ex)
+                {
+                    log.error(ex.getMessage(), ex);
+                }
+            }
+            return onlyInstance;
+        }
+    }
+    
+    //--------------------------------------------
+    /**
+     * Constructor for this class
+     */
+    //--------------------------------------------
+    private ${java_class}Adapter() throws IOException
+    {
+        super(${event_codes_interface}.${service_upper}_EVENT_PORT_NUM);
+    }
+
+    //--------------------------------------------
+    /**
+     * Register a listener for ${java_class}s
+     */
+    //--------------------------------------------
+    public void add${java_class}Listener(${java_class}Listener listener)
+    {
+        // put in super's list
+        //
+        super.addBaseEventListener(listener);
+    }
+    
+    //--------------------------------------------
+    /**
+     * @see com.icontrol.event.adapter.BaseJavaEventAdapter#getLog()
+     */
+    //--------------------------------------------
+    @Override
+    protected Logger getLog()
+    {
+        return log;
+    }
+
+    //--------------------------------------------
+    /**
+     * @see com.icontrol.event.adapter.BaseJavaEventAdapter#supportsEvent(int, int)
+     */
+    //--------------------------------------------
+    @Override
+    public boolean supportsEvent(int eventCode, int eventValue)
+    {
+        boolean rc = false;
+${support_java_event}
+        return rc;
+    }
+
+    //--------------------------------------------
+    /**
+     * @see com.icontrol.event.adapter.BaseJavaEventAdapter#decodeEvent(int, int, JSONObject)
+     */
+    //--------------------------------------------
+    @Override
+    protected JavaEvent decodeEvent(int eventCode, int eventValue, JSONObject payload)
+    {
+        // look at the code to ensure this is a real event
+        //
+        if (eventCode == 0 && eventValue == 0)
+        {
+            // bogus
+            return null;
+        }
+
+        try
+        {
+            // determine which Event object to decode with
+            //
+            ObjectIPC event = null;
+${decode_java_event}
+
+            // if we found a matching Event for the Code, decode from JSON and return 
+            //
+            if (event != null)
+            {
+                // have the event object populate itself from the JSON contents
+                //
+                event.fromJSON(payload);
+                return (JavaEvent)event;
+            }
+        }
+        catch (JSONException ex)
+        {
+            // error decoding the object
+            //
+            log.error(ex.getMessage(), ex);
+        }
+
+//        log.warn("unable to decode event code="+eventCode+" value="+eventValue);
+        return null;
+    }
+    
+    //--------------------------------------------
+    /**
+     * @see com.icontrol.event.adapter.BaseJavaEventAdapter#notifyListener(com.icontrol.event.BaseEventListener, com.icontrol.event.JavaEvent)
+     */
+    //--------------------------------------------
+    @Override
+    protected void notifyListener(BaseEventListener listener, JavaEvent event)
+    {
+        // send notification
+        //
+        if (event instanceof ${java_class})
+        {
+            ${java_class}Listener target = (${java_class}Listener)listener;
+            target.handle${java_class}((${java_class})event);
+        }
+        else
+        {
+            log.warn("event "+event+" does not match any listeners, unable to deliver");
+        }
+    }
+}
+
+//+++++++++++
+//EOF
+//+++++++++++

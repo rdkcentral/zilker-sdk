@@ -1,0 +1,17 @@
+#
+# list of active services and their port numbers
+#
+
+service               ipc    event    event-code range (inclusive)
+--------------------  -----  -------  -----------------
+automationService     1590   13630    400 -
+backupService         1480   19045    210
+commService           1400   19055    120 - 125
+deviceService         1600   19600    300 - 350
+mediaService          2000   13620    351 - 361
+propsService          1610   13512    115
+watchdogService       1580   13610    100 - 102
+pkiService            1800   19800    661 - 669
+cron                  ----   19099    500
+
+

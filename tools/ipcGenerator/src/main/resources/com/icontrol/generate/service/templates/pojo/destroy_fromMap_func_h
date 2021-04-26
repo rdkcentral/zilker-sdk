@@ -1,0 +1,10 @@
+##
+## template for a single POJO "destroy" function prototype
+## when being removed from an icHashMap
+##
+
+/*
+ * 'hashMapFreeFunc' implementation for ${pojo_c_varname}
+ * assumes the 'key' will be release via standard free()
+ */
+extern void destroy_${pojo_c_varname}_fromMap(void *key, void *value);

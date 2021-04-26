@@ -1,0 +1,115 @@
+/*
+ * Copyright 2021 Comcast Cable Communications Management, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*----------------------------------------------------
+ *
+ * build the 'IPC Code Generator Utility'
+ *
+ *----------------------------------------------------*/
+// load Java and XMLBeans build tools
+plugins {
+    id "java"
+    id "maven-publish"
+}
+
+description = 'IPC Code Generator Utility'
+group = 'com.comcast'
+version = ipcGeneratorVersion
+
+// define a custom config (xmlbeans) for our "ant task definition"
+configurations {
+    xmlbeans
+  	compile {
+   		extendsFrom xmlbeans
+    }
+}
+
+repositories {
+    // standard
+    jcenter()
+    mavenCentral()
+}
+
+// define module dependencies
+dependencies {
+    compile project(path: ':utilLib')
+    compile project(path: ':ipcLib')
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile "org.slf4j:slf4j-simple:${slf4jVersion}"
+    compile "org.json:json:${jsonVersion}"
+    compile 'org.apache.xmlbeans:xmlbeans:2.5.0'
+    compile 'org.freemarker:freemarker:2.3.28'
+    xmlbeans 'org.apache.xmlbeans:xmlbeans:2.5.0'
+    xmlbeans "stax:stax-api:1.0"
+}
+
+// custom task to use "ant" to load and execute "xmlbeans"
+// this uses the .xsd and .xsdconfig files to produce generated
+// code from those definitions
+//
+task compileBeans() {
+    
+    inputs.file("src/main/xsd/service.xsd")
+    outputs.dirs("${buildDir}/generated-src/xmlbeans", "${buildDir}/generated-classes/xmlbeans")
+
+    doLast {
+        // create the 'ant' task for XMLBeans
+        ant.taskdef(name: 'xmlbean', classname: 'org.apache.xmlbeans.impl.tool.XMLBean', classpath: configurations.xmlbeans.asPath)
+
+        // run the ant task
+        ant.xmlbean(schema: 'src/main/xsd/service.xsd',
+                classpath: configurations.xmlbeans.asPath,
+                // Make sure we only compile things once to save time
+                srconly: true,
+                // Despite saying srconly, there are some generated internal class stuff that is required
+                classgendir: "${buildDir}/generated-classes/xmlbeans",
+                srcgendir: "${buildDir}/generated-src/xmlbeans",
+                javasource: "1.5",
+                memoryInitialSize: '50m', memoryMaximumSize: '512m') {
+            fileset(dir: 'src/main/xsd') {
+                include(name: '*.xsd*')
+            }
+        }
+    }
+}
+
+// make our local java code depend on the generated XMLBean code
+compileJava.dependsOn compileBeans
+
+// add generated XMLBean source into our list of dirs to compile
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', "${buildDir}/generated-src/xmlbeans"]
+        }
+    }
+}
+
+// customize the output jar to have a main class
+// (allows 'java -jar ....' to work)
+jar {
+    from "${buildDir}/generated-classes/xmlbeans"
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    manifest {
+        attributes 'Main-Class': 'com.icontrol.generate.service.Main'
+    }
+}
+
+

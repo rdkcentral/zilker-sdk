@@ -1,0 +1,37 @@
+##
+## template file for generating POJO headers
+## created by combining many of the other
+## Pojo_ templates together
+##
+
+/**
+ * IPC Message definitions (client-side) for ${service} Service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+
+#ifndef ${c_header_ifdef}
+#define ${c_header_ifdef}
+
+#include <time.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <cjson/cJSON.h>
+#include <icTypes/icLinkedList.h>
+#include <icTypes/icHashMap.h>
+#include <icIpc/ipcMessage.h>
+#include <icIpc/ipcSender.h>
+${c_include_sec}
+
+## 
+## all type definitions (enum, pojo)
+##
+${c_type_defs}
+
+## 
+## all function prototypes 
+##
+${c_function_decs}
+
+#endif /* ${c_header_ifdef} */ 
+

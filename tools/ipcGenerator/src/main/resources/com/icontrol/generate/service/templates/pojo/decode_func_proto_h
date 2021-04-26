@@ -1,0 +1,8 @@
+##
+## template for a single POJO "decode" function prototype
+##
+
+/*
+ * 'decode from JSON' function for ${pojo_c_varname}
+ */
+extern int decode_${pojo_c_varname}_fromJSON(${pojo_classname} *pojo, cJSON *buffer);

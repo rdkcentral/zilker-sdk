@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!-- 
+  - 
+  - Schema to dictate how to construct various 'types'.  Used by both
+  - events.xsd and ipc.xsd in an attempt to have conformity between the
+  - two constructs.  Used to produce both Java and C code that can 
+  - marshal/un-marshal to/from JSON.
+  - 
+  -->
+<xsd:schema 
+    targetNamespace="http://icontrol.com/service/v1.0" 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns="http://icontrol.com/service/v1.0"
+    elementFormDefault="qualified">
+    
+    <!-- define a Scope type (Java, C, or Both) -->
+    <xsd:simpleType name="scope">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="JAVA"/>
+            <xsd:enumeration value="C"/>
+            <xsd:enumeration value="BOTH"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <!--  
+      - wrapper for our code generation hints and locations
+      -->
+    <xsd:complexType name="pragma">
+        <xsd:sequence>
+            <xsd:element name="native" type="pragma_native" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="java"   type="pragma_java"   minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- native directory information -->
+    <xsd:complexType name="pragma_native">
+        <xsd:sequence>
+            <!-- location of POJO, Enum, Event, and IPC headers -->
+            <xsd:element name="apiHeaderDir"    type="xsd:string" minOccurs="0" maxOccurs="1"/>
+
+            <!-- location of POJO, Enum, and Event, EventAdapter code -->
+            <xsd:element name="apiSrcDir"       type="xsd:string" minOccurs="0" maxOccurs="1"/>
+
+            <!-- location of IPC (service handler) code -->
+            <xsd:element name="ipcHandlerSrcDir" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+
+            <!-- Configuration enablement flag for the service-->
+            <xsd:element name="configFlag"       type="xsd:string" minOccurs="0" maxOccurs="1"/>
+
+            <xsd:element name="include"         type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="freeform"        type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- java directory information -->
+    <xsd:complexType name="pragma_java">
+        <xsd:sequence>
+            <xsd:element name="serviceDir" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="servicePkg" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="apiDir"     type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="apiPkg"     type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="eventDir"   type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="eventPkg"   type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="freeform"   type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <!-- **************************************************************************** -
+      -  **************************************************************************** -
+      -                                                                               -
+      -  Data-Type Elements                                                                 -
+      -                                                                               -
+      -  **************************************************************************** -
+      -  **************************************************************************** -->
+
+    <!-- 
+      - Define the abstract "variable" that can be added to an Event or IPC input/output object
+      -->    
+    <xsd:complexType name="baseVariable" abstract="true">
+    
+        <!-- the name of the variable -->
+        <xsd:attribute name="varName" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The variable name to use when generating the code
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        
+        <!-- optional description of this variable -->
+        <xsd:attribute name="varDescription" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The comment to add as part of the generated code
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+
+        <!-- optional "sensitive" flag for the variable -->
+        <xsd:attribute name="sensitive" type="xsd:boolean" default="false">
+            <xsd:annotation>
+                <xsd:documentation>
+                    If 'true', suppress from logging the contents of the variable in the generated toString() method
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        
+    </xsd:complexType>
+    
+    <!-- 
+      - numeric variable and supporting types
+      -->
+    <xsd:simpleType name="numType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="short"/>        <!-- int16 or uint16 -->
+            <xsd:enumeration value="int"/>          <!-- int32 or uint32 -->
+            <xsd:enumeration value="long"/>         <!-- int64 or uint64 -->
+            <xsd:enumeration value="float"/>
+            <xsd:enumeration value="double"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:complexType name="numVariable">
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+            
+                <!-- the kind of numeric type to place on this variable -->
+                <xsd:attribute name="kind" type="numType" use="required"/>
+                
+                <!-- if the value is signed or unsigned -->
+                <xsd:attribute name="nativeSigned" type="xsd:boolean" default="true">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            If the numeric value is signed or unsigned.  Default is signed. (only used when generating C code)
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <!-- 
+      - date variable
+      -->
+    <xsd:complexType name="dateVariable">
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <!-- 
+      - string variable 
+      -->
+    <xsd:complexType name="stringVariable">
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <!-- 
+      - boolean variable 
+      -->
+    <xsd:complexType name="boolVariable">
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!--
+      - json variable
+      -->
+    <xsd:complexType name="jsonVariable">
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <!-- 
+      - enumeration variable.  Requires an accompanying enumDefinition
+      -->
+    <xsd:complexType name="enumVariable">
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+            
+                <!-- list each possible value for the enumeration -->
+                <xsd:attribute name="enumTypeName" type="xsd:string" use="required">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The name of the enumDefinition that is previously declared
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+      
+    <!-- 
+      - define an enumeration (for code generation)
+      -->
+    <xsd:complexType name="enumValue">
+        <xsd:attribute name="value" type="xsd:string" use="required"/>
+        <xsd:attribute name="numeric" type="xsd:int" use="optional"/>
+        <xsd:attribute name="shortName" type="xsd:string" use="optional"/>
+        <xsd:attribute name="description" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="enumDefinition">
+            
+        <!-- list each possible value for the enumeration -->
+        <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+            <xsd:element name="value" type="enumValue"/>
+        </xsd:sequence>
+        
+        <!-- the name of this enumeration -->
+        <xsd:attribute name="enumTypeName" type="xsd:string" use="required"/>
+        
+        <!-- optional description of this enumeration -->
+        <xsd:attribute name="description" type="xsd:string"/>
+
+        <!-- for native code, generate a "Labels" array for debug printing -->
+        <xsd:attribute name="createNativeLabels" type="xsd:boolean" default="true"/>
+
+        <xsd:attribute name="createShortLabels" type="xsd:boolean" default="false"/>
+
+        <!-- -->
+        <xsd:attribute name="nativeDefExists" type="xsd:boolean" default="false">
+            <xsd:annotation>
+                <xsd:documentation>
+                    If true, assume that this 'struct' is defined somewhere else when generating Native Code.
+                    For example, something may already exist in alarmEvent.h that we don't need to generate
+                    (and eliminate duplicate struct errors)
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+                
+    </xsd:complexType>
+    
+    <!-- array of similar elements (i.e. array of strings, int, etc) -->
+    <xsd:complexType name="arrayVariable">
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+                <xsd:sequence minOccurs="1" maxOccurs="1">
+                    <xsd:choice>
+                        <xsd:element ref="numVariable"/>
+                        <xsd:element ref="dateVariable"/>
+                        <xsd:element ref="boolVariable"/>
+                        <xsd:element ref="stringVariable"/>
+                        <xsd:element ref="mapVariable"/>
+                        <xsd:element ref="enumVariable"/>
+                        
+                        <!-- can be a custom object (must be defined) -->
+                        <xsd:element name="customRef" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Name of the customObject 'name' to use for this message parameter
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+            
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <!-- map of similar elements, using a String as the Key -->
+    <xsd:complexType name="mapVariable">
+        <xsd:annotation>
+            <xsd:documentation>
+                Define a simple Map to transport key/value pairs.  The 'key' MUST be a string,
+                and the 'value' must be one of the types natively support or defined in the file
+                (ex: int, string, myPojo)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+                <!-- 
+                  - need to define all of the possible values this map can hold 
+                  - by listing each, the generator can take be more efficient
+                  -->
+               <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                    <xsd:choice>
+                        <xsd:element ref="dateVariable"/>
+                        <xsd:element ref="boolVariable"/>
+                        <xsd:element ref="stringVariable"/>
+                        <xsd:element ref="numVariable"/>
+                        <xsd:element ref="enumVariable"/>
+                        <!--  <xsd:element ref="mapRef"/> -->
+                        
+                        <!-- can be a custom object (must be defined) -->
+                        <xsd:element name="customRef" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Name of the customObject 'name' to use inside the map
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!-- collection of 'variable' definitions to compose a custom object -->
+    <xsd:complexType name="customObject">
+        <xsd:complexContent>
+            <xsd:extension base="baseVariable">
+                <xsd:sequence>
+                    <xsd:element name="freeform" type="xsd:string"    minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <xsd:element ref="numVariable"/>
+                        <xsd:element ref="dateVariable"/>
+                        <xsd:element ref="boolVariable"/>
+                        <xsd:element ref="stringVariable"/>
+                        <xsd:element ref="jsonVariable"/>
+                        <xsd:element ref="enumVariable"/>
+                        <xsd:element ref="arrayVariable"/>
+                        <xsd:element ref="mapVariable"/>
+                        <xsd:element name="customRef">
+                            <xsd:complexType>
+                                <xsd:attribute name="customObj" type="xsd:string" use="required"/>
+                                <xsd:attribute name="localName" type="xsd:string" use="optional"/>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="additionalInterface" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:choice>
+                </xsd:sequence>
+                
+                <xsd:attribute name="parentClass" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            If defined, uses this class as the Super (of the generated code) instead of BaseEvent
+                            NOTE: only applicable for Java code generation
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="parentAbstract" type="xsd:boolean" default="true">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Dictates if 'parentClass' is abstract.  Assumed to be true
+                            NOTE: only applicable for Java code generation
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="cloneable" type="xsd:boolean" default="true">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            If set, code generator will create a 'deepClone' implementation for this object
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    
+    <!-- place variable subclasses into the substitution group -->
+    <xsd:element name="baseVariable"   type="baseVariable" abstract="true"/>
+    <xsd:element name="numVariable"    type="numVariable"    substitutionGroup="baseVariable"/>
+    <xsd:element name="dateVariable"   type="dateVariable"   substitutionGroup="baseVariable"/>
+    <xsd:element name="stringVariable" type="stringVariable" substitutionGroup="baseVariable"/>
+    <xsd:element name="jsonVariable"   type="jsonVariable"   substitutionGroup="baseVariable"/>
+    <xsd:element name="enumVariable"   type="enumVariable"   substitutionGroup="baseVariable"/>
+    <xsd:element name="boolVariable"   type="boolVariable"   substitutionGroup="baseVariable"/>
+    <xsd:element name="arrayVariable"  type="arrayVariable"  substitutionGroup="baseVariable"/>
+    <xsd:element name="mapVariable"    type="mapVariable"    substitutionGroup="baseVariable"/>
+    <xsd:element name="customObject"   type="customObject"   substitutionGroup="baseVariable"/>
+
+    
+    
+    <!-- **************************************************************************** -
+      -  **************************************************************************** -
+      -                                                                               -
+      -  IPC Elements                                                                 -
+      -                                                                               -
+      -  **************************************************************************** -
+      -  **************************************************************************** -->
+    
+    <!-- 
+      - Base definition of a Message (including input/output objects)
+      -->
+    
+    <!-- 
+      - input or output definitions for a message 
+      - NOTE: this has to be a number, string, date, boolean, or custom object
+      -->
+    <xsd:complexType name="messageParm">
+        <xsd:choice>
+        
+            <!-- can be a primitive type -->
+            <xsd:element name="number" type="numVariable"/>
+            <xsd:element name="date"   type="dateVariable"/>
+            <xsd:element name="bool"   type="boolVariable"/>
+            
+            <!-- can be a string type -->
+            <xsd:element name="string" type="stringVariable"/>
+
+            <!-- can be a json type -->
+            <xsd:element name="json" type="jsonVariable"/>
+
+            <!-- can be a custom object defined above -->
+            <xsd:element name="customRef" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the customObject 'varName' to use for this message parameter
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            
+        </xsd:choice>
+    </xsd:complexType>
+
+    <!-- definition of a request that can be asked of the service -->
+    <xsd:complexType name="message">
+        <xsd:annotation>
+            <xsd:documentation>
+                A request that can be asked of the Service.  Defines the name, code, and input/output parameters.
+                Note that 'id' and 'name' must be unique within this IPC definition.
+            </xsd:documentation>
+        </xsd:annotation>
+        
+        <xsd:sequence>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="freeform" type="xsd:string"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="input"  type="messageParm"     minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="output" type="messageParm"     minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        
+        <xsd:attribute name="id"       type="xsd:int"       use="required"/>
+        <xsd:attribute name="name"     type="xsd:string"    use="required"/>
+        <xsd:attribute name="generate" type="scope"         use="required"/>
+        <xsd:attribute name="readTimeout" type="xsd:int"    default="10"/>
+        
+    </xsd:complexType>
+
+    <!-- 
+      - Collection of messages to comprise the definition of the messages
+      -->
+    <xsd:complexType name="ipc">
+        <xsd:annotation>
+            <xsd:documentation>
+                Define the messages the service is exposing via an API
+            </xsd:documentation>
+        </xsd:annotation>
+        
+        <xsd:sequence>
+            <xsd:element name="message" type="message" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        
+    </xsd:complexType>
+    
+    
+    <!-- **************************************************************************** -
+      -  **************************************************************************** -
+      -                                                                               -
+      -  Event Elements                                                                 -
+      -                                                                               -
+      -  **************************************************************************** -
+      -  **************************************************************************** -->
+    
+    <!-- 
+      - A series of events all within a single grouping (ex: alarm)
+      -->
+    <xsd:complexType name="eventList">
+    
+        <!-- list each enumeration type, event definition, and possible event codes -->
+        <xsd:sequence>
+            <xsd:element name="define"  type="eventCode"  minOccurs="0" maxOccurs="unbounded"/>      <!-- optional set of #define values -->
+            <xsd:element name="event"   type="event"      minOccurs="0" maxOccurs="unbounded"/>      <!-- 1 or more event structures -->
+            <xsd:element name="code"    type="eventCode"  minOccurs="0" maxOccurs="unbounded"/>      <!-- optional set of event codes/pulses -->
+        </xsd:sequence>
+        
+       <xsd:attribute name="packageName" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The Java package name to use (allow overloading calculated value)
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        
+        <xsd:attribute name="generate" type="scope" default="BOTH"/>
+        
+    </xsd:complexType>
+    
+    <!-- 
+      - Define a single event.  It can have 1 or more variables.
+      -->
+    <xsd:complexType name="event">
+        <xsd:complexContent>
+            <xsd:extension base="customObject">
+                <xsd:sequence>
+        
+                    <!-- define the set of event codes this is applied to -->
+                    <xsd:element name="eventCode" type="xsd:string" minOccurs="1" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Define the event codes.  Note that these should be as unique as possible so that
+                                portions of the system can use these to identify the actual event.  See BaseOverlayEvent
+                                for an example of this being used.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                     </xsd:element>
+            
+                    <!-- optionally define the C function to register against 
+                    <xsd:element name="registerFunction" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                      -->
+            
+                    <!-- additional interfaces the Java Event object implements.  Hopefully all getters/setters meet the interface needs -->
+                    <xsd:element name="additionalInterface" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            
+                </xsd:sequence>
+                
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <!-- 
+      - Define an Event Code.  These are historically defined in C headers, 
+      - but are necessary for bridging C and Java together.
+      -->
+    <xsd:complexType name="eventCode">
+    
+        <!-- define the name of the event code -->
+        <xsd:attribute name="name" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The name of the event code that is visible (ex: ALARM_EVENT_PANIC).
+                    These are generally defined with underscores and capital letters.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        
+        <!-- the numeric value for the code -->
+        <xsd:attribute name="value" type="xsd:int" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The numerical value of the event code.  If the value is -1, it will
+                    take on the value from the previous code definition + 1.  If -99, it
+                    will take on the value of the previous definition as-is.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        
+        <!-- optional description of this enumeration -->
+        <xsd:attribute name="description" type="xsd:string"/>
+        
+    </xsd:complexType>
+    
+    <!-- 
+      - Bring it all together.  Should be the root element of the XML doc
+      -->
+    <xsd:complexType name="service">
+        
+        <xsd:sequence>
+            <xsd:element name="pragma"    type="pragma"    minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="typedef"   type="enumDefinition" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="pojo"      type="customObject"   minOccurs="0" maxOccurs="unbounded"/>
+
+            <xsd:element name="eventList" type="eventList" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="ipc"       type="ipc"       minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="eventPort" type="xsd:int"    use="required"/>
+        <xsd:attribute name="ipcPort"   type="xsd:int"    use="required"/>
+        
+    </xsd:complexType>
+    <xsd:element name="service" type="service"/>
+    
+</xsd:schema>

@@ -1,0 +1,22 @@
+##
+## template for a single POJO "destroy" function prototype
+## specific to ArrayVar
+##
+
+/*
+ * 'destroy' function for ${pojo_c_varname}
+ */
+void destroy_${pojo_c_varname}(${pojo_classname} *pojo)
+{
+    if (pojo == NULL)
+    {
+        return;
+    }
+
+    // destroy dynamic data-structures (arrays & maps)
+${pojo_dynamic_destroys}
+
+    // now the wrapper
+    pojo_free((Pojo *) pojo);
+    free(pojo);
+}

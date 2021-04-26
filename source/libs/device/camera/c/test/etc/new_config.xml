@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<ConfigFile version="1.0">
+  <ConfigTimers version="1.0">
+    <MediaTunnelReadyTimers>
+      <maxMediaTunnelReadyWait>60000</maxMediaTunnelReadyWait>
+      <minWait>0</minWait>
+      <maxWait>5000</maxWait>
+      <stepsizeWait>500</stepsizeWait>
+      <retries>10</retries>
+    </MediaTunnelReadyTimers>
+    <MediaUploadTimers>
+      <minWait>1000</minWait>
+      <maxWait>5000</maxWait>
+      <stepsizeWait>500</stepsizeWait>
+      <retries>10</retries>
+      <UploadTimeout>1800000</UploadTimeout>
+    </MediaUploadTimers>
+  </ConfigTimers>
+  <DeviceInfo version="1.0">
+    <deviceName>iCamera20D2A2E</deviceName>
+    <deviceID>1011d68a-1dd2-11b2-a105-e060660d2a2e</deviceID>
+    <manufacturer>iControl</manufacturer>
+    <model>iCamera2</model>
+    <serialNumber>1602AXN048885</serialNumber>
+    <macAddress>e0:60:66:0d:2a:2e</macAddress>
+    <firmwareVersion>3.0.01.39</firmwareVersion>
+    <firmwareReleasedDate>Jun 17,2016</firmwareReleasedDate>
+    <bootVersion>1.08</bootVersion>
+    <bootReleasedDate>Jun 17,2016</bootReleasedDate>
+    <rescueVersion>3.0.01.39</rescueVersion>
+    <hardwareVersion>1</hardwareVersion>
+    <apiVersion>3.3</apiVersion>
+  </DeviceInfo>
+  <Time version="1.0">
+    <timeMode>NTP</timeMode>
+    <localTime>2017-05-08T07:51:01</localTime>
+    <timeZone>PST8PDT,M3.2.0,M11.1.0</timeZone>
+  </Time>
+  <NTPServerList version="1.0">
+    <NTPServer version="1.0">
+      <id>0</id>
+      <addressingFormatType>hostname</addressingFormatType>
+      <hostName>pulsar.icontrol.com</hostName>
+    </NTPServer>
+  </NTPServerList>
+  <LoggingConfig version="1.0">
+    <LogTrigger>
+      <severity>Notice</severity>
+    </LogTrigger>
+    <LocalLog>
+      <maxEntries>0</maxEntries>
+    </LocalLog>
+    <remoteLog>
+      <xmpp>
+        <enabled>false</enabled>
+        <url/>
+      </xmpp>
+      <https>
+        <enabled>false</enabled>
+        <url/>
+      </https>
+      <poll>
+        <enabled>false</enabled>
+        <url/>
+      </poll>
+    </remoteLog>
+  </LoggingConfig>
+  <HostServer version="1.0">
+    <https>
+      <enabled>true</enabled>
+      <port>443</port>
+      <validateCerts>false</validateCerts>
+    </https>
+    <http>
+      <enabled>false</enabled>
+      <port>80</port>
+    </http>
+    <poll>
+      <enabled>true</enabled>
+      <defaultLinger>10</defaultLinger>
+    </poll>
+  </HostServer>
+  <HistoryConfiguration version="1.0">
+    <commandHistorySize>10</commandHistorySize>
+    <notificationHistorySize>10</notificationHistorySize>
+  </HistoryConfiguration>
+  <NetworkInterfaceList version="1.0">
+    <NetworkInterface version="1.0">
+      <id>0</id>
+      <enabled>true</enabled>
+      <IPAddress version="1.0">
+        <ipVersion>v4</ipVersion>
+        <addressingType>dynamic</addressingType>
+        <ipAddress>172.16.12.7</ipAddress>
+        <subnetMask>255.255.255.0</subnetMask>
+        <DefaultGateway>
+          <ipAddress>172.16.12.1</ipAddress>
+        </DefaultGateway>
+        <PrimaryDNS>
+          <ipAddress>172.16.12.1</ipAddress>
+        </PrimaryDNS>
+      </IPAddress>
+      <Wireless version="1.0">
+        <enabled>true</enabled>
+        <wirelessNetworkMode>infrastructure</wirelessNetworkMode>
+        <profile>
+          <channel>auto</channel>
+          <ssid>icontrolinstall</ssid>
+          <wmmEnabled>true</wmmEnabled>
+          <WirelessSecurity>
+            <securityMode>WPA/WPA2-personal</securityMode>
+            <WPA>
+              <algorithmType>TKIP/AES</algorithmType>
+              <sharedKey>kl'$klzsjo8fsvmsDDJ38#E(ILmxvlkjxleri#Rsferf|qd~#@$lkmsvd#QWRA(</sharedKey>
+            </WPA>
+          </WirelessSecurity>
+        </profile>
+        <statusRefreshInterval>0</statusRefreshInterval>
+        <AggressiveRoaming>
+          <enabled>true</enabled>
+        </AggressiveRoaming>
+      </Wireless>
+      <Discovery version="1.0">
+        <UPnP>
+          <enabled>true</enabled>
+        </UPnP>
+      </Discovery>
+    </NetworkInterface>
+  </NetworkInterfaceList>
+  <AudioChannelList version="1.0">
+    <AudioChannel version="1.0">
+      <id>0</id>
+      <enabled>false</enabled>
+      <audioMode>listenonly</audioMode>
+      <microphoneEnabled>false</microphoneEnabled>
+    </AudioChannel>
+  </AudioChannelList>
+  <VideoInput version="1.0">
+    <VideoInputChannelList version="1.0">
+      <VideoInputChannel version="1.0">
+        <id>0</id>
+        <powerLineFrequencyMode>60hz</powerLineFrequencyMode>
+        <whiteBalanceMode>auto</whiteBalanceMode>
+        <brightnessLevel>4</brightnessLevel>
+        <contrastLevel>4</contrastLevel>
+        <sharpnessLevel>4</sharpnessLevel>
+        <saturationLevel>4</saturationLevel>
+        <DayNightFilter>
+          <dayNightFilterType>auto</dayNightFilterType>
+        </DayNightFilter>
+        <mirrorEnabled>false</mirrorEnabled>
+      </VideoInputChannel>
+    </VideoInputChannelList>
+  </VideoInput>
+  <UserList version="1.0">
+    <Account version="1.0">
+      <id>0</id>
+      <userName>DIJ0XNRg</userName>
+      <password/>
+      <accessRights>admin</accessRights>
+    </Account>
+    <Account version="1.0">
+      <id>1</id>
+      <userName>vjw9OTge</userName>
+      <password/>
+      <accessRights>user</accessRights>
+    </Account>
+  </UserList>
+  <StreamingChannelList version="1.0">
+    <StreamingChannel version="1.0">
+      <id>0</id>
+      <channelName>rtsp channel 1</channelName>
+      <enabled>true</enabled>
+      <Transport>
+        <rtspPortNo>554</rtspPortNo>
+        <ControlProtocolList>
+          <ControlProtocol>
+            <streamingTransport>HTTP,RTSP</streamingTransport>
+          </ControlProtocol>
+        </ControlProtocolList>
+        <Unicast>
+          <enabled>true</enabled>
+        </Unicast>
+        <Multicast>
+          <enabled>false</enabled>
+          <destIPAddress>224.2.0.1</destIPAddress>
+          <videoDestPortNo>2240</videoDestPortNo>
+          <audioDestPortNo>2242</audioDestPortNo>
+          <ttl>16</ttl>
+        </Multicast>
+        <Security>
+          <enabled>false</enabled>
+        </Security>
+      </Transport>
+      <Video>
+        <enabled>true</enabled>
+        <videoInputChannelID>0</videoInputChannelID>
+        <videoCodecType>
+          <h.264>
+            <profile>main</profile>
+            <level>3.1</level>
+          </h.264>
+        </videoCodecType>
+        <videoScanType>interlaced</videoScanType>
+        <videoResolutionWidth>1280</videoResolutionWidth>
+        <videoResolutionHeight>720</videoResolutionHeight>
+        <videoQualityControlType>VBR</videoQualityControlType>
+        <fixedQuality>60</fixedQuality>
+        <maxFrameRate>30</maxFrameRate>
+        <keyFrameInterval>30</keyFrameInterval>
+        <mirrorEnabled>false</mirrorEnabled>
+        <snapShotImageType>JPEG</snapShotImageType>
+      </Video>
+      <Audio>
+        <enabled>true</enabled>
+        <audioInputChannelID>0</audioInputChannelID>
+        <audioCompressionType>G.711ulaw</audioCompressionType>
+      </Audio>
+      <MediaCapture>
+        <preCaptureLength>5000</preCaptureLength>
+        <postCaptureLength>10000</postCaptureLength>
+      </MediaCapture>
+    </StreamingChannel>
+    <StreamingChannel version="1.0">
+      <id>1</id>
+      <channelName>rtsp channel 2</channelName>
+      <enabled>true</enabled>
+      <Transport>
+        <rtspPortNo>554</rtspPortNo>
+        <ControlProtocolList>
+          <ControlProtocol>
+            <streamingTransport>HTTP,RTSP</streamingTransport>
+          </ControlProtocol>
+        </ControlProtocolList>
+        <Unicast>
+          <enabled>true</enabled>
+        </Unicast>
+        <Security>
+          <enabled>false</enabled>
+        </Security>
+      </Transport>
+      <Video>
+        <enabled>true</enabled>
+        <videoInputChannelID>0</videoInputChannelID>
+        <videoCodecType>
+          <h.264>
+            <profile>main</profile>
+            <level>3.1</level>
+          </h.264>
+        </videoCodecType>
+        <videoScanType>interlaced</videoScanType>
+        <videoResolutionWidth>640</videoResolutionWidth>
+        <videoResolutionHeight>480</videoResolutionHeight>
+        <videoQualityControlType>VBR</videoQualityControlType>
+        <fixedQuality>60</fixedQuality>
+        <maxFrameRate>30</maxFrameRate>
+        <keyFrameInterval>30</keyFrameInterval>
+        <mirrorEnabled>false</mirrorEnabled>
+        <snapShotImageType>JPEG</snapShotImageType>
+      </Video>
+      <Audio>
+        <enabled>true</enabled>
+        <audioInputChannelID>0</audioInputChannelID>
+        <audioCompressionType>G.711ulaw</audioCompressionType>
+      </Audio>
+    </StreamingChannel>
+    <StreamingChannel version="1.0">
+      <id>2</id>
+      <channelName>rtsp channel 3</channelName>
+      <enabled>true</enabled>
+      <Transport>
+        <rtspPortNo>554</rtspPortNo>
+        <ControlProtocolList>
+          <ControlProtocol>
+            <streamingTransport>HTTP,RTSP</streamingTransport>
+          </ControlProtocol>
+        </ControlProtocolList>
+        <Unicast>
+          <enabled>true</enabled>
+        </Unicast>
+        <Security>
+          <enabled>false</enabled>
+        </Security>
+      </Transport>
+      <Video>
+        <enabled>true</enabled>
+        <videoInputChannelID>0</videoInputChannelID>
+        <videoCodecType>
+          <mjpeg/>
+        </videoCodecType>
+        <videoScanType>interlaced</videoScanType>
+        <videoResolutionWidth>640</videoResolutionWidth>
+        <videoResolutionHeight>480</videoResolutionHeight>
+        <videoQualityControlType>VBR</videoQualityControlType>
+        <fixedQuality>60</fixedQuality>
+        <maxFrameRate>30</maxFrameRate>
+        <mirrorEnabled>false</mirrorEnabled>
+        <snapShotImageType>JPEG</snapShotImageType>
+      </Video>
+      <Audio>
+        <enabled>true</enabled>
+        <audioInputChannelID>0</audioInputChannelID>
+        <audioCompressionType>G.711ulaw</audioCompressionType>
+      </Audio>
+    </StreamingChannel>
+    <StreamingChannel version="1.0">
+      <id>3</id>
+      <channelName>rtsp channel 4</channelName>
+      <enabled>true</enabled>
+      <Transport>
+        <rtspPortNo>554</rtspPortNo>
+        <ControlProtocolList>
+          <ControlProtocol>
+            <streamingTransport>HTTP,RTSP</streamingTransport>
+          </ControlProtocol>
+        </ControlProtocolList>
+        <Unicast>
+          <enabled>true</enabled>
+        </Unicast>
+        <Security>
+          <enabled>false</enabled>
+        </Security>
+      </Transport>
+      <Video>
+        <enabled>true</enabled>
+        <videoInputChannelID>0</videoInputChannelID>
+        <videoCodecType>
+          <h.264>
+            <profile>main</profile>
+            <level>3.1</level>
+          </h.264>
+        </videoCodecType>
+        <videoScanType>interlaced</videoScanType>
+        <videoResolutionWidth>1280</videoResolutionWidth>
+        <videoResolutionHeight>720</videoResolutionHeight>
+        <videoQualityControlType>VBR</videoQualityControlType>
+        <fixedQuality>60</fixedQuality>
+        <maxFrameRate>15</maxFrameRate>
+        <keyFrameInterval>30</keyFrameInterval>
+        <mirrorEnabled>false</mirrorEnabled>
+        <snapShotImageType>JPEG</snapShotImageType>
+      </Video>
+      <Audio>
+        <enabled>true</enabled>
+        <audioInputChannelID>0</audioInputChannelID>
+        <audioCompressionType>G.711ulaw</audioCompressionType>
+      </Audio>
+    </StreamingChannel>
+  </StreamingChannelList>
+  <MotionDetectionList version="1.0">
+    <MotionDetection version="1.0">
+      <id>57df9d68-4759-4622-ade2-88f330c7a261</id>
+      <enabled>true</enabled>
+      <inputID>0</inputID>
+      <regionType>roi</regionType>
+      <ROI>
+        <minHorizontalResolution>16</minHorizontalResolution>
+        <minVerticalResolution>16</minVerticalResolution>
+        <sourceHorizontalResolution>1280</sourceHorizontalResolution>
+        <sourceVerticalResolution>720</sourceVerticalResolution>
+      </ROI>
+      <MotionDetectionRegionList version="1.0">
+        <MotionDetectionRegion version="1.0">
+          <id>f555f551-15e1-45a3-af9f-8fe856339c2c</id>
+          <enabled>true</enabled>
+          <sensitivityLevel>60</sensitivityLevel>
+          <detectionThreshold>10</detectionThreshold>
+          <RegionCoordinatesList>
+            <RegionCoordinates>
+              <positionX>96</positionX>
+              <positionY>479</positionY>
+            </RegionCoordinates>
+            <RegionCoordinates>
+              <positionX>543</positionX>
+              <positionY>240</positionY>
+            </RegionCoordinates>
+          </RegionCoordinatesList>
+        </MotionDetectionRegion>
+      </MotionDetectionRegionList>
+    </MotionDetection>
+  </MotionDetectionList>
+  <SoundDetectionList version="1.0"/>
+  <EventNotification version="1.0">
+    <EventTriggerList version="1.0"/>
+    <EventNotificationMethods version="1.0">
+      <HostNotificationList version="1.0"/>
+      <NonMediaEvent>
+        <enabled>true</enabled>
+      </NonMediaEvent>
+    </EventNotificationMethods>
+  </EventNotification>
+</ConfigFile>

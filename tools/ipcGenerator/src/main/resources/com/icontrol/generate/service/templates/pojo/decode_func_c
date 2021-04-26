@@ -1,0 +1,20 @@
+##
+## template for a single POJO "decode" function prototype
+## NOTE: has the same signature as decode_func_proto_h
+##
+
+/*
+ * 'decode from JSON' function for ${pojo_c_varname}
+ */
+int decode_${pojo_c_varname}_fromJSON(${pojo_classname} *pojo, cJSON *buffer)
+{
+    int rc = -1;
+    cJSON *item = NULL;
+    if (buffer != NULL)
+    {
+${pojo_decode_body}
+    }
+
+    return rc;
+}
+

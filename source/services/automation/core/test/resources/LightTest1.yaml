@@ -1,0 +1,51 @@
+# A full event representing a light turning on looks like this:
+#
+#{
+#	"_evId":	43,
+#	"_evCode":	303,
+#	"_evVal":	0,
+#	"_evTime":	1524494034,
+#	"DeviceServiceResourceUpdatedEvent":	{
+#		"rootDeviceId":	"000d6f00023dc83d",
+#		"rootDeviceClass":	"light",
+#		"resource":	{
+#			"DSResource":	{
+#				"id":	"isOn",
+#				"uri":	"/000d6f00023dc83d/ep/1/r/isOn",
+#				"ownerId":	"1",
+#				"ownerClass":	"light",
+#				"value":	"false",
+#				"type":	"com.icontrol.boolean",
+#				"mode":	3,
+#				"dateOfLastSyncMillis":	1524494034152
+#			}
+#		}
+#	},
+#	"_svcIdNum":	19600
+#}
+
+
+name: LightTest1
+doc: when a light turns on, turn it back off
+parsepatterns: true
+nodes:
+  start:
+    branching:
+      branches:
+      - target: listen
+  listen:
+    branching:
+      type: message
+      branches:
+      - pattern: |
+          { "DeviceServiceResourceUpdatedEvent": { "resource": { "DSResource": { "uri": "/000d6f00023dc83d/ep/1/r/isOn", "value": "true" } } } }
+        target: turnOffLight
+  turnOffLight:
+    action:
+      interpreter: goja
+      source: |-
+        _.out({to: "device", requestType : "writeResource", uri : "/000d6f00023dc83d/ep/1/r/isOn", value : "false" } );
+        return _.bindings;
+    branching:
+      branches:
+        - target: listen

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!-- 
+  -
+  - Define the IPC/Events for "Automation Service"
+  -
+  -->
+<p:service 
+    xmlns:p="http://icontrol.com/service/v1.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://icontrol.com/service/v1.0 ../src/main/xsd/service.xsd "
+    eventPort="13630" ipcPort="1590" name="automationService" >
+
+    <p:pragma>
+        <p:native>
+            <p:apiHeaderDir>source/services/automation/api/c/public/automationService</p:apiHeaderDir>
+            <p:apiSrcDir>source/services/automation/api/c/src</p:apiSrcDir>
+            <p:ipcHandlerSrcDir>source/services/automation/core/src</p:ipcHandlerSrcDir>
+            <p:configFlag>CONFIG_SERVICE_AUTOMATIONS</p:configFlag>
+            <p:freeform>#define AUTOMATION_SERVICE_NAME "automationService"  // matches this service name as defined in watchdog.conf.  primarily used for name comparison on watchdogEvent notifications.</p:freeform>
+        </p:native>
+    </p:pragma>
+
+    <!--
+      - define POJOs and enumerations
+      -->
+    <p:pojo varName="AutomationRequest">
+        <p:stringVariable varName="id"          varDescription="unique id for this automation"/>
+        <p:boolVariable varName="enabled"       varDescription="Default state of the automation"/>
+        <p:stringVariable varName="spec"        varDescription="the specification contents for the automation"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false"/>
+    </p:pojo>
+
+    <p:pojo varName="DeleteAutomationRequest">
+        <p:stringVariable varName="id"/>
+        <p:numVariable varName="requestId" kind="long" nativeSigned="false"/>
+    </p:pojo>
+
+    <p:pojo varName="AutomationDetails">
+        <p:stringVariable varName="id"/>
+        <p:boolVariable varName="enabled"/>
+        <p:numVariable varName="dateCreatedSecs" kind="long"/>
+        <p:numVariable varName="messagesConsumed" kind="long"/>
+        <p:numVariable varName="messagesEmitted" kind="long"/>
+    </p:pojo>
+
+    <p:pojo varName="AutomationDetailsList">
+        <p:arrayVariable varName="automations">
+            <p:customRef>AutomationDetails</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="SetAutomationEnabledRequest">
+        <p:stringVariable varName="id"          varDescription="unique id for this automation"/>
+        <p:boolVariable varName="enabled"       varDescription="true to enable, false to disable"/>
+    </p:pojo>
+
+    <!--
+      - define the events
+      -->
+    <p:eventList generate="C">
+
+        <p:event varName="automationEvent" varDescription="Sent when an automation is created">
+            <p:stringVariable varName="ruleId" varDescription="unique id for the rule"/>
+            <p:numVariable varName="requestId" kind="long" nativeSigned="false" varDescription="request ID from the server (-1 if not valid)"/>
+            <p:boolVariable varName="enabled" varDescription="if the rule is enabled or not"/>
+
+            <p:eventCode>AUTOMATION_CREATED_EVENT</p:eventCode>
+            <p:eventCode>AUTOMATION_DELETED_EVENT</p:eventCode>
+            <p:eventCode>AUTOMATION_MODIFIED_EVENT</p:eventCode>
+
+            <!-- object has additional interfaces -->
+            <p:additionalInterface>com.icontrol.event.RequestEvent</p:additionalInterface>
+        </p:event>
+
+        <!-- the various automation event codes -->
+        <p:code name="AUTOMATION_CREATED_EVENT"    value="400"/>
+        <p:code name="AUTOMATION_DELETED_EVENT"    value="-1"/>
+        <p:code name="AUTOMATION_MODIFIED_EVENT"   value="-1"/>
+
+    </p:eventList>
+
+    <!--
+      - define the IPC messages
+      -->
+    <p:ipc>
+
+        <p:message id="100" name="CREATE_AUTOMATION" generate="C">
+            <p:description>Create an automation</p:description>
+            <p:input>
+                <p:customRef>AutomationRequest</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="101" name="DELETE_AUTOMATION" generate="C">
+            <p:description>Delete an automation</p:description>
+            <p:input>
+                <p:customRef>DeleteAutomationRequest</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="102" name="SET_AUTOMATION" generate="C">
+            <p:description>Update an automation</p:description>
+            <p:input>
+                <p:customRef>AutomationRequest</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="103" name="GET_AUTOMATIONS" generate="C">
+            <p:description>Get details on the available automations</p:description>
+            <p:output>
+                <p:customRef>AutomationDetailsList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="104" name="SET_AUTOMATION_ENABLED" generate="C">
+            <p:description>Enable or disable an automation</p:description>
+            <p:input>
+                <p:customRef>SetAutomationEnabledRequest</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="105" name="IS_VALID_TOKEN" generate="C">
+            <p:description>Validate an Automation Token</p:description>
+            <p:input>
+                <p:string varName="token"/>
+            </p:input>
+            <p:output>
+                <p:bool varName="result"/>
+            </p:output>
+        </p:message>
+
+    </p:ipc>
+
+</p:service>

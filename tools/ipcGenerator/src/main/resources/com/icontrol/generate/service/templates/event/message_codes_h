@@ -1,0 +1,10 @@
+##
+## template file for Event header-file event codes
+##
+
+/*
+ * available event codes/values
+ */
+
+${c_type_defs}
+

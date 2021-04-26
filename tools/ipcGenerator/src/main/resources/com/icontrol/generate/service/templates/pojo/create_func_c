@@ -1,0 +1,23 @@
+##
+## template for a single POJO "create" function, specific to ArrayVar/MapVar
+## NOTE: has the same signature as create_func_proto_h
+##
+
+/*
+ * 'create' function for ${pojo_c_varname}
+ */
+${pojo_classname} *create_${pojo_c_varname}()
+{
+    // allocate wrapper
+    ${pojo_classname} *retVal = calloc(1, sizeof(${pojo_classname}));
+    pojo_init((Pojo *) retVal,
+              sizeof(${pojo_classname}),
+              (pojoDestructor) destroy_${pojo_classname},
+              (pojoCloneFunc) ${pojo_c_clone_wire});
+
+    // create dynamic data-types (arrays & maps)
+${pojo_dynamic_creations}
+
+    return retVal;
+}
+

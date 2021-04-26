@@ -1,0 +1,334 @@
+[
+[
+  {
+    "propertyName": "automation.testing.fastTimerAction.flag",
+    "propertyType": "boolean"
+  }
+]
+,
+[
+  {
+    "propertyName": "xconf.telemetry.max.roll.size",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "cpe.comm.deviceCrudFailure.dataSyncDelaySecs",
+    "propertyType": "uint32",
+    "minValue":     "1"
+  },
+  {
+    "propertyName": "cpe.comm.deviceCrudFailure.devMode.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.google.geocoder.api.key",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "cpe.dev.geocoder.url.override",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "cpe.geocoding.enabled.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.migrated.rules.version",
+    "propertyType": "uint64"
+  },
+  {
+    "propertyName": "cpe.migrated.camera.version",
+    "propertyType": "uint64"
+  }
+],
+[
+  {
+    "propertyName": "devHal.tamper",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "coredumps.save",
+    "propertyType": "enum",
+    "enumValues":   ["true","false","dev"]
+  }
+],
+[
+  {
+    "propertyName": "cpe.net.wifi.watchdog",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "network.lnf.bssid",
+    "propertyType": "string"
+  }
+]
+,
+[
+  {
+    "propertyName": "cpe.account.maxAllowedDaysWithInactiveAccount",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "security.testing.fastCommFail.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.dnd.default.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "device.tamper.enabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "ignore.removed.battery.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "siren.onboardpiezo.silent.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.trouble.preLowBatteryDays",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.trouble.preLowBatteryDays.dev.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "ignore.screensaver.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.camera.offlineDetectionThreshold",
+    "propertyType": "uint32",
+    "minValue":     "2"
+  },
+  {
+    "propertyName": "cpe.camera.onlineDetectionThreshold",
+    "propertyType": "uint32",
+    "minValue":     "1"
+  },
+  {
+    "propertyName": "cpe.camera.pingIntervalSeconds",
+    "propertyType": "uint32",
+    "minValue":     "30"
+  },
+  {
+    "propertyName": "camera.local.motion.default",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "cameraFirmwareBaseUrl",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "localIpAddress",
+    "propertyType": "string"
+  }
+],
+[
+  {
+    "propertyName": "zigbee.testing.fastCommFail.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "deviceDescriptor.whitelist.url.override",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "deviceDescriptorList",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "deviceDescriptor.blacklist",
+    "propertyType": "url"
+  }
+],
+[
+  {
+    "propertyName": "POSIX_TZ",
+    "propertyType": "string"
+  }
+],
+[
+  {
+    "propertyName": "motionEventsBlackoutPeriod",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "camera.discovery.ipPrefix",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "camera.maxToDiscover",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "camera.fw.update.delay.seconds",
+    "propertyType": "int64",
+    "minValue":     "0"
+  }
+],
+[
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeThreshold",
+    "propertyType": "uint8"
+  },
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeWindowMillis",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.defender.panIdChangeRestoreMillis",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "zigbee.fw.upgrade.nodelay.flag",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "firmware.upgrade.delaySecs",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "deviceFirmwareBaseUrl",
+    "propertyType": "url"
+  },
+  {
+    "propertyName": "firmware.upgrade.retryDelaySecs",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "cpe.zigbee.healthCheck.intervalMillis",
+    "propertyType": "uint32",
+    "minValue":     "1000"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.ccaThreshold",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.ccaFailureThreshold",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.restoreThreshold",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.healthCheck.delayBetweenThresholdRetriesMillis",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "cpe.zigbee.watchdog.enabled.flag",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.zigbee.panIdConflict.enabled",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "cpe.diagnostics.zigBeeData.channelScanDurationMs",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.diagnostics.zigBeeData.numberOfScansPerChannel",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.channelChange.maxWaitTimeMin",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "cpe.zigbee.channelChange.enabled",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "telemetry.hoursRemaining",
+    "propertyType": "int32"
+  },
+  {
+    "propertyName": "telemetry.upload",
+    "propertyType": "boolean"
+  },
+  {
+    "propertyName": "telemetry.maxAllowedFileStorage",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "config.fastbackuptimer.flag",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.codebig.useproduction",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.xconf.url",
+    "propertyType": "url"
+  }
+],
+[
+  {
+    "propertyName": "cpe.xconf.featureControlQueryInterval",
+    "propertyType": "uint32"
+  }
+],
+[
+  {
+    "propertyName": "pnp.unmanaged.network.force",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.sms.script.preserveScripts",
+    "propertyType": "boolean"
+  }
+],
+[
+  {
+    "propertyName": "cpe.troubles.safety.acknowledgementRequiresPIN",
+    "propertyType": "boolean"
+  }
+]

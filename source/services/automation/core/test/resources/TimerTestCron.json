@@ -1,0 +1,44 @@
+{
+  "doc": "start up and set a timer for a simple test using cron spec",
+  "name": "TimerTestCron",
+  "nodes": {
+    "listen": {
+      "branching": {
+        "branches": [
+          {
+            "pattern": "{ \"test\": \"gotit\" }",
+            "target": "turnOnLight"
+          }
+        ],
+        "type": "message"
+      }
+    },
+    "start": {
+      "action": {
+        "interpreter": "goja",
+        "source": "_.out({to: \"timers\", requestType : \"makeTimer\", cron : \"* * * * * *\", id : \"timerCron\", message: { \"test\": \"gotit\" }  } );\nreturn _.bindings;"
+      },
+      "branching": {
+        "branches": [
+          {
+            "target": "listen"
+          }
+        ]
+      }
+    },
+    "turnOnLight": {
+      "action": {
+        "interpreter": "goja",
+        "source": "_.out({to: \"device\", requestType : \"writeResource\", uri : \"/000d6f00023dc83d/ep/1/r/isOn\", value : \"true\" } ); \nreturn _.bindings;"
+      },
+      "branching": {
+        "branches": [
+          {
+            "target": "listen"
+          }
+        ]
+      }
+    }
+  },
+  "parsepatterns": true
+}

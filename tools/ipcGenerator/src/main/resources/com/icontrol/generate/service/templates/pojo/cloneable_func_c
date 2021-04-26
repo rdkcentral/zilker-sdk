@@ -1,0 +1,21 @@
+##
+## template for a single POJO "clone" function prototype
+##
+
+/*
+ * create a deep clone of a ${pojo_c_varname} object.
+ * should be release via destroy_${pojo_c_varname}()
+ */
+${pojo_classname} *clone_${pojo_c_varname}(${pojo_classname} *src)
+{
+	if (src == NULL)
+	{
+		return NULL;
+	}	
+
+    ${pojo_classname} *copy = create_${pojo_c_varname}();
+    cJSON *json = encode_${pojo_c_varname}_toJSON(src);
+    decode_${pojo_c_varname}_fromJSON(copy, json);
+    cJSON_Delete(json);
+	return copy;
+}

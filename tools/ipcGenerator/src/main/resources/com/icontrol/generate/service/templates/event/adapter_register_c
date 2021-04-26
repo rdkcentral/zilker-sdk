@@ -1,0 +1,26 @@
+##
+## template file for EventAdapter source
+## used to generate the listener function declarations 
+##
+
+/*
+ * receive ${event_classname} events.  as they arrive, 
+ * the 'listener' function will be called
+ */
+void register_${event_classname}_eventListener(handleEvent_${event_classname} listener)
+{
+    // perform initial registration with EventConsumer (if needed)
+    //
+    pthread_mutex_lock(&INIT_MTX);
+    if (registered == false || registeredCount == 0)
+    {
+        initRegistration();
+    }
+    ++registeredCount;
+    pthread_mutex_unlock(&INIT_MTX);
+
+    // add this 'listener' to our notification set
+    //
+    threadSafeWrapperEnqueueModification(&${event_classname}_listWrapper, listAppendFunc, listener, doNotDestroyListenerFunc, NULL);
+}
+

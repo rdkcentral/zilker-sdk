@@ -1,0 +1,19 @@
+[
+  {
+    "propertyName": "motionEventsBlackoutPeriod",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "camera.discovery.ipPrefix",
+    "propertyType": "string"
+  },
+  {
+    "propertyName": "camera.maxToDiscover",
+    "propertyType": "uint32"
+  },
+  {
+    "propertyName": "camera.fw.update.delay.seconds",
+    "propertyType": "int64",
+    "minValue":     "0"
+  }
+]

@@ -1,0 +1,8 @@
+##
+## template for a single POJO "encode" function prototype
+##
+
+/*
+ * 'encode to JSON' function for ${pojo_c_varname}
+ */
+extern cJSON *encode_${pojo_c_varname}_toJSON(${pojo_classname} *pojo);

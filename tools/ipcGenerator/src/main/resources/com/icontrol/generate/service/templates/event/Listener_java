@@ -1,0 +1,31 @@
+
+package ${java_pkg};
+
+//-----------
+//imports
+//-----------
+
+import com.icontrol.event.BaseEventListener;
+
+//-----------------------------------------------------------------------------
+// Class definition:    ${java_class}Listener
+/**
+ *  Interface for Objects that wish to receive ${java_class} events
+ *  <p>
+ *  This is a generated file, DO NOT EDIT!!!!
+ **/
+//-----------------------------------------------------------------------------
+public interface ${java_class}Listener extends BaseEventListener
+{
+    //--------------------------------------------
+    /**
+     * Called when a ${java_class} is delivered
+     */
+    //--------------------------------------------
+	public void handle${java_class}(${java_class} event);    
+
+}
+
+//+++++++++++
+//EOF
+//+++++++++++

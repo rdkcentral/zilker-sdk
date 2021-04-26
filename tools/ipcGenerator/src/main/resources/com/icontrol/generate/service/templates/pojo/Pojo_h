@@ -1,0 +1,41 @@
+##
+## template file for generating POJO headers
+## created by combining many of the other
+## Pojo_ templates together
+##
+
+/**
+ * POJO definitions for ${service} service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+
+#ifndef ${c_header_ifdef}
+#define ${c_header_ifdef}
+
+#include <time.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <cjson/cJSON.h>
+#include <icTypes/icLinkedList.h>
+#include <icTypes/icHashMap.h>
+#include <icIpc/pojo.h>
+${c_include_sec}
+
+##
+## any 'freeform' defined for the service
+##
+${c_free_form}
+
+## 
+## all type definitions (enum, pojo)
+##
+${c_type_defs}
+
+## 
+## all function prototypes (pojo encode/decode)
+##
+${c_function_decs}
+
+#endif /* ${c_header_ifdef} */ 
+

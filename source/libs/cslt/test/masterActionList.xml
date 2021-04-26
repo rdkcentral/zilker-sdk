@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!-- 
+  - Define the master list of all available "actions" available to the Rule Engine
+  - and the supporting UI (i.e. Subscriber Portal).   This file will be static in nature and
+  - will reside on the device.  It can only be updated as part of a firmware build/update.
+  -
+  - Resides on the device in /opt/ucontrol/etc/masterActionList.xml
+  -
+  - NOTE: this is a copy of the masterActionList.xml specific to Aware/Insight
+  - NOTE: the only difference is this file does not have the "play sound" action
+  - NOTE: be sure to keep these 2 files in sync
+  -->
+<a:actionList 
+		xmlns:a="http://ucontrol.com/rules/v1.0" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://ucontrol.com/rules/v1.0 rules.xsd ">
+		
+	<!-- 
+	  - Canned Actions (require server commands)
+	  -->
+
+	<a:action actionID="1">
+		<a:description>Send Email</a:description>
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_sendEmail</a:target>
+	</a:action>
+	
+	<a:action actionID="2">
+		<a:description>Send Text Message</a:description>
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_sendSms</a:target>
+	</a:action>
+
+	<a:action actionID="3">
+		<a:description>Send Push Notification</a:description>
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_sendPushNotif</a:target>
+	</a:action>
+  
+	<!-- 
+	  - Local Actions (executed on CPE)
+	  -->
+
+	<!-- take a picture and send to server using eventId of the Trigger -->
+	<a:action actionID="21">
+		<a:description>Take Picture</a:description>
+		<a:dependency>
+			<a:type>camera</a:type>
+		</a:dependency>
+		
+		<!-- need which camera to use -->
+		<a:parameterDef>
+			<a:key>cameraID</a:key>
+			<a:type>cameraID</a:type>
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- optional parameter of picture size (defaults to medium) -->
+		<a:parameterDef>
+			<a:key>size</a:key>
+			<a:type>message</a:type>	<!-- small, medium, large -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+
+		<!-- optional parameter of picture count (defaults to 5) -->
+		<a:parameterDef>
+			<a:key>count</a:key>
+			<a:type>message</a:type>	<!-- 1 - 5 -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_takePicture</a:target>
+	</a:action>
+	
+	<!-- take a video clip and send to server using eventId of the Trigger -->
+	<a:action actionID="22">
+		<a:description>Take Video Clip</a:description>
+		<a:dependency>
+			<a:type>camera</a:type>
+		</a:dependency>
+		
+		<!-- need which camera to use -->
+		<a:parameterDef>
+			<a:key>cameraID</a:key>
+			<a:type>cameraID</a:type>
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- optional parameter of how long to record video -->
+		<a:parameterDef>
+			<a:key>duration</a:key>
+			<a:type>message</a:type>	<!-- number of seconds 1 - 60 (defaults to 10 secs) -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_recordVideo</a:target>
+	</a:action>
+	
+	<!-- turn 1 or more lights on -->
+	<a:action actionID="70">
+		<a:description>Turn on Light</a:description>
+		<a:dependency>
+			<a:type>lighting</a:type>
+		</a:dependency>
+		
+		<!-- define which light(s) to turn on -->
+		<a:parameterDef>
+			<a:key>lightID</a:key>
+			<a:type>lightID</a:type>	<!-- 1 or more lights to turn on -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- optional paramter of level -->
+		<a:parameterDef>
+			<a:key>level</a:key>
+			<a:type>message</a:type>	<!-- number (0-100) to set light level.  can be comma separated list that matches 1-to-1 with lightID list -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<!-- optional paramter of duration -->
+		<a:parameterDef>
+			<a:key>duration</a:key>
+			<a:type>message</a:type>	<!-- number of seconds to leave light on -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_turnLightOn</a:target>
+	</a:action>
+	
+	<!-- turn 1 or more lights off -->
+	<a:action actionID="71">
+		<a:description>Turn off Light</a:description>
+		<a:dependency>
+			<a:type>lighting</a:type>
+		</a:dependency>
+		
+		<!-- define which light(s) to turn off -->
+		<a:parameterDef>
+			<a:key>lightID</a:key>
+			<a:type>lightID</a:type>	<!-- 1 or more lights to turn off -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- optional paramter of duration -->
+		<a:parameterDef>
+			<a:key>duration</a:key>
+			<a:type>message</a:type>	<!-- number of seconds to leave light off -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_turnLightOff</a:target>
+	</a:action>
+	
+	<!-- randomly turn lights on and off throughout the house -->
+	<a:action actionID="73">
+		<a:description>Randomize Lights</a:description>
+		<a:dependency>
+			<a:type>lighting</a:type>
+		</a:dependency>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_randomizeLights</a:target>
+	</a:action>
+	
+	<!-- set thermostat to COOL mode (setpoint) -->	
+	<a:action actionID="100">
+		<a:description>Set Thermostat to Cool</a:description>
+		<a:dependency>
+			<a:type>temperature</a:type>
+		</a:dependency>	
+		
+		<!-- define which thermostat(s) to adjust -->
+		<a:parameterDef>
+			<a:key>thermostatID</a:key>
+			<a:type>thermostatID</a:type>	<!-- 1 or more thermostats to adjust -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- setpoint (target temperature) -->
+		<a:parameterDef>
+			<a:key>setpoint</a:key>
+			<a:type>message</a:type>		<!-- degrees in celcius -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- hold (optional) -->
+		<a:parameterDef>
+			<a:key>hold</a:key>
+			<a:type>message</a:type>		<!-- "true" or "false" (defaults to false) -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_setTemperatureCool</a:target>
+	</a:action>
+	
+	<!-- set thermostat to HEAT mode (setpoint) -->	
+	<a:action actionID="101">
+		<a:description>Set Thermostat to Heat</a:description>
+		<a:dependency>
+			<a:type>temperature</a:type>
+		</a:dependency>	
+		
+		<!-- define which thermostat(s) to adjust -->
+		<a:parameterDef>
+			<a:key>thermostatID</a:key>
+			<a:type>thermostatID</a:type>	<!-- 1 or more thermostats to adjust -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- setpoint (target temperature) -->
+		<a:parameterDef>
+			<a:key>setpoint</a:key>
+			<a:type>message</a:type>		<!-- degrees in celcius -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- hold (optional) -->
+		<a:parameterDef>
+			<a:key>hold</a:key>
+			<a:type>message</a:type>		<!-- "true" or "false" (defaults to false) -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_setTemperatureHeat</a:target>
+	</a:action>
+	
+	<!-- turn thermostat off -->
+	<a:action actionID="103">
+		<a:description>Turn Thermostat Off</a:description>
+		<a:dependency>
+			<a:type>temperature</a:type>
+		</a:dependency>	
+		
+		<!-- define which thermostat(s) to adjust -->
+		<a:parameterDef>
+			<a:key>thermostatID</a:key>
+			<a:type>thermostatID</a:type>	<!-- 1 or more thermostats to adjust -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_setTemperatureOff</a:target>
+	</a:action>
+
+	<!-- set radiator to night preset and adjust setpoint -->	
+	<a:action actionID="120">
+		<a:description>Set Radiator to Night</a:description>
+		<a:dependency>
+			<a:type>temperature</a:type>
+		</a:dependency>	
+		
+		<!-- define which thermostat(s) to adjust -->
+		<a:parameterDef>
+			<a:key>thermostatID</a:key>
+			<a:type>thermostatID</a:type>	<!-- 1 or more radiators to adjust -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- setpoint (target temperature) -->
+		<a:parameterDef>
+			<a:key>setpoint</a:key>
+			<a:type>message</a:type>		<!-- degrees in celcius -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- hold (optional) -->
+		<a:parameterDef>
+			<a:key>hold</a:key>
+			<a:type>message</a:type>		<!-- "true" or "false" (defaults to false) -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_setRadiatorNight</a:target>
+	</a:action>
+	
+	<!-- set radiator to comfort preset and adjust setpoint -->	
+	<a:action actionID="121">
+		<a:description>Set Radiator to Comfort</a:description>
+		<a:dependency>
+			<a:type>temperature</a:type>
+		</a:dependency>	
+		
+		<!-- define which thermostat(s) to adjust -->
+		<a:parameterDef>
+			<a:key>thermostatID</a:key>
+			<a:type>thermostatID</a:type>	<!-- 1 or more radiators to adjust -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- setpoint (target temperature) -->
+		<a:parameterDef>
+			<a:key>setpoint</a:key>
+			<a:type>message</a:type>		<!-- degrees in celcius -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<!-- hold (optional) -->
+		<a:parameterDef>
+			<a:key>hold</a:key>
+			<a:type>message</a:type>		<!-- "true" or "false" (defaults to false) -->
+			<a:required>false</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_setRadiatorComfort</a:target>
+	</a:action>
+	
+	<!-- turn radiator off -->
+	<a:action actionID="122">
+		<a:description>Turn Radiator Off</a:description>
+		<a:dependency>
+			<a:type>temperature</a:type>
+		</a:dependency>	
+		
+		<!-- define which thermostat(s) to adjust -->
+		<a:parameterDef>
+			<a:key>thermostatID</a:key>
+			<a:type>thermostatID</a:type>	<!-- 1 or more radiators to adjust -->
+			<a:required>true</a:required>
+		</a:parameterDef>
+		
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_setTemperatureOff</a:target>
+	</a:action>
+
+    <!-- lock 1 or more door-lock devices -->
+    <a:action actionID="135">
+        <a:description>Lock a Door Lock</a:description>
+        <a:dependency>
+            <a:type>doorLock</a:type>
+        </a:dependency>
+        
+        <!-- define which device(s) to lock -->
+        <a:parameterDef>
+            <a:key>doorLockID</a:key>
+            <a:type>doorLockID</a:type>    <!-- 1 or more door-locks to lock -->
+            <a:required>true</a:required>
+        </a:parameterDef>
+        
+        <a:type>workflow</a:type>
+        <a:target>ruleAction_lockDoorLock</a:target>
+    </a:action>
+    
+    <!-- unlock 1 or more door-lock devices -->
+    <a:action actionID="136">
+        <a:description>Unlock a Door Lock</a:description>
+        <a:dependency>
+            <a:type>doorLock</a:type>
+        </a:dependency>
+        
+        <!-- define which device(s) to unlock -->
+        <a:parameterDef>
+            <a:key>doorLockID</a:key>
+            <a:type>doorLockID</a:type>    <!-- 1 or more door-locks to lock -->
+            <a:required>true</a:required>
+        </a:parameterDef>
+        
+        <a:type>workflow</a:type>
+        <a:target>ruleAction_unlockDoorLock</a:target>
+    </a:action>
+ 
+	<a:action actionID="138">
+		<a:description>Send a multicast packet</a:description>
+		<a:parameterDef>
+			<a:key>address</a:key>
+			<a:type>string</a:type>
+		</a:parameterDef>
+		<a:parameterDef>
+			<a:key>port</a:key>
+			<a:type>string</a:type>
+		</a:parameterDef>
+		<a:parameterDef>
+			<a:key>message</a:key>
+			<a:type>string</a:type>
+		</a:parameterDef>
+		<!-- does this type make sense? -->
+		<a:type>workflow</a:type>
+		<a:target>ruleAction_sendMulticast</a:target>
+	</a:action>
+</a:actionList>

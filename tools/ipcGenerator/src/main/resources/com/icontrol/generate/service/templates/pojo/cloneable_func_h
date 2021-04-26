@@ -1,0 +1,9 @@
+##
+## template for a single POJO "clone" function prototype
+##
+
+/*
+ * create a deep clone of a ${pojo_c_varname} object.
+ * should be release via destroy_${pojo_c_varname}()
+ */
+extern ${pojo_classname} *clone_${pojo_c_varname}(${pojo_classname} *src);

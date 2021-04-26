@@ -1,0 +1,27 @@
+##
+## template file for generating POJO headers
+## created by combining many of the other
+## Pojo_ templates together
+##
+
+/**
+ * IPC Message definitions for ${service} service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+
+#ifndef ${c_header_ifdef}
+#define ${c_header_ifdef}
+
+// port number of the service to send IPC requests
+//
+#define ${server_port_name}_IPC_PORT_NUM ${server_port_num}
+
+
+##
+## message codes
+##
+${api_message_codes}
+
+#endif /* ${c_header_ifdef} */ 
+

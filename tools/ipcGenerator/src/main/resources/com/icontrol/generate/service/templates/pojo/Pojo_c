@@ -1,0 +1,20 @@
+##
+## template file for generating POJO source
+## created by combining many of the other
+## Pojo_ templates together
+##
+
+/**
+ * POJO definitions for ${service} service
+ *
+ * THIS IS AN AUTO GENERATED FILE...  DO NOT EDIT!!!!
+ **/
+#include <stdlib.h>
+#include <string.h>
+${c_include_sec}
+
+## 
+## all pojo encode/decode functions
+##
+${c_function_decs}
+

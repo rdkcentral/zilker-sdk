@@ -1,0 +1,816 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!--
+  -
+  - Define the IPC/Events for "Device Service"
+  -
+  -->
+<p:service
+        xmlns:p="http://icontrol.com/service/v1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://icontrol.com/service/v1.0 ../src/main/xsd/service.xsd "
+        eventPort="19600" ipcPort="1600" name="deviceService" >
+
+    <p:pragma>
+        <p:native>
+            <p:apiHeaderDir>source/services/device/api/c/public/deviceService</p:apiHeaderDir>
+            <p:apiSrcDir>source/services/device/api/c/src</p:apiSrcDir>
+            <p:ipcHandlerSrcDir>source/services/device/core/src</p:ipcHandlerSrcDir>
+            <p:configFlag>CONFIG_SERVICE_DEVICE</p:configFlag>
+            <p:freeform>#define DEVICE_SERVICE_NAME "deviceService"  // matches this service name as defined in watchdog.conf.  primarily used for name comparison on watchdogEvent notifications.</p:freeform>
+        </p:native>
+    </p:pragma>
+
+    <!--
+      - define enums
+      -->
+
+    <p:typedef enumTypeName="DSChannelChangeStatus">
+        <p:value value="CHANNEL_CHANGE_STATUS_UNKNOWN" />
+        <p:value value="CHANNEL_CHANGE_STATUS_SUCCESS" />
+        <p:value value="CHANNEL_CHANGE_STATUS_FAILED" />
+        <p:value value="CHANNEL_CHANGE_STATUS_NOT_ALLOWED" />
+        <p:value value="CHANNEL_CHANGE_STATUS_INVALID_CHANNEL" />
+        <p:value value="CHANNEL_CHANGE_STATUS_IN_PROGRESS" />
+        <p:value value="CHANNEL_CHANGE_STATUS_FAILED_TO_CALCULATE" />
+    </p:typedef>
+
+    <!--
+      - define message input/output POJOs
+      -->
+
+    <p:pojo varName="DSResource">
+        <p:stringVariable varName="id"/>
+        <p:stringVariable varName="uri"/>
+        <p:stringVariable varName="ownerId"/>
+        <p:stringVariable varName="ownerClass" varDescription="device class or endpoint profile"/>
+        <p:stringVariable varName="value"/>
+        <p:stringVariable varName="type"/>
+        <p:numVariable    varName="mode" kind="short"/>
+        <p:numVariable    varName="dateOfLastSyncMillis" kind="long" nativeSigned="false" varDescription="GMT epoch based time when this resource was last read from or written to the device.  0 for never."/>
+    </p:pojo>
+
+    <p:pojo varName="DSEndpoint">
+        <p:stringVariable varName="id"/>
+        <p:stringVariable varName="uri"/>
+        <p:stringVariable varName="ownerId"/>
+        <p:stringVariable varName="profile"/>
+        <p:numVariable    varName="profileVersion" kind="int"/>
+        <p:arrayVariable varName="tags">
+            <p:stringVariable varName="tag"/>
+        </p:arrayVariable>
+        <p:mapVariable  varName="resources">
+            <p:customRef>DSResource</p:customRef>
+        </p:mapVariable>
+        <p:mapVariable varName="metadata" varDescription="metadata about the endpoint">
+            <p:stringVariable varName="metadataValue"/>
+        </p:mapVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSDevice">
+        <p:stringVariable varName="id"/>
+        <p:stringVariable varName="uri"/>
+        <p:stringVariable varName="deviceClass"/>
+        <p:numVariable    varName="deviceClassVersion" kind="int"/>
+        <p:stringVariable varName="managingDeviceDriver"/>
+        <p:mapVariable  varName="resources">
+            <p:customRef>DSResource</p:customRef>
+        </p:mapVariable>
+        <p:mapVariable  varName="endpoints">
+            <p:customRef>DSEndpoint</p:customRef>
+        </p:mapVariable>
+        <p:mapVariable varName="metadata" varDescription="metadata about the device">
+            <p:stringVariable varName="metadataValue"/>
+        </p:mapVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSDeviceList">
+        <p:arrayVariable varName="devices">
+            <p:customRef>DSDevice</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSEndpointList">
+        <p:arrayVariable varName="endpointList">
+            <p:customRef>DSEndpoint</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSResourceList">
+        <p:arrayVariable varName="resourceList">
+            <p:customRef>DSResource</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSDiscoverDevicesByClassRequest">
+        <p:stringVariable varName="deviceClass"/>
+        <p:numVariable varName="timeoutSeconds" kind="int"/>
+    </p:pojo>
+
+    <p:pojo varName="DSDiscoverDevicesByClassSetRequest">
+        <p:arrayVariable varName="set">
+            <p:stringVariable varName="deviceClass"/>
+        </p:arrayVariable>
+        <p:numVariable varName="timeoutSeconds" kind="int"/>
+    </p:pojo>
+
+    <p:pojo varName="DSEarlyDeviceDiscoveryDetails">
+        <p:stringVariable varName="id"              varDescription="UUID of the device"/>
+        <p:stringVariable varName="manufacturer"    varDescription="manufacturer of the device"/>
+        <p:stringVariable varName="model"           varDescription="model of the device"/>
+        <p:stringVariable varName="hardwareVersion" varDescription="hardware version of the device"/>
+        <p:stringVariable varName="firmwareVersion" varDescription="firmware version of the device"/>
+        <p:stringVariable varName="deviceClass"     varDescription="device class of the device"/>
+        <p:mapVariable varName="metadata"           varDescription="metadata about the device">
+            <p:stringVariable varName="metadataValue"/>
+        </p:mapVariable>
+        <p:mapVariable varName="endpointProfileMap" varDescription="mapping of endpoint id to profile">
+            <p:stringVariable varName="endpointProfile"/>
+        </p:mapVariable>
+
+    </p:pojo>
+
+    <p:pojo varName="DSDeviceAddedDetails">
+        <p:stringVariable varName="deviceId"        varDescription="UUID of the device"/>
+        <p:stringVariable varName="uri"             varDescription="uri of the device"/>
+        <p:stringVariable varName="deviceClass"     varDescription="device class of the device"/>
+        <p:numVariable    varName="deviceClassVersion" varDescription="version of the device class" kind="int"/>
+    </p:pojo>
+
+    <p:pojo varName="DSEndpointAddedDetails">
+        <p:stringVariable varName="deviceUuid"      varDescription="the unique ID of the owning device"/>
+        <p:stringVariable varName="id"              varDescription="the id of the endpoint"/>
+        <p:stringVariable varName="uri"             varDescription="uri of the endpoint"/>
+        <p:stringVariable varName="profile"         varDescription="profile of the endpoint"/>
+        <p:numVariable    varName="profileVersion"  varDescription="version of the profile" kind="int"/>
+        <p:stringVariable varName="deviceClass"     varDescription="the device's class"/>
+    </p:pojo>
+
+    <p:pojo varName="DSReadResourceResponse">
+        <p:boolVariable   varName="success"/>
+        <p:stringVariable varName="response"        varDescription="JSON formatted response object"/>
+    </p:pojo>
+
+    <p:pojo varName="DSWriteResourceRequest">
+        <p:stringVariable varName="uri"             varDescription="uri of the resource"/>
+        <p:stringVariable varName="value"           varDescription="the JSON formatted value to write"/>
+    </p:pojo>
+
+    <p:pojo varName="DSExecuteResourceRequest">
+        <p:stringVariable varName="uri"             varDescription="uri of the resource"/>
+        <p:stringVariable varName="arg"             varDescription="optional JSON formatted argument object"/>
+    </p:pojo>
+
+    <p:pojo varName="DSExecuteResourceResponse">
+        <p:boolVariable   varName="success"/>
+        <p:stringVariable varName="response"        varDescription="optional JSON formatted response object"/>
+    </p:pojo>
+
+    <p:pojo varName="DSSetSystemPropertyRequest">
+        <p:stringVariable varName="key"             varDescription="key of the property"/>
+        <p:stringVariable varName="value"           varDescription="the value for the update"/>
+    </p:pojo>
+
+    <p:pojo varName="DSGetSystemPropertyResponse">
+        <p:boolVariable   varName="success"/>
+        <p:stringVariable varName="response"        varDescription="contents of the system property"/>
+    </p:pojo>
+
+    <p:pojo varName="DSReadMetadataResponse">
+        <p:boolVariable   varName="success"/>
+        <p:stringVariable varName="response"        varDescription="contents of the metadata"/>
+    </p:pojo>
+
+    <p:pojo varName="DSWriteMetadataRequest">
+        <p:stringVariable varName="uri"             varDescription="uri of the metadata"/>
+        <p:stringVariable varName="value"           varDescription="the new value of the metadata"/>
+    </p:pojo>
+
+    <p:pojo varName="DSEndpointRequest">
+        <p:stringVariable varName="deviceUuid"      varDescription="the UUID of the device that owns the endpoint"/>
+        <p:stringVariable varName="endpointId"      varDescription="the id of the endpoint"/>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeSubsystemStatus">
+        <p:boolVariable varName="isAvailable"       varDescription="true if the zigbee subsystem is available (not necessarily configured though)"/>
+        <p:boolVariable varName="isUp"              varDescription="true if the zigbee network is up and running"/>
+        <p:boolVariable varName="isOpenForJoin"     varDescription="true if the zigbee network is open for joining"/>
+        <p:stringVariable varName="eui64"           varDescription="the EUI64 our network is using"/>
+        <p:stringVariable varName="originalEui64"   varDescription="the original (manufacturer) EUI64"/>
+        <p:numVariable varName="channel" kind="int" varDescription="the current channel for our zigbee network"/>
+        <p:numVariable varName="panId" kind="int"   varDescription="the current PAN ID for our zigbee network"/>
+        <p:stringVariable varName="networkKey"      varDescription="the current zigbee network key"/>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeNetworkMapEntry">
+        <p:stringVariable varName="address" varDescription="EUI64 of the zigbee device for this entry"/>
+        <p:stringVariable varName="nextCloserHop" varDescription="EUI64 of the next hop"/>
+        <p:numVariable varName="lqi" kind="int" varDescription="LQI of this hop"/>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeChangeChannelRequest">
+        <p:numVariable varName="channel" kind="short" varDescription="the target channel"/>
+        <p:boolVariable varName="dryRun" varDescription="if true and channel is -1, the best channel will be in the channel changed event.  if true and any other channel, the channel will not change and the same requested channel will be in the event"/>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeChangeChannelResponse">
+        <p:numVariable varName="channel" kind="int"     varDescription="the new channel number in case of success"/>
+        <p:enumVariable varName="status" enumTypeName="DSChannelChangeStatus"/>
+    </p:pojo>
+
+    <p:pojo varName="DSChangeResourceModeRequest">
+        <p:stringVariable varName="uri"      varDescription="uri of the resource"/>
+        <p:numVariable varName="newMode"  kind="short" varDescription="change the mode of the resource"/>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeNetworkMap">
+        <p:arrayVariable varName="entries">
+            <p:customRef>DSZigbeeNetworkMapEntry</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSMetadataUriMap">
+        <p:mapVariable varName="metadataByUri" varDescription="map of metadata uri to value">
+            <p:stringVariable varName="metadataValue"/>
+        </p:mapVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeEnergyScanRequest">
+        <p:numVariable varName="durationMs" kind="int" varDescription="duration of each scan in millis"/>
+        <p:numVariable varName="numScans" kind="int" varDescription="number of scans to perform on each channel"/>
+        <p:arrayVariable varName="channels">
+            <p:numVariable varName="channel" kind="int"/>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeEnergyScanResult">
+        <p:numVariable varName="channel" kind="int"/>
+        <p:numVariable varName="maxRssi" kind="int"/>
+        <p:numVariable varName="minRssi" kind="int"/>
+        <p:numVariable varName="averageRssi" kind="int"/>
+        <p:numVariable varName="score" kind="int"/>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeEnergyScanResponse">
+        <p:arrayVariable varName="scanResults">
+            <p:customRef>DSZigbeeEnergyScanResult</p:customRef>
+        </p:arrayVariable>
+    </p:pojo>
+
+    <p:pojo varName="DSStatus">
+        <p:boolVariable varName="zigbeeReady" varDescription="true if the Zigbee subsystem is ready"/>
+        <p:arrayVariable varName="supportedDeviceClasses">
+            <p:stringVariable varName="deviceClass"/>
+        </p:arrayVariable>
+        <p:boolVariable varName="discoveryRunning" varDescription="true if discovery is currently running"/>
+        <p:arrayVariable varName="discoveringDeviceClasses">
+            <p:stringVariable varName="deviceClass"/>
+        </p:arrayVariable>
+        <p:numVariable varName="discoveryTimeoutSeconds" kind="int"/>
+    </p:pojo>
+
+    <p:pojo varName="DSZigbeeRequestLeave">
+        <p:stringVariable varName="eui64" varDescription="EUI64 of the zigbee device"/>
+        <p:boolVariable varName="withRejoin" varDescription="true if the device should rejoin"/>
+        <p:boolVariable varName="isEndDevice" varDescription="true if the device is an end device"/>
+    </p:pojo>
+
+    <!--
+      - define the events
+      -->
+    <p:eventList generate="C">
+
+        <p:event varName="DeviceServiceDeviceDiscoveredEvent"    varDescription="A device was discovered, but not yet configured or added">
+            <p:customRef customObj="DSEarlyDeviceDiscoveryDetails" localName="details"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DEVICE_DISCOVERED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceRejectedEvent"    varDescription="A device was discovered, but subsequently rejected">
+            <p:customRef customObj="DSEarlyDeviceDiscoveryDetails" localName="details"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DEVICE_REJECTED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceAddedEvent" varDescription="A device was added to the system">
+            <p:customRef customObj="DSDeviceAddedDetails" localName="details"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DEVICE_ADDED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceEndpointAddedEvent" varDescription="An endpoint was added to the system">
+            <p:customRef customObj="DSEndpointAddedDetails" localName="details"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_ENDPOINT_ADDED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceResourceUpdatedEvent" varDescription="A resource changed">
+            <p:customRef customObj="DSResource" localName="resource"/>
+            <p:stringVariable varName="rootDeviceId" varDescription="The ID of the root device"/>
+            <p:stringVariable varName="rootDeviceClass" varDescription="The device's class"/>
+            <p:jsonVariable varName="details" varDescription="Optional details about the resource update"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_RESOURCE_UPDATED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDiscoveryStartedEvent" varDescription="Discovery has started">
+            <p:arrayVariable varName="deviceClasses" varDescription="The list of device classes that discovery was started for">
+                <p:stringVariable varName="deviceClass"/>
+            </p:arrayVariable>
+            <p:numVariable kind="int" varName="discoveryTimeoutSeconds" varDescription="duration in seconds for discovery"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DISCOVERY_STARTED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDiscoveryStoppedEvent" varDescription="Discovery has stopped">
+            <p:stringVariable varName="deviceClass" varDescription="The device class discovery was stopped for"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DISCOVERY_STOPPED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceRemovedEvent" varDescription="A device was removed">
+            <p:stringVariable varName="deviceId" varDescription="The id of the device that was removed"/>
+            <p:stringVariable varName="deviceClass" varDescription="The class of the device that was removed"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DEVICE_REMOVED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceEndpointRemovedEvent" varDescription="An endpoint was removed">
+            <p:customRef customObj="DSEndpoint" localName="endpoint"/>
+            <p:stringVariable varName="deviceClass"     varDescription="the device's class"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_ENDPOINT_REMOVED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceDiscoveryFailedEvent" varDescription="A device failed discovery">
+            <p:stringVariable varName="deviceId" varDescription="The id of the device that failed discoveery"/>
+            <p:stringVariable varName="deviceClass" varDescription="The class of the device that was failed discovery"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DEVICE_DISCOVERY_FAILED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceDiscoveryCompletedEvent" varDescription="Discovery of a device has completed">
+            <p:customRef customObj="DSDevice" localName="device"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DEVICE_DISCOVERY_COMPLETED</p:eventCode>
+        </p:event>
+
+        <p:event varName="ZigbeeSubsystemStatusChangedEvent" varDescription="The zigbee subsystem status has changed">
+            <p:customRef customObj="DSZigbeeSubsystemStatus" localName="status"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_ZIGBEE_SUBSYSTEM_STATUS_CHANGED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceReadyForDevicesEvent" varDescription="All subsystems are ready to start working with devices">
+            <p:eventCode>DEVICE_SERVICE_EVENT_READY_FOR_DEVICES</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceConfigureStartedEvent" varDescription="Configuration of a device has started">
+            <p:stringVariable varName="deviceClass" varDescription="the device's class"/>
+            <p:stringVariable varName="deviceId" varDescription="The id of the device being configured"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_CONFIGURE_STARTED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceConfigureCompletedEvent" varDescription="Configuration of a device has completed">
+            <p:stringVariable varName="deviceClass" varDescription="the device's class"/>
+            <p:stringVariable varName="deviceId" varDescription="The id of the device being configured"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_CONFIGURE_COMPLETED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceConfigureFailedEvent" varDescription="Configuration of a device has failed">
+            <p:stringVariable varName="deviceClass" varDescription="the device's class"/>
+            <p:stringVariable varName="deviceId" varDescription="The id of the device being configured"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_CONFIGURE_FAILED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceZigbeeChannelChangedEvent" varDescription="The result event from a request to change channel">
+            <p:numVariable varName="currentChannel" kind="short" varDescription="the channel in use when the change channel request completes"/>
+            <p:numVariable varName="targetedChannel" kind="short" varDescription="the channel specified in the change channel request"/>
+            <p:boolVariable varName="success" varDescription="if true, the channel change operation succeeded"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_CHANNEL_CHANGED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceZigbeeNetworkInterferenceChangedEvent" varDescription="Indicates a change in the RF interference of the zigbee network">
+            <p:boolVariable varName="interferenceDetected" varDescription="if true, we have detected interference on the zigbee network"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_ZIGBEE_NETWORK_INTERFERENCE_CHANGED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceZigbeePanIdAttackChangedEvent" varDescription="Indicates a change in the PAN ID attack state of the zigbee network">
+            <p:boolVariable varName="attackDetected" varDescription="if true, we have detected a PAN ID attack on the zigbee network"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_ZIGBEE_PAN_ID_ATTACK_CHANGED</p:eventCode>
+        </p:event>
+
+        <p:event varName="DeviceServiceDeviceRecoveredEvent" varDescription="An orphaned device was recovered">
+            <p:stringVariable varName="deviceId" varDescription="The id of the device that was recovered"/>
+            <p:stringVariable varName="deviceClass" varDescription="The class of the device that was recovered"/>
+            <p:stringVariable varName="deviceUri" varDescription="The URI of the device that was receovered"/>
+            <p:eventCode>DEVICE_SERVICE_EVENT_DEVICE_RECOVERED</p:eventCode>
+        </p:event>
+
+        <!-- the event codes sent -->
+        <p:code name="DEVICE_SERVICE_EVENT_MIN"                                  value="300"/>
+
+        <p:code name="DEVICE_SERVICE_EVENT_DEVICE_DISCOVERED"                    value="300"/>
+        <p:code name="DEVICE_SERVICE_EVENT_DEVICE_REJECTED"                      value="301"/>
+        <p:code name="DEVICE_SERVICE_EVENT_DEVICE_ADDED"                         value="302"/>
+        <p:code name="DEVICE_SERVICE_EVENT_RESOURCE_UPDATED"                     value="303"/>
+        <p:code name="DEVICE_SERVICE_EVENT_DISCOVERY_STARTED"                    value="307"/>
+        <p:code name="DEVICE_SERVICE_EVENT_DISCOVERY_STOPPED"                    value="308"/>
+        <p:code name="DEVICE_SERVICE_EVENT_DEVICE_REMOVED"                       value="309"/>
+        <p:code name="DEVICE_SERVICE_EVENT_ENDPOINT_ADDED"                       value="310"/>
+        <p:code name="DEVICE_SERVICE_EVENT_ENDPOINT_REMOVED"                     value="311"/>
+        <p:code name="DEVICE_SERVICE_EVENT_DEVICE_DISCOVERY_FAILED"              value="312"/>
+        <p:code name="DEVICE_SERVICE_EVENT_DEVICE_DISCOVERY_COMPLETED"           value="313"/>
+        <p:code name="DEVICE_SERVICE_EVENT_ZIGBEE_SUBSYSTEM_STATUS_CHANGED"      value="314"/>
+        <p:code name="DEVICE_SERVICE_EVENT_READY_FOR_DEVICES"                    value="315"/>
+        <p:code name="DEVICE_SERVICE_EVENT_CHANNEL_CHANGED"                      value="316"/>
+        <p:code name="DEVICE_SERVICE_EVENT_CONFIGURE_STARTED"                    value="317"/>
+        <p:code name="DEVICE_SERVICE_EVENT_CONFIGURE_COMPLETED"                  value="318"/>
+        <p:code name="DEVICE_SERVICE_EVENT_CONFIGURE_FAILED"                     value="319"/>
+        <p:code name="DEVICE_SERVICE_EVENT_ZIGBEE_NETWORK_INTERFERENCE_CHANGED"  value="320"/>
+        <p:code name="DEVICE_SERVICE_EVENT_ZIGBEE_PAN_ID_ATTACK_CHANGED"         value="321"/>
+        <p:code name="DEVICE_SERVICE_EVENT_DEVICE_RECOVERED"                     value="322"/>
+
+        <p:code name="DEVICE_SERVICE_EVENT_MAX"                                  value="350"/>
+
+    </p:eventList>
+
+    <!--
+      - define the IPC messages
+      -->
+    <p:ipc>
+
+        <p:message id="1" name="DISCOVER_DEVICES_BY_CLASS" generate="C">
+            <p:description>Start discovering devices of the provided device class</p:description>
+            <p:input>
+                <p:customRef>DSDiscoverDevicesByClassRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="2" name="DISCOVER_MULTI_DEVICES_BY_CLASS" generate="C">
+            <p:description>Start discovering devices of the provided set of device class.  Similar to running DISCOVER_DEVICES_BY_CLASS multiple times.</p:description>
+            <p:input>
+                <p:customRef>DSDiscoverDevicesByClassSetRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="5" name="STOP_DISCOVERING_DEVICES" generate="C">
+            <p:description>Stop discovering all devices</p:description>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="10" name="GET_DEVICES" generate="C">
+            <p:description>Retrieve the devices in the system.</p:description>
+            <p:output>
+                <p:customRef>DSDeviceList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="11" name="GET_DEVICES_BY_DEVICE_CLASS" generate="C">
+            <p:description>Retrieve the devices in the system by device class.</p:description>
+            <p:input>
+                <p:string varName="deviceClass"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSDeviceList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="12" name="GET_DEVICE_BY_URI" generate="C">
+            <p:description>Retrieve a device by uri.</p:description>
+            <p:input>
+                <p:string varName="uri"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSDevice</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="13" name="GET_DEVICE_BY_ID" generate="C">
+            <p:description>Retrieve a device by id.</p:description>
+            <p:input>
+                <p:string varName="id"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSDevice</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="14" name="GET_DEVICES_BY_SUBSYSTEM" generate="C">
+            <p:description>Retrieve the devices in the system by their device subsystem (eg. zigbee)</p:description>
+            <p:input>
+                <p:string varName="deviceSubsystem"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSDeviceList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="26" name="GET_RESOURCE" generate="C">
+            <p:description>Get a resource from a device</p:description>
+            <p:input>
+                <p:string varName="uri"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSResource</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="27" name="READ_RESOURCE" generate="C" readTimeout="15">
+            <p:description>Read a resource from a device or endpoint</p:description>
+            <p:input>
+                <p:string varName="uri"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSReadResourceResponse</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="28" name="WRITE_RESOURCE" generate="C" readTimeout="15">
+            <p:description>Write a resource to a device or endpoint</p:description>
+            <p:input>
+                <p:customRef>DSWriteResourceRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="29" name="EXECUTE_RESOURCE" generate="C">
+            <p:description>Execute a resource on a device or endpoint</p:description>
+            <p:input>
+                <p:customRef>DSExecuteResourceRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>DSExecuteResourceResponse</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="30" name="REMOVE_DEVICE" generate="C" readTimeout="60">
+            <p:description>Remove a device by UUID.</p:description>
+            <p:input>
+                <p:string varName="id"/>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="31" name="REMOVE_DEVICE_BY_URI" generate="C">
+            <p:description>Remove a device by uri.</p:description>
+            <p:input>
+                <p:string varName="uri"/>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="35" name="GET_ENDPOINTS_BY_PROFILE" generate="C">
+            <p:description>Retrieve endpoints in the system by profile</p:description>
+            <p:input>
+                <p:string varName="profile"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSEndpointList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="40" name="GET_ENDPOINT" generate="C">
+            <p:description>Retrieve an endpoint from the system by id</p:description>
+            <p:input>
+                <p:customRef>DSEndpointRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>DSEndpoint</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="45" name="GET_ENDPOINT_BY_URI" generate="C">
+            <p:description>Retrieve an endpoint from the system by uri</p:description>
+            <p:input>
+                <p:string varName="uri"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSEndpoint</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="50" name="REMOVE_ENDPOINT" generate="C">
+            <p:description>Remove an endpoint from the system by id</p:description>
+            <p:input>
+                <p:customRef>DSEndpointRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="51" name="REMOVE_ENDPOINT_BY_URI" generate="C">
+            <p:description>Remove an endpoint from the system by uri</p:description>
+            <p:input>
+                <p:string varName="uri"/>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="52" name="GET_SYSTEM_PROPERTY" generate="C">
+            <p:description>Retrieve a system property</p:description>
+            <p:input>
+                <p:string varName="key"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSGetSystemPropertyResponse</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="53" name="SET_SYSTEM_PROPERTY" generate="C">
+            <p:description>Retrieve a system property</p:description>
+            <p:input>
+                <p:customRef>DSSetSystemPropertyRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="54" name="READ_METADATA" generate="C">
+            <p:description>Read metadata from a device or endpoint</p:description>
+            <p:input>
+                <p:string varName="uri"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSReadMetadataResponse</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="55" name="WRITE_METADATA" generate="C">
+            <p:description>Write metadata to a device or endpoint</p:description>
+            <p:input>
+                <p:customRef>DSWriteMetadataRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="56" name="RELOAD_DATABASE" generate="C">
+            <p:description>Reload the database from storage</p:description>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="57" name="QUERY_METADATA_BY_URI" generate="C">
+            <p:description>Find a set of metadata by their URI</p:description>
+            <p:input>
+                <p:string varName="uriPattern"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSMetadataUriMap</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="58" name="QUERY_RESOURCES_BY_URI" generate="C">
+            <p:description>Find a set of resources by their URI</p:description>
+            <p:input>
+                <p:string varName="uriPattern"/>
+            </p:input>
+            <p:output>
+                <p:customRef>DSResourceList</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="59" name="PROCESS_DEVICE_DESCRIPTORS" generate="C">
+            <p:description>Process the current set of device descriptors</p:description>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="60" name="RESOURCE_EXISTS" generate="C">
+            <p:description>Check whether a resource exists</p:description>
+            <p:input>
+                <p:string varName="uri"/>
+            </p:input>
+            <p:output>
+                <p:bool varName="exists"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="61" name="GET_ZIGBEE_SUBSYSTEM_STATUS" generate="C">
+            <p:description>Get the current Zigbee subsystem status</p:description>
+            <p:output>
+                <p:customRef>DSZigbeeSubsystemStatus</p:customRef>
+            </p:output>
+        </p:message>
+        
+        <p:message id="62" name="GET_ZIGBEE_COUNTERS" generate="C">
+            <p:description>Get the current set of Zigbee stack counters as a JSON object</p:description>
+            <p:output>
+                <p:string varName="countersJson"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="63" name="READY_FOR_DEVICES" generate="C">
+            <p:description>Check for whether all subsystems are ready to start working with devices</p:description>
+            <p:output>
+                <p:bool varName="readyForDevices"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="64" name="CHANGE_ZIGBEE_CHANNEL" generate="C">
+            <p:description>Attempt to change the current zigbee channel</p:description>
+            <p:input>
+                <p:customRef>DSZigbeeChangeChannelRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>DSZigbeeChangeChannelResponse</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="65" name="GET_ZIGBEE_NETWORK_MAP" generate="C" readTimeout="120">
+            <p:description>Get the zigbee network map</p:description>
+            <p:output>
+                <p:customRef>DSZigbeeNetworkMap</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="66" name="GET_ZIGBEE_FIRMWARE_VERSION" generate="C">
+            <p:description>Get the zigbee firmware version</p:description>
+            <p:output>
+                <p:string varName="version"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="67" name="IS_DISCOVERY_ACTIVE" generate="C">
+            <p:description>Determine if we are actively discovering devices</p:description>
+            <p:output>
+                <p:bool varName="discoveryActive"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="68" name="CHANGE_RESOURCE_MODE" generate="C">
+            <p:description>Change the mode bits on a resource</p:description>
+            <p:input>
+                <p:customRef>DSChangeResourceModeRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+        <p:message id="69" name="ZIGBEE_ENERGY_SCAN" generate="C">
+            <p:description>Perform a Zigbee energy scan for background noise</p:description>
+            <p:input>
+                <p:customRef>DSZigbeeEnergyScanRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:customRef>DSZigbeeEnergyScanResponse</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="70" name="GET_STATUS" generate="C">
+            <p:description>Retrieve the current status of device service</p:description>
+            <p:output>
+                <p:customRef>DSStatus</p:customRef>
+            </p:output>
+        </p:message>
+
+        <p:message id="71" name="ZIGBEE_TEST_REQUEST_LEAVE" generate="C">
+            <p:description>Send a request to a device to leave</p:description>
+            <p:input>
+                <p:customRef>DSZigbeeRequestLeave</p:customRef>
+            </p:input>
+        </p:message>
+
+        <p:message id="75" name="DISCOVER_ORPHANED_DEVICES_BY_CLASS" generate="C">
+            <p:description>Start discovering orphaned devices of the provided device class</p:description>
+            <p:input>
+                <p:customRef>DSDiscoverDevicesByClassRequest</p:customRef>
+            </p:input>
+            <p:output>
+                <p:bool varName="success"/>
+            </p:output>
+        </p:message>
+
+    </p:ipc>
+
+</p:service>

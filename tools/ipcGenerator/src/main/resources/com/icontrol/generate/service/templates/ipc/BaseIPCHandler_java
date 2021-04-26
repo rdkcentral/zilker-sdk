@@ -1,0 +1,280 @@
+
+package ${java_pkg};
+
+//-----------
+//imports
+//-----------
+
+import com.icontrol.ipc.*;
+import com.icontrol.ipc.impl.*;
+import com.icontrol.util.StringUtils;
+import ${java_api_pkg}.*;
+
+import java.io.IOException;
+import org.json.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+//-----------------------------------------------------------------------------
+// Class definition:    ${java_class}
+/**
+ *  Abstract base class to receive inbound requests using the ${java_codes_interface}
+ *  definition interface.  Will require a subclass to implement the handling of 
+ *  each request.  By convention, the implementation will be provided a stub 
+ *  to use for populating the return output (if required)
+ *  <p>
+ *  THIS IS AN AUTO-GENERATED FILE, DO NOT EDIT!!!!!!!!
+ **/
+//-----------------------------------------------------------------------------
+abstract class ${java_class} implements IPCReceiverHandler, ${java_codes_interface}
+{
+    static Logger log = LoggerFactory.getLogger("${java_class}");
+
+    protected IPCReceiver     thread;
+
+    //--------------------------------------------
+    /**
+     * Constructor for this class
+     */
+    //--------------------------------------------
+    protected ${java_class}() throws IOException
+    {
+        // start an IPCReceiver that will call 'this' as messages arrive
+        //
+        thread = new IPCReceiver(${server_port_name}_PORT_NUM);
+        thread.startReceiveThread(this);
+    }
+    
+    //--------------------------------------------
+    /**
+     * Shutdown the receiver
+     */
+    //--------------------------------------------
+    public void shutdown()
+    {
+        if (thread != null)
+        {
+            thread.shutdown();
+            thread = null;
+        }
+    }
+
+    //--------------------------------------------
+    /**
+     * @see com.icontrol.ipc.IPCReceiverHandler#handleMarshaledRequest(com.icontrol.ipc.IPCMessage)
+     */
+    //--------------------------------------------
+    public int handleMarshaledRequest(IPCMessage message)
+    {
+        int messageCode = message.getMessageCode();
+        log.debug("handler: got request "+messageCode);
+        int rc = -1;
+        
+        // handle the request based on the code
+        //
+        switch (messageCode)
+        {
+            // check for STOCK IPC messages
+            case IPCReceiver.STOCK_IPC_GET_SERVICE_STATUS:
+            {
+                log.debug("handler: responding to IPC request STOCK_IPC_GET_SERVICE_STATUS");
+                ServiceStatusPojo output = new ServiceStatusPojo();
+
+                // handle request
+                boolean worked = handle_STOCK_IPC_GET_SERVICE_STATUS(output);
+                if (worked == true)
+                {
+                    try
+                    {
+                        // encode output
+                        JSONObject jsonOut = output.toJSON();
+                        message.setPayload(jsonOut.toString());
+                        rc = 0;
+                    }
+                    catch (JSONException jsEx) { log.warn(jsEx.getMessage(), jsEx); }
+                }
+                break;
+            }
+            case IPCReceiver.STOCK_IPC_GET_RUNTIME_STATS:
+            {
+                log.debug("handler: responding to IPC request STOCK_IPC_GET_RUNTIME_STATS");
+                BooleanIPC input = null;
+                String json = message.getPayload();
+                if (StringUtils.isEmpty(json) == false)
+                {
+                    try
+                    {
+                        // decode input
+                        JSONObject decoded = (JSONObject) new JSONTokener(json).nextValue();
+                        input = new BooleanIPC();
+                        input.fromJSON(decoded);
+                    }
+                    catch (JSONException jsEx) { log.warn(jsEx.getMessage(), jsEx); }
+                }
+
+                // handle request
+                RuntimeStatsPojo output = new RuntimeStatsPojo();
+                boolean worked = handle_STOCK_IPC_GET_RUNTIME_STATS(input, output);
+                if (worked == true)
+                {
+                    try
+                    {
+                        // encode output
+                        JSONObject jsonOut = output.toJSON();
+                        message.setPayload(jsonOut.toString());
+                        rc = 0;
+                    }
+                    catch (JSONException jsEx) { log.warn(jsEx.getMessage(), jsEx); }
+                }
+                break;
+            }
+            case IPCReceiver.STOCK_IPC_CONFIG_RESTORED:
+            {
+				log.debug("handler: responding to IPC request STOCK_IPC_CONFIG_RESTORED");
+				ConfigRestoredInput input = null;
+				String json = message.getPayload();
+				if (StringUtils.isEmpty(json) == false)
+				{
+					try
+					{
+						// decode input
+						JSONObject decoded = (JSONObject) new JSONTokener(json).nextValue();
+						input = new ConfigRestoredInput();
+						input.fromJSON(decoded);
+					}
+					catch (JSONException jsEx) { log.warn(jsEx.getMessage(), jsEx); }
+				}
+				ConfigRestoredOutput output = new ConfigRestoredOutput();
+				// handle request
+				boolean worked = handle_STOCK_IPC_CONFIG_RESTORED(input, output);
+				if (worked == true)
+				{
+					try
+					{
+						// encode output
+						JSONObject jsonOut = output.toJSON();
+						message.setPayload(jsonOut.toString());
+						rc = 0;
+					}
+					catch (JSONException jsEx) { log.warn(jsEx.getMessage(), jsEx); }
+				}
+				break;
+			}
+            case IPCReceiver.STOCK_IPC_START_INIT:
+            {
+                log.debug("handler: responding to direct request STOCK_IPC_START_INIT");
+                BooleanIPC output = new BooleanIPC();
+                boolean worked = handle_STOCK_IPC_START_INIT(output);
+                if (worked == true)
+                {
+                    try
+                    {
+                        // encode output
+                        JSONObject jsonOut = output.toJSON();
+                        message.setPayload(jsonOut.toString());
+                        rc = 0;
+                    }
+                    catch (JSONException jsEx) { log.warn(jsEx.getMessage(), jsEx); }
+                }
+                break;
+            }
+            // end of STOCK IPC messages
+
+${handler_messages_case}
+        }
+        
+        return rc;
+    }
+    
+    //--------------------------------------------
+    /**
+     * @see com.icontrol.ipc.IPCReceiverHandler#handleDirectRequest(int,com.icontrol.ipc.impl.ObjectIPC,com.icontrol.ipc.impl.ObjectIPC)
+     */
+    //--------------------------------------------
+    public int handleDirectRequest(int messageCode, ObjectIPC input, ObjectIPC output)
+    {
+        log.debug("handler: got direct request "+messageCode);
+        int rc = -1;
+        
+        // handle the request based on the code
+        //
+        switch (messageCode)
+        {
+            // check for STOCK IPC messages
+            case IPCReceiver.STOCK_IPC_GET_SERVICE_STATUS:
+            {
+                log.debug("handler: responding to direct request STOCK_IPC_GET_SERVICE_STATUS");
+                // handle request
+                boolean worked = handle_STOCK_IPC_GET_SERVICE_STATUS((ServiceStatusPojo)output);
+                if (worked == true)
+                {
+                    rc = 0;
+                }
+                break;
+            }
+            case IPCReceiver.STOCK_IPC_GET_RUNTIME_STATS:
+            {
+                log.debug("handler: responding to direct request STOCK_IPC_GET_RUNTIME_STATS");
+                // handle request
+                boolean worked = handle_STOCK_IPC_GET_RUNTIME_STATS((BooleanIPC)input, (RuntimeStatsPojo)output);
+                if (worked == true)
+                {
+                    rc = 0;
+                }
+                break;
+            }
+            case IPCReceiver.STOCK_IPC_CONFIG_RESTORED:
+            {
+				log.debug("handler: responding to direct request STOCK_IPC_CONFIG_RESTORED");
+				// handle request
+				boolean worked = handle_STOCK_IPC_CONFIG_RESTORED((ConfigRestoredInput)input, (ConfigRestoredOutput)output);
+				if (worked == true)
+				{
+					rc = 0;
+				}
+				break;
+            }
+            case IPCReceiver.STOCK_IPC_START_INIT:
+            {
+                log.debug("handler: responding to direct request STOCK_IPC_START_INIT");
+                boolean worked = handle_STOCK_IPC_START_INIT((BooleanIPC)output);
+                if (worked == true)
+                {
+                    rc = 0;
+                }
+                break;
+            }
+            // end of STOCK IPC messages
+
+${handler_direct_messages_case}
+        }
+        
+        return rc;
+    }
+
+    /*
+     * stock IPC messages that are standard across all services (Java and Native)
+     */
+
+    /* process request for STOCK_IPC_GET_SERVICE_STATUS request */
+    protected abstract boolean handle_STOCK_IPC_GET_SERVICE_STATUS(ServiceStatusPojo output);
+
+    /* process request for STOCK_IPC_GET_RUNTIME_STATS request */
+    protected abstract boolean handle_STOCK_IPC_GET_RUNTIME_STATS(BooleanIPC input, RuntimeStatsPojo output);
+
+    /* process request for STOCK_IPC_CONFIG_RESTORED request */
+	protected abstract boolean handle_STOCK_IPC_CONFIG_RESTORED(ConfigRestoredInput input, ConfigRestoredOutput output);
+
+    /* process request for STOCK_IPC_START_INIT request */
+    protected abstract boolean handle_STOCK_IPC_START_INIT(BooleanIPC output);
+
+    /*
+     * IPC messages local to this service
+     */
+
+${handler_abstracts}
+}
+
+//+++++++++++
+//EOF
+//+++++++++++

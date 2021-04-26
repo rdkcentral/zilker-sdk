@@ -1,0 +1,52 @@
+##
+## expansion of "${pojo_encode_body}" to reside in toJSON()
+##
+${pad}if (${parent}->${name}ValuesMap != NULL && ${parent}->${name}TypesMap != NULL)
+${pad}{
+${pad}    // need 3 structures to allow proper decoding later on
+${pad}    //  1 - values
+${pad}    //  2 - types
+${pad}    //  3 - keys
+${pad}    cJSON *${name}Vals_json = cJSON_CreateObject();
+${pad}    cJSON *${name}Types_json = cJSON_CreateObject();
+${pad}    cJSON *${name}Keys_json = cJSON_CreateArray();
+
+${pad}    // add each value & type
+${pad}    icHashMapIterator *${name}_loop = hashMapIteratorCreate(${parent}->${name}ValuesMap);
+${pad}    while (hashMapIteratorHasNext(${name}_loop) == true)
+${pad}    {
+${pad}        void *mapKey;
+${pad}        void *mapVal;
+${pad}        uint16_t mapKeyLen = 0;
+
+${pad}        // get the key & value
+${pad}        //
+${pad}        hashMapIteratorGetNext(${name}_loop, &mapKey, &mapKeyLen, &mapVal);
+${pad}        if (mapKey == NULL || mapVal == NULL)
+${pad}        {
+${pad}            continue;
+${pad}        }
+            
+${pad}        // find corresponding 'type'
+${pad}        //
+${pad}        char *kind = (char *)hashMapGet(${parent}->${name}TypesMap, mapKey, mapKeyLen);
+${pad}        if (kind == NULL)
+${pad}        {
+${pad}            continue;
+${pad}        }
+
+${pad}        ${check_each_type}
+
+${pad}        // save the key & type for decode
+${pad}        //
+${pad}        cJSON_AddStringToObject(${name}Types_json, mapKey, kind);
+${pad}        cJSON_AddItemToArray(${name}Keys_json, cJSON_CreateString(mapKey));
+${pad}    }
+${pad}    hashMapIteratorDestroy(${name}_loop);
+
+${pad}    // add all 3 containers to the parent
+${pad}    //
+${pad}    cJSON_AddItemToObject(${parent_container}, "${name}Vals", ${name}Vals_json);
+${pad}    cJSON_AddItemToObject(${parent_container}, "${name}Types", ${name}Types_json);
+${pad}    cJSON_AddItemToObject(${parent_container}, "${name}Keys", ${name}Keys_json);
+${pad}}

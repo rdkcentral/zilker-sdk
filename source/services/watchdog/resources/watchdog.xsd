@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<!--
+  - Original XSD Schema Definition for the watchdog.conf file to adhere to
+  - This was created a long time ago, so don't complain about the lack of comments...
+  -->
+<xsd:schema targetNamespace="http://xmlns.ucontrol.com/watchdog/watchdogConfig-1.0" 
+	jxb:version="1.0" attributeFormDefault="unqualified" elementFormDefault="unqualified"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns="http://xmlns.ucontrol.com/watchdog/watchdogConfig-1.0">
+
+    <xsd:complexType name="arg">
+    	<xsd:simpleContent>
+    		<xsd:extension base="xsd:string"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="arg" type="arg"></xsd:element>
+
+    <xsd:complexType name="argList">
+    	<xsd:sequence maxOccurs="unbounded" minOccurs="1">
+    		<xsd:element ref="arg" maxOccurs="unbounded" minOccurs="1"></xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="argList" type="argList"></xsd:element>
+
+    <xsd:simpleType name="maxRestartAction">
+    	<xsd:restriction base="xsd:string">
+    		<xsd:enumeration value="reboot"></xsd:enumeration>
+    		<xsd:enumeration value="stopRestarting"></xsd:enumeration>
+    	</xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="actionOnMaxRestarts">
+    	<xsd:simpleContent>
+    		<xsd:extension base="maxRestartAction"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="maxRestartsPerMinute">
+    	<xsd:simpleContent>
+    		<xsd:extension base="xsd:int"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="secondsBetweenRestarts">
+    	<xsd:simpleContent>
+    		<xsd:extension base="xsd:int"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="restartOnCrash">
+    	<xsd:simpleContent>
+    		<xsd:extension base="xsd:boolean"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="expectStartupAck">
+        <xsd:annotation>
+            <xsd:documentation>
+                Flag that signifies this particular service will notify the watchdogService that
+                it has completed initialization and ready to proceed.  This notification by the
+                service comes via the ACK_SERVICE_STARTUP IPC call.  Once all services have sent
+                their 'acknowledgement', the watchdogService will broadcast the WATCHDOG_INIT_COMPLETE event
+            </xsd:documentation>
+        </xsd:annotation>
+
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:boolean"></xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="managerPath">
+    	<xsd:simpleContent>
+    		<xsd:extension base="xsd:string"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="managerName">
+    	<xsd:simpleContent>
+    		<xsd:extension base="xsd:string"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="logicalGroup">
+    	<xsd:simpleContent>
+    		<xsd:extension base="xsd:string"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="autoStart">
+    	<xsd:simpleContent>
+    		<xsd:extension base="xsd:string"></xsd:extension>
+    	</xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="waitSecsOnShutdown">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string"></xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="singlePhaseStartup">
+        <xsd:annotation>
+            <xsd:documentation>
+                Flag that this service starts up in a single phase with no dependencies, so it
+                should be started first and wait upon its ack before starting others
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:boolean"></xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <!-- define a manager to start and potentially monitor -->
+    <xsd:complexType name="managerDef">
+    	<xsd:sequence>
+    		<xsd:element ref="managerName" maxOccurs="1" minOccurs="1"/>
+    		<xsd:element ref="logicalGroup" maxOccurs="1" minOccurs="0"/>
+    		<xsd:element ref="managerPath" maxOccurs="1" minOccurs="1"/>
+    		<xsd:element ref="restartOnCrash" maxOccurs="1" minOccurs="1"/>
+    		<xsd:element ref="secondsBetweenRestarts" maxOccurs="1" minOccurs="0"/>
+    		<xsd:element ref="maxRestartsPerMinute" maxOccurs="1" minOccurs="0"/>
+    		<xsd:element ref="actionOnMaxRestarts" maxOccurs="1" minOccurs="0"/>
+    		<xsd:element ref="autoStart" maxOccurs="1" minOccurs="0"/>
+            <xsd:element ref="waitSecsOnShutdown" maxOccurs="1" minOccurs="0"/>
+            <xsd:element ref="singlePhaseStartup" maxOccurs="1" minOccurs="0"/>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <!-- the list of 'managers' to start/monitor -->
+    <xsd:complexType name="managerList">
+    	<xsd:sequence>
+    		<xsd:element ref="managerDef" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="javaDef" minOccurs="0" maxOccurs="unbounded"/>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <!-- shallow definition of a java service -->
+    <xsd:complexType name="javaDef">
+        <xsd:sequence>
+            <xsd:element ref="managerName" maxOccurs="1" minOccurs="1"/>
+            <xsd:element name="ipcPort" type="xsd:int" maxOccurs="1" minOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="actionOnMaxRestarts" type="actionOnMaxRestarts"></xsd:element>
+    <xsd:element name="managerDef" type="managerDef"></xsd:element>
+    <xsd:element name="managerList" type="managerList"></xsd:element>
+    <xsd:element name="managerName" type="managerName"></xsd:element>
+    <xsd:element name="logicalGroup" type="logicalGroup"></xsd:element>
+    <xsd:element name="managerPath" type="managerPath"></xsd:element>
+    <xsd:element name="restartOnCrash" type="restartOnCrash"></xsd:element>
+    <xsd:element name="secondsBetweenRestarts" type="secondsBetweenRestarts"></xsd:element>
+    <xsd:element name="maxRestartsPerMinute" type="maxRestartsPerMinute"></xsd:element>
+    <xsd:element name="autoStart" type="autoStart"></xsd:element>
+    <xsd:element name="waitSecsOnShutdown" type="waitSecsOnShutdown"></xsd:element>
+    <xsd:element name="singlePhaseStartup" type="singlePhaseStartup"></xsd:element>
+
+    <xsd:element name="javaDef" type="javaDef"/>
+</xsd:schema>

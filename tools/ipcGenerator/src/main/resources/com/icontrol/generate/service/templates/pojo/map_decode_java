@@ -1,0 +1,40 @@
+##
+## expansion of "${pojo_encode_body}" to reside in fromJSON()
+##
+${pad}${name}ValuesMap.clear();
+${pad}${name}TypesMap.clear();
+
+${pad}// get the 3 structures added during encoding:
+${pad}//  1 - values
+${pad}//  2 - types
+${pad}//  3 - keys
+${pad}JSONObject ${name}Vals_json = ${parent_container}.optJSONObject("${name}Vals");
+${pad}JSONObject ${name}Types_json = ${parent_container}.optJSONObject("${name}Types");
+${pad}JSONArray ${name}Keys_json = ${parent_container}.optJSONArray("${name}Keys");
+${pad}if (${name}Vals_json != null && ${name}Types_json != null && ${name}Keys_json != null)
+${pad}{
+${pad}    // loop through keys to extract values and types
+${pad}    //
+${pad}    int size = ${name}Keys_json.length();
+${pad}    for (int i = 0 ; i < size ; i++)
+${pad}    {
+${pad}        // get the next key
+${pad}        //
+${pad}        String key = ${name}Keys_json.optString(i);
+${pad}        if (key == null)
+${pad}        {
+${pad}            continue;
+${pad}        }
+
+${pad}        // pull it's type
+${pad}        //
+${pad}        String type = ${name}Types_json.optString(key);
+${pad}        if (type == null)
+${pad}        {
+${pad}            continue;
+${pad}        }
+${pad}        //${name}TypesMap.put(key, type);
+
+${pad}        ${check_each_type}
+${pad}    }
+${pad}}

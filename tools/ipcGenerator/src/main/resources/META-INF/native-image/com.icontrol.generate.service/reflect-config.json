@@ -1,0 +1,453 @@
+[
+{
+  "name":"[Ljava.io.File;"
+},
+{
+  "name":"[Ljava.lang.Object;"
+},
+{
+  "name":"[Ljava.lang.String;"
+},
+{
+  "name":"[Ljava.lang.reflect.AccessibleObject;"
+},
+{
+  "name":"[Lorg.apache.xmlbeans.SchemaTypeLoader;"
+},
+{
+  "name":"[Lorg.apache.xmlbeans.XmlObject;"
+},
+{
+  "name":"com.icontrol.generate.service.ipc.Message",
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"com.icontrol.generate.service.ipc.MessageParam",
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"com.icontrol.generate.service.parse.MessageWrapper",
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"com.icontrol.generate.service.variable.BooleanVariable",
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"com.icontrol.generate.service.variable.CustomVariable",
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"com.icontrol.generate.service.variable.DateVariable",
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"com.icontrol.generate.service.variable.NumberVariable",
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"com.icontrol.generate.service.variable.StringVariable",
+  "allPublicMethods":true,
+  "allPublicConstructors":true
+},
+{
+  "name":"com.icontrol.xmlns.service.ICNumType$Enum",
+  "fields":[{"name":"table"}]
+},
+{
+  "name":"com.icontrol.xmlns.service.ICScope$Enum",
+  "fields":[{"name":"table"}]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICArrayVariableImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICBoolVariableImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICCustomObjectImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICCustomObjectImpl$CustomRefImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICDateVariableImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICEnumDefinitionImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICEnumValueImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICEnumVariableImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICEventCodeImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICEventImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICEventListImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICIpcImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICJsonVariableImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICMapVariableImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICMessageImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICMessageParmImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICNumTypeImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICNumVariableImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICPragmaImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICPragmaJavaImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICPragmaNativeImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICScopeImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICServiceDocumentImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICServiceImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"com.icontrol.xmlns.service.impl.ICStringVariableImpl",
+  "methods":[{"name":"<init>","parameterTypes":["org.apache.xmlbeans.SchemaType"] }]
+},
+{
+  "name":"freemarker.core._Java6Impl",
+  "fields":[{"name":"INSTANCE"}]
+},
+{
+  "name":"freemarker.core._Java8Impl",
+  "fields":[{"name":"INSTANCE"}]
+},
+{
+  "name":"java.io.File"
+},
+{
+  "name":"java.io.InputStream"
+},
+{
+  "name":"java.io.PrintStream"
+},
+{
+  "name":"java.lang.Class",
+  "methods":[
+    {"name":"forName","parameterTypes":["java.lang.String"] }, 
+    {"name":"forName","parameterTypes":["java.lang.String","boolean","java.lang.ClassLoader"] }, 
+    {"name":"getClassLoader","parameterTypes":[] }, 
+    {"name":"newInstance","parameterTypes":[] }
+  ]
+},
+{
+  "name":"java.lang.ClassLoader"
+},
+{
+  "name":"java.lang.Object",
+  "methods":[
+    {"name":"notify","parameterTypes":[] }, 
+    {"name":"notifyAll","parameterTypes":[] }, 
+    {"name":"wait","parameterTypes":[] }, 
+    {"name":"wait","parameterTypes":["long"] }, 
+    {"name":"wait","parameterTypes":["long","int"] }
+  ]
+},
+{
+  "name":"java.lang.Runtime",
+  "methods":[
+    {"name":"addShutdownHook","parameterTypes":["java.lang.Thread"] }, 
+    {"name":"exec","parameterTypes":["java.lang.String"] }, 
+    {"name":"exec","parameterTypes":["java.lang.String","java.lang.String[]"] }, 
+    {"name":"exec","parameterTypes":["java.lang.String","java.lang.String[]","java.io.File"] }, 
+    {"name":"exec","parameterTypes":["java.lang.String[]"] }, 
+    {"name":"exec","parameterTypes":["java.lang.String[]","java.lang.String[]"] }, 
+    {"name":"exec","parameterTypes":["java.lang.String[]","java.lang.String[]","java.io.File"] }, 
+    {"name":"exit","parameterTypes":["int"] }, 
+    {"name":"halt","parameterTypes":["int"] }, 
+    {"name":"load","parameterTypes":["java.lang.String"] }, 
+    {"name":"loadLibrary","parameterTypes":["java.lang.String"] }, 
+    {"name":"removeShutdownHook","parameterTypes":["java.lang.Thread"] }, 
+    {"name":"traceInstructions","parameterTypes":["boolean"] }, 
+    {"name":"traceMethodCalls","parameterTypes":["boolean"] }
+  ]
+},
+{
+  "name":"java.lang.SecurityManager"
+},
+{
+  "name":"java.lang.String"
+},
+{
+  "name":"java.lang.System",
+  "methods":[
+    {"name":"exit","parameterTypes":["int"] }, 
+    {"name":"load","parameterTypes":["java.lang.String"] }, 
+    {"name":"loadLibrary","parameterTypes":["java.lang.String"] }, 
+    {"name":"runFinalizersOnExit","parameterTypes":["boolean"] }, 
+    {"name":"setErr","parameterTypes":["java.io.PrintStream"] }, 
+    {"name":"setIn","parameterTypes":["java.io.InputStream"] }, 
+    {"name":"setOut","parameterTypes":["java.io.PrintStream"] }, 
+    {"name":"setProperties","parameterTypes":["java.util.Properties"] }, 
+    {"name":"setProperty","parameterTypes":["java.lang.String","java.lang.String"] }, 
+    {"name":"setSecurityManager","parameterTypes":["java.lang.SecurityManager"] }
+  ]
+},
+{
+  "name":"java.lang.Thread",
+  "methods":[
+    {"name":"destroy","parameterTypes":[] }, 
+    {"name":"getContextClassLoader","parameterTypes":[] }, 
+    {"name":"interrupt","parameterTypes":[] }, 
+    {"name":"join","parameterTypes":[] }, 
+    {"name":"join","parameterTypes":["long"] }, 
+    {"name":"join","parameterTypes":["long","int"] }, 
+    {"name":"resume","parameterTypes":[] }, 
+    {"name":"run","parameterTypes":[] }, 
+    {"name":"setContextClassLoader","parameterTypes":["java.lang.ClassLoader"] }, 
+    {"name":"setDaemon","parameterTypes":["boolean"] }, 
+    {"name":"setName","parameterTypes":["java.lang.String"] }, 
+    {"name":"setPriority","parameterTypes":["int"] }, 
+    {"name":"sleep","parameterTypes":["long"] }, 
+    {"name":"sleep","parameterTypes":["long","int"] }, 
+    {"name":"start","parameterTypes":[] }, 
+    {"name":"stop","parameterTypes":[] }, 
+    {"name":"stop","parameterTypes":["java.lang.Throwable"] }, 
+    {"name":"suspend","parameterTypes":[] }
+  ]
+},
+{
+  "name":"java.lang.ThreadGroup",
+  "methods":[
+    {"name":"allowThreadSuspension","parameterTypes":["boolean"] }, 
+    {"name":"destroy","parameterTypes":[] }, 
+    {"name":"interrupt","parameterTypes":[] }, 
+    {"name":"resume","parameterTypes":[] }, 
+    {"name":"setDaemon","parameterTypes":["boolean"] }, 
+    {"name":"setMaxPriority","parameterTypes":["int"] }, 
+    {"name":"stop","parameterTypes":[] }
+  ]
+},
+{
+  "name":"java.lang.Throwable",
+  "methods":[{"name":"initCause","parameterTypes":["java.lang.Throwable"] }]
+},
+{
+  "name":"java.lang.reflect.AccessibleObject",
+  "methods":[
+    {"name":"setAccessible","parameterTypes":["boolean"] }, 
+    {"name":"setAccessible","parameterTypes":["java.lang.reflect.AccessibleObject[]","boolean"] }
+  ]
+},
+{
+  "name":"java.lang.reflect.Constructor",
+  "methods":[{"name":"newInstance","parameterTypes":["java.lang.Object[]"] }]
+},
+{
+  "name":"java.lang.reflect.Field",
+  "methods":[
+    {"name":"set","parameterTypes":["java.lang.Object","java.lang.Object"] }, 
+    {"name":"setBoolean","parameterTypes":["java.lang.Object","boolean"] }, 
+    {"name":"setByte","parameterTypes":["java.lang.Object","byte"] }, 
+    {"name":"setChar","parameterTypes":["java.lang.Object","char"] }, 
+    {"name":"setDouble","parameterTypes":["java.lang.Object","double"] }, 
+    {"name":"setFloat","parameterTypes":["java.lang.Object","float"] }, 
+    {"name":"setInt","parameterTypes":["java.lang.Object","int"] }, 
+    {"name":"setLong","parameterTypes":["java.lang.Object","long"] }, 
+    {"name":"setShort","parameterTypes":["java.lang.Object","short"] }
+  ]
+},
+{
+  "name":"java.lang.reflect.Method",
+  "methods":[{"name":"invoke","parameterTypes":["java.lang.Object","java.lang.Object[]"] }]
+},
+{
+  "name":"java.util.Properties"
+},
+{
+  "name":"java.util.concurrent.ConcurrentMap",
+  "methods":[{"name":"remove","parameterTypes":["java.lang.Object","java.lang.Object"] }]
+},
+{
+  "name":"javax.xml.stream.XMLStreamReader"
+},
+{
+  "name":"org.apache.xmlbeans.BindingConfig"
+},
+{
+  "name":"org.apache.xmlbeans.Filer"
+},
+{
+  "name":"org.apache.xmlbeans.QNameCache"
+},
+{
+  "name":"org.apache.xmlbeans.ResourceLoader"
+},
+{
+  "name":"org.apache.xmlbeans.SchemaComponent"
+},
+{
+  "name":"org.apache.xmlbeans.SchemaType"
+},
+{
+  "name":"org.apache.xmlbeans.SchemaTypeLoader"
+},
+{
+  "name":"org.apache.xmlbeans.SchemaTypeSystem"
+},
+{
+  "name":"org.apache.xmlbeans.XmlBeans"
+},
+{
+  "name":"org.apache.xmlbeans.XmlOptions"
+},
+{
+  "name":"org.apache.xmlbeans.impl.common.QNameHelper"
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.BuiltinSchemaTypeSystem",
+  "methods":[
+    {"name":"get","parameterTypes":[] }, 
+    {"name":"getNoType","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.PathResourceLoader",
+  "methods":[{"name":"<init>","parameterTypes":["java.io.File[]"] }]
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.SchemaParticleImpl"
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.SchemaPropertyImpl"
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.SchemaTypeImpl"
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.SchemaTypeLoaderBase"
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.SchemaTypeLoaderImpl",
+  "methods":[
+    {"name":"build","parameterTypes":["org.apache.xmlbeans.SchemaTypeLoader[]","org.apache.xmlbeans.ResourceLoader","java.lang.ClassLoader"] }, 
+    {"name":"getContextTypeLoader","parameterTypes":[] }
+  ]
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.SchemaTypeSystemCompiler",
+  "methods":[{"name":"compile","parameterTypes":["java.lang.String","org.apache.xmlbeans.SchemaTypeSystem","org.apache.xmlbeans.XmlObject[]","org.apache.xmlbeans.BindingConfig","org.apache.xmlbeans.SchemaTypeLoader","org.apache.xmlbeans.Filer","org.apache.xmlbeans.XmlOptions"] }]
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.SchemaTypeSystemImpl",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"org.apache.xmlbeans.impl.schema.StscComplexTypeResolver"
+},
+{
+  "name":"org.apache.xmlbeans.impl.store.CharUtil"
+},
+{
+  "name":"org.apache.xmlbeans.impl.store.Cur"
+},
+{
+  "name":"org.apache.xmlbeans.impl.store.Locale",
+  "methods":[
+    {"name":"nodeToCursor","parameterTypes":["org.w3c.dom.Node"] }, 
+    {"name":"nodeToXmlObject","parameterTypes":["org.w3c.dom.Node"] }, 
+    {"name":"nodeToXmlStream","parameterTypes":["org.w3c.dom.Node"] }, 
+    {"name":"streamToNode","parameterTypes":["javax.xml.stream.XMLStreamReader"] }
+  ]
+},
+{
+  "name":"org.apache.xmlbeans.impl.store.Locale$DocProps"
+},
+{
+  "name":"org.apache.xmlbeans.impl.store.Path",
+  "methods":[{"name":"compilePath","parameterTypes":["java.lang.String","org.apache.xmlbeans.XmlOptions"] }]
+},
+{
+  "name":"org.apache.xmlbeans.impl.store.Query",
+  "methods":[{"name":"compileQuery","parameterTypes":["java.lang.String","org.apache.xmlbeans.XmlOptions"] }]
+},
+{
+  "name":"org.apache.xmlbeans.impl.store.Xobj"
+},
+{
+  "name":"org.apache.xmlbeans.impl.util.XsTypeConverter"
+},
+{
+  "name":"org.apache.xmlbeans.impl.values.NamespaceContext"
+},
+{
+  "name":"org.apache.xmlbeans.impl.values.XmlComplexContentImpl"
+},
+{
+  "name":"org.apache.xmlbeans.impl.values.XmlObjectBase"
+},
+{
+  "name":"org.slf4j.LoggerFactory"
+},
+{
+  "name":"org.slf4j.impl.SimpleLoggerFactory"
+},
+{
+  "name":"org.w3c.dom.Node"
+},
+{
+  "name":"schemaorg_apache_xmlbeans.system.sCB688E5FAE192DEACE4E338DB8D01B47.TypeSystemHolder",
+  "fields":[{"name":"typeSystem"}]
+}
+]

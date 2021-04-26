@@ -1,0 +1,11 @@
+##
+## template file for Pojo header-file function declarations
+##
+
+/*
+ * pojo encode/decode function declarations
+ */
+
+${c_function_decs}
+
+

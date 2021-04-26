@@ -1,0 +1,15 @@
+##
+## template for a 'add to linked-list' function for a POJO
+##
+
+/*
+ * put a '${list_type}' in the '${list_var}' list contained in '${pojo_c_varname}'
+ */
+void put_${list_first}_in_${pojo_classname}_${list_var}(${pojo_classname} *pojo, ${list_type} value)
+{
+    // place 'value' into the list.  it will be released when our 'destroy_${pojo_classname} is called
+    //
+    ${list_type} *allocValue = (${list_type} *)malloc(sizeof(${list_type}));
+    *allocValue = value;
+    linkedListAppend(pojo->${list_var}, allocValue);
+}

@@ -1,0 +1,7 @@
+##
+## template file for EventAdapter source
+## used to generate the internal variables within the source
+##
+// list of Listeners to notify when ${event_classname} events come in
+static icThreadSafeWrapper ${event_classname}_listWrapper = THREAD_SAFE_WRAPPER_INIT(listCreateFunc, listCheckReleaseFunc, listDestroyFunc);
+

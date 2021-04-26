@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  -
+   - Copyright 2021 Comcast Cable Communications Management, LLC
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -
+  - SPDX-License-Identifier: Apache-2.0
+  -
+  -->
+
+<ConfigFile version="1.0">
+    <ConfigTimers version="1.0">
+        <MediaTunnelReadyTimers>
+            <maxMediaTunnelReadyWait>60000</maxMediaTunnelReadyWait>
+            <minWait>0</minWait>
+            <maxWait>5000</maxWait>
+            <stepsizeWait>500</stepsizeWait>
+            <retries>10</retries>
+        </MediaTunnelReadyTimers>
+        <MediaUploadTimers>
+            <minWait>1000</minWait>
+            <maxWait>5000</maxWait>
+            <stepsizeWait>500</stepsizeWait>
+            <retries>10</retries>
+            <UploadTimeout>1800000</UploadTimeout>
+        </MediaUploadTimers>
+    </ConfigTimers>
+    <DeviceInfo version="1.0"/>
+    <Time version="1.0"/>
+    <NTPServerList version="1.0"/>
+    <HostServer version="1.0">
+        <https>
+            <enabled>true</enabled>
+            <port>443</port>
+            <validateCerts>false</validateCerts>
+        </https>
+        <http>
+            <enabled>false</enabled>
+            <port>80</port>
+        </http>
+        <poll>
+            <enabled>true</enabled>
+            <defaultLinger>10</defaultLinger>
+        </poll>
+    </HostServer>
+    <HistoryConfiguration version="1.0"/>
+    <NetworkInterfaceList version="1.0"/>
+    <AudioChannelList version="1.0">
+        <AudioChannel version="1.0">
+            <id>0</id>
+            <enabled>false</enabled>
+            <audioMode>listenonly</audioMode>
+            <microphoneEnabled>false</microphoneEnabled>
+        </AudioChannel>
+    </AudioChannelList>
+    <VideoInput version="1.0"/>
+    <UserList version="1.0">
+        <Account version="1.0">
+            <id>0</id>
+            <userName>mlyS76Lv</userName>
+            <password>6yMeC6ny</password>
+            <accessRights>admin</accessRights>
+        </Account>
+        <Account version="1.0">
+            <id>1</id>
+            <userName>RUr3xI7w</userName>
+            <password>lDvoKxTG</password>
+            <accessRights>user</accessRights>
+        </Account>
+    </UserList>
+    <StreamingChannelList version="1.0"/>
+    <MotionDetectionList version="1.0"/>
+    <SoundDetectionList version="1.0"/>
+    <EventNotification version="1.0"/>
+</ConfigFile>
