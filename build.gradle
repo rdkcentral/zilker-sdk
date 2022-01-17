@@ -45,7 +45,6 @@ allprojects // subprojects
     repositories {
         // standard
         mavenCentral()
-        jcenter()
 
         // local mavan cache
         mavenLocal()
